@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wattwise_app/core/app_theme.dart';
+import 'package:wattwise_app/feature/home/screens/home.dart';
+import 'package:wattwise_app/feature/splash_screen/splash_screen.dart';
 
-void main(List<String> args) {
+void main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 
@@ -14,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       title: 'WattWise',
-      home: const Scaffold(body: Center(child: Text('Hello, WattWise!'))),
+      home: Home(),
     );
   }
 }
