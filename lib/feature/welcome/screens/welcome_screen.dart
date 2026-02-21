@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wattwise_app/feature/auth/screen/sign_in_page.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
+import 'package:wattwise_app/feature/on_boarding/screens/on_boarding_screen.dart';
 import 'package:wattwise_app/feature/welcome/widgets/feature_card.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
@@ -85,7 +84,7 @@ class WelcomeScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => SignInPage()),
+                          MaterialPageRoute(builder: (context) => OnBoardingScreen()),
                         );
                       },
                     ),
