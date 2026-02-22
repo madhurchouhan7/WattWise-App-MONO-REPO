@@ -46,178 +46,204 @@ class OnBoardingPage2 extends StatelessWidget {
 
         // scrollable content
         Expanded(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.05,
-                vertical: width * 0.02,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Step 2 of 5',
-                    style: GoogleFonts.poppins(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: fontSize * 0.65,
-                    ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: width * 0.3,
+                    left: width * 0.05,
+                    right: width * 0.05,
                   ),
-
-                  SizedBox(height: width * 0.05),
-
-                  Wrap(
-                    alignment: WrapAlignment.center,
+                  child: Column(
                     children: [
                       Text(
-                        'Where is your home?',
-                        textAlign: TextAlign.center,
+                        'Step 2 of 5',
                         style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: fontSize * 1.3,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      Text(
-                        'We\'ll use this to fetch accurate electricity rates for your area.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey[600],
-                          fontSize: fontSize * 0.75,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: width * 0.05),
-
-                  SvgPicture.asset(SvgAssets.location_svg, width: width * 0.4),
-
-                  SizedBox(height: width * 0.05),
-
-                  UseMyCurrentLocation(),
-
-                  SizedBox(height: width * 0.07),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '\tState',
-                        style: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
-                      ),
-
-                      DropdownButtonFormField<String>(
-                        items: states
-                            .map(
-                              (state) => DropdownMenuItem(
-                                value: state,
-                                child: Text(state),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {},
-                        hint: Text('Select your State'),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.04,
-                            vertical: width * 0.03,
-                          ),
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: fontSize * 0.65,
                         ),
                       ),
 
                       SizedBox(height: width * 0.05),
 
-                      Text(
-                        '\tCity',
-                        style: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
-                      ),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Text(
+                            'Where is your home?',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: fontSize * 1.3,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
 
-                      DropdownButtonFormField<String>(
-                        items: cities
-                            .map(
-                              (city) => DropdownMenuItem(
-                                value: city,
-                                child: Text(city),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {},
-                        hint: Text('Select your City'),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          Text(
+                            'We\'ll use this to fetch accurate electricity rates for your area.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
+                              fontSize: fontSize * 0.75,
+                            ),
                           ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.04,
-                            vertical: width * 0.03,
-                          ),
-                        ),
+                        ],
+                      ),
+                      SizedBox(height: width * 0.05),
+
+                      SvgPicture.asset(
+                        SvgAssets.location_svg,
+                        width: width * 0.4,
                       ),
 
                       SizedBox(height: width * 0.05),
 
-                      Text(
-                        '\tElectricity Provider (DISCOM)',
-                        style: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
-                      ),
+                      UseMyCurrentLocation(),
 
-                      DropdownButtonFormField<String>(
-                        items:
-                            [
-                                  'DISCOM 1',
-                                  'DISCOM 2',
-                                  'DISCOM 3',
-                                  'DISCOM 4',
-                                  'DISCOM 5',
-                                ]
+                      SizedBox(height: width * 0.07),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\tState',
+                            style: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          DropdownButtonFormField<String>(
+                            items: states
                                 .map(
-                                  (discom) => DropdownMenuItem(
-                                    value: discom,
-                                    child: Text(discom),
+                                  (state) => DropdownMenuItem(
+                                    value: state,
+                                    child: Text(state),
                                   ),
                                 )
                                 .toList(),
-                        onChanged: (value) {},
-                        hint: Text('Select your Electricity Provider'),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            onChanged: (value) {},
+                            hint: Text('Select your State'),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: width * 0.04,
+                                vertical: width * 0.03,
+                              ),
+                            ),
                           ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.04,
-                            vertical: width * 0.03,
+
+                          SizedBox(height: width * 0.05),
+
+                          Text(
+                            '\tCity',
+                            style: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
+
+                          DropdownButtonFormField<String>(
+                            items: cities
+                                .map(
+                                  (city) => DropdownMenuItem(
+                                    value: city,
+                                    child: Text(city),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {},
+                            hint: Text('Select your City'),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: width * 0.04,
+                                vertical: width * 0.03,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: width * 0.05),
+
+                          Text(
+                            '\tElectricity Provider (DISCOM)',
+                            style: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          DropdownButtonFormField<String>(
+                            items:
+                                [
+                                      'DISCOM 1',
+                                      'DISCOM 2',
+                                      'DISCOM 3',
+                                      'DISCOM 4',
+                                      'DISCOM 5',
+                                    ]
+                                    .map(
+                                      (discom) => DropdownMenuItem(
+                                        value: discom,
+                                        child: Text(discom),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (value) {},
+                            hint: Text('Select your Electricity Provider'),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: width * 0.04,
+                                vertical: width * 0.03,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-
-                  SizedBox(height: width * 0.08),
-
-                  CtaButton(text: 'Continue', onPressed: () {
-                    pageController.nextPage(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  }),
-                ],
+                ),
               ),
-            ),
+
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(width * 0.05),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueGrey.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: CtaButton(
+                    text: 'Continue',
+                    onPressed: () {
+                      pageController.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

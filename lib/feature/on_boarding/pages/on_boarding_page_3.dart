@@ -37,186 +37,206 @@ class OnBoardingPage3 extends StatelessWidget {
 
         // scrollable content
         Expanded(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.05,
-                vertical: width * 0.02,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Step 3 of 5',
-                    style: GoogleFonts.poppins(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: fontSize * 0.65,
-                    ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.05,
+                    vertical: width * 0.02,
                   ),
-
-                  SizedBox(height: width * 0.05),
-
-                  Wrap(
-                    alignment: WrapAlignment.center,
+                  child: Column(
                     children: [
                       Text(
-                        'How many People live with you?',
-                        textAlign: TextAlign.center,
+                        'Step 3 of 5',
                         style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: fontSize * 1.3,
-                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: fontSize * 0.65,
                         ),
                       ),
 
-                      Text(
-                        'This helps us estimate typical electricity usage for your household.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey[600],
-                          fontSize: fontSize * 0.75,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: width * 0.05),
+                      SizedBox(height: width * 0.05),
 
-                  SvgPicture.asset(
-                    SvgAssets.people_home_svg,
-                    width: width * 0.4,
-                  ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      PeopleSelect(text: '-'),
-                      Column(
+                      Wrap(
+                        alignment: WrapAlignment.center,
                         children: [
                           Text(
-                            '2',
+                            'How many People live with you?',
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
-                              fontSize: fontSize * 3,
-                              fontWeight: FontWeight.bold,
                               color: Colors.black,
+                              fontSize: fontSize * 1.3,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
 
                           Text(
-                            'People',
+                            'This helps us estimate typical electricity usage for your household.',
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
-                              fontSize: fontSize * 0.75,
                               color: Colors.grey[600],
+                              fontSize: fontSize * 0.75,
                             ),
                           ),
                         ],
                       ),
-                      PeopleSelect(text: '+'),
-                    ],
-                  ),
+                      SizedBox(height: width * 0.05),
 
-                  SizedBox(height: width * 0.05),
-
-                  Wrap(
-                    spacing: 30,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      Chip(
-                        labelStyle: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          color: Colors.black,
-                        ),
-                        label: Text('Just Me'),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      Chip(
-                         
-                        labelStyle: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          color: Colors.black,
-                        ),
-                        label: Text('Small Family'),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      Chip(
-                        labelStyle: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          color: Colors.black,
-                        ),
-                        label: Text('Large Family'),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      Chip(
-                        labelStyle: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          color: Colors.black,
-                        ),
-                        label: Text('Join Family'),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: width * 0.07),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '\tMore Details(optional)',
-                        style: GoogleFonts.poppins(
-                          fontSize: fontSize * 0.75,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
+                      SvgPicture.asset(
+                        SvgAssets.people_home_svg,
+                        width: width * 0.4,
                       ),
 
-                      DropdownButtonFormField<String>(
-                        items: ['1', '2', '3', '4', '5+']
-                            .map( 
-                              (state) => DropdownMenuItem(
-                                value: state,
-                                child: Text(state),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          PeopleSelect(text: '-'),
+                          Column(
+                            children: [
+                              Text(
+                                '2',
+                                style: GoogleFonts.poppins(
+                                  fontSize: fontSize * 3,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
                               ),
-                            )
-                            .toList(),
-                        onChanged: (value) {},
-                        hint: Text('HOUSE TYPE'),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+
+                              Text(
+                                'People',
+                                style: GoogleFonts.poppins(
+                                  fontSize: fontSize * 0.75,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
                           ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: width * 0.04,
-                            vertical: width * 0.03,
-                          ),
-                        ),
+                          PeopleSelect(text: '+'),
+                        ],
                       ),
 
                       SizedBox(height: width * 0.05),
 
-                      SizedBox(height: width * 0.05),
+                      Wrap(
+                        spacing: 30,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Chip(
+                            labelStyle: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              color: Colors.black,
+                            ),
+                            label: Text('Just Me'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          Chip(
+                            labelStyle: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              color: Colors.black,
+                            ),
+                            label: Text('Small Family'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          Chip(
+                            labelStyle: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              color: Colors.black,
+                            ),
+                            label: Text('Large Family'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          Chip(
+                            labelStyle: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              color: Colors.black,
+                            ),
+                            label: Text('Join Family'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: width * 0.07),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\tMore Details(optional)',
+                            style: GoogleFonts.poppins(
+                              fontSize: fontSize * 0.75,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          DropdownButtonFormField<String>(
+                            items: ['1', '2', '3', '4', '5+']
+                                .map(
+                                  (state) => DropdownMenuItem(
+                                    value: state,
+                                    child: Text(state),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {},
+                            hint: Text('HOUSE TYPE'),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: width * 0.04,
+                                vertical: width * 0.03,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: width * 0.05),
+
+                          SizedBox(height: width * 0.05),
+                        ],
+                      ),
                     ],
                   ),
-
-                  SizedBox(height: width * 0.08),
-
-                  CtaButton(text: 'Continue', onPressed: () {
-                    pageController.nextPage(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  }),
-                ],
+                ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(width * 0.05),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueGrey.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: CtaButton(
+                    text: 'Continue',
+                    onPressed: () {
+                      pageController.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

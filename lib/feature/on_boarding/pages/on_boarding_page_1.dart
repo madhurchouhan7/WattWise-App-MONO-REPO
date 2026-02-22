@@ -35,84 +35,110 @@ class OnBoardingPage1 extends StatelessWidget {
 
         // scrollable content
         Expanded(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.05,
-                vertical: width * 0.02,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Step 1 of 5',
-                    style: GoogleFonts.poppins(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: fontSize * 0.65,
-                    ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.05,
+                    vertical: width * 0.02,
                   ),
-
-                  SizedBox(height: width * 0.05),
-
-                  Image.asset(
-                    'assets/svg/onboarding_1.png',
-                    width: width * 0.8,
-                  ),
-
-                  SizedBox(height: width * 0.05),
-
-                  Wrap(
+                  child: Column(
                     children: [
                       Text(
-                        'Let\'s Set Up Your Profile',
-                        textAlign: TextAlign.center,
+                        'Step 1 of 5',
                         style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: fontSize * 1.3,
-                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: fontSize * 0.65,
                         ),
+                      ),
+
+                      SizedBox(height: width * 0.05),
+
+                      Image.asset(
+                        'assets/svg/onboarding_1.png',
+                        width: width * 0.8,
+                      ),
+
+                      SizedBox(height: width * 0.05),
+
+                      Wrap(
+                        children: [
+                          Text(
+                            'Let\'s Set Up Your Profile',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: fontSize * 1.3,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: width * 0.05),
+
+                      // your location card
+                      FeatureCard(
+                        title: 'Your Location',
+                        description:
+                            'So we can use accurate \nElectricity Rates',
+                        svgIcon: SvgAssets.location_icon,
+                      ),
+
+                      // household size card
+                      FeatureCard(
+                        title: 'Household Size',
+                        description: 'To estimate your typical Usage',
+                        svgIcon: SvgAssets.group_icon,
+                      ),
+
+                      // your appliances card
+                      FeatureCard(
+                        title: 'Your Appliances',
+                        description: 'To Identify saving opportunities',
+                        svgIcon: SvgAssets.shop_icon,
+                      ),
+
+                      // use pattern card
+                      FeatureCard(
+                        title: 'Usage Patterns',
+                        description: 'For Personalized Saving Plans',
+                        svgIcon: SvgAssets.insights_icon,
                       ),
                     ],
                   ),
-
-                  SizedBox(height: width * 0.07),
-
-                  // your location card
-                  FeatureCard(
-                    title: 'Your Location',
-                    description: 'So we can use accurate \nElectricity Rates',
-                    svgIcon: SvgAssets.location_icon,
-                  ),
-
-                  // household size card
-                  FeatureCard(
-                    title: 'Household Size',
-                    description: 'To estimate your typical Usage',
-                    svgIcon: SvgAssets.group_icon,
-                  ),
-
-                  // your appliances card
-                  FeatureCard(
-                    title: 'Your Appliances',
-                    description: 'To Identify saving opportunities',
-                    svgIcon: SvgAssets.shop_icon,
-                  ),
-
-                  // use pattern card
-                  FeatureCard(
-                    title: 'Usage Patterns',
-                    description: 'For Personalized Saving Plans',
-                    svgIcon: SvgAssets.insights_icon,
-                  ),
-
-                  SizedBox(height: width * 0.05),
-
-                  CtaButton(text: 'Lets Go!', onPressed: () {
-                    pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
-                  }),
-                ],
+                ),
               ),
-            ),
+
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(width * 0.05),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueGrey.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: CtaButton(
+                    text: 'Lets GO',
+                    onPressed: () {
+                      pageController.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
