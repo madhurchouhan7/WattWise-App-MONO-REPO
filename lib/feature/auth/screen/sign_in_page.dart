@@ -17,7 +17,6 @@ class SignInPage extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
-          final screenHeight = constraints.maxHeight;
           final fontSize = screenWidth * 0.05;
 
           return SafeArea(

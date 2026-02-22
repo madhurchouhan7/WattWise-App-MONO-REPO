@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/on_boarding/pages/on_boarding_page_1.dart';
 import 'package:wattwise_app/feature/on_boarding/pages/on_boarding_page_2.dart';
 import 'package:wattwise_app/feature/on_boarding/pages/on_boarding_page_3.dart';
 import 'package:wattwise_app/feature/on_boarding/pages/on_boarding_page_4.dart';
 import 'package:wattwise_app/feature/on_boarding/pages/on_boarding_page_5.dart';
 
-class OnBoardingScreen extends StatefulWidget {
-  OnBoardingScreen({super.key});
+class OnBoardingScreen extends ConsumerStatefulWidget {
+  const OnBoardingScreen({super.key});
 
-  final PageController pageController = PageController(initialPage: 0);
   @override
-  State<OnBoardingScreen> createState() => _OnBoardingScreenState();
+  ConsumerState<OnBoardingScreen> createState() => _OnBoardingScreenState();
 }
 
-class _OnBoardingScreenState extends State<OnBoardingScreen> {
+class _OnBoardingScreenState extends ConsumerState<OnBoardingScreen> {
+  final PageController pageController = PageController(initialPage: 0);
+
   @override
   void dispose() {
-    widget.pageController.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
@@ -28,12 +30,13 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           children: [
             Expanded(
               child: PageView(
-                controller: widget.pageController,
+                controller: pageController,
+                physics: NeverScrollableScrollPhysics(), // Disable swipe navigation
                 children: [
-                  OnBoardingPage1(pageController: widget.pageController),
-                  OnBoardingPage2(pageController: widget.pageController),
-                  OnBoardingPage3(pageController: widget.pageController),
-                  OnBoardingPage4(pageController: widget.pageController),
+                  OnBoardingPage1(pageController: pageController),
+                  OnBoardingPage2(pageController: pageController),
+                  OnBoardingPage3(pageController: pageController),
+                  OnBoardingPage4(pageController: pageController),
                   OnBoardingPage5(),
                 ],
               ),
