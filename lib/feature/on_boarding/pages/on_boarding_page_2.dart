@@ -7,7 +7,9 @@ import 'package:wattwise_app/feature/welcome/widgets/feature_card.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class OnBoardingPage2 extends StatelessWidget {
-  const OnBoardingPage2({super.key});
+  final PageController pageController;
+
+  const OnBoardingPage2({super.key, required this.pageController});
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +209,12 @@ class OnBoardingPage2 extends StatelessWidget {
 
                   SizedBox(height: width * 0.08),
 
-                  CtaButton(text: 'Continue', onPressed: () {}),
+                  CtaButton(text: 'Continue', onPressed: () {
+                    pageController.nextPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }),
                 ],
               ),
             ),

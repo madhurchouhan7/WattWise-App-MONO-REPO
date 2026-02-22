@@ -8,7 +8,8 @@ import 'package:wattwise_app/feature/on_boarding/widget/use_my_current_location.
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class OnBoardingPage3 extends StatelessWidget {
-  const OnBoardingPage3({super.key});
+  final PageController pageController;
+  const OnBoardingPage3({super.key, required this.pageController});
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +208,12 @@ class OnBoardingPage3 extends StatelessWidget {
 
                   SizedBox(height: width * 0.08),
 
-                  CtaButton(text: 'Continue', onPressed: () {}),
+                  CtaButton(text: 'Continue', onPressed: () {
+                    pageController.nextPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }),
                 ],
               ),
             ),

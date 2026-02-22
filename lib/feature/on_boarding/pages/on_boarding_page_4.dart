@@ -9,7 +9,8 @@ import 'package:wattwise_app/feature/on_boarding/widget/use_my_current_location.
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class OnBoardingPage4 extends StatelessWidget {
-  const OnBoardingPage4({super.key});
+  final PageController pageController;
+  const OnBoardingPage4({super.key, required this.pageController});
 
   @override
   Widget build(BuildContext context) {
@@ -39,171 +40,196 @@ class OnBoardingPage4 extends StatelessWidget {
 
             // scrollable content
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: width * 0.05,
-                    vertical: width * 0.02,
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    padding: EdgeInsets.only(bottom: width * 0.1),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: width * 0.05,
+                        vertical: width * 0.02,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Step 4 of 5',
+                            style: GoogleFonts.poppins(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: fontSize * 0.65,
+                            ),
+                          ),
+
+                          SizedBox(height: width * 0.05),
+
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              Text(
+                                'Select Your Appliances',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: fontSize * 1.3,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              Text(
+                                'Check the ones you have at home. this helps us identify where you can save.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[600],
+                                  fontSize: fontSize * 0.75,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: width * 0.05),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // cooling
+                              Text(
+                                'COOLING',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey,
+                                  fontSize: constraints.maxWidth * 0.03,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              SelectAppliances(
+                                title: 'Air Conditioner',
+                                description: 'Split AC, Window AC, Inverter',
+                                svgPath: SvgAssets.ac_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Air Cooler',
+                                description: 'Desert, Personal, Tower',
+                                svgPath: SvgAssets.wind_icon,
+                              ),
+
+                              // HEATING
+                              Text(
+                                'HEATING',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey,
+                                  fontSize: constraints.maxWidth * 0.03,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              SelectAppliances(
+                                title: 'Geyser',
+                                description: 'Electric, Gas, Instant',
+                                svgPath: SvgAssets.geyser_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Room Heater',
+                                description: 'Fan, Oil, Halogen',
+                                svgPath: SvgAssets.room_heater_icon,
+                              ),
+
+                              // always on
+                              Text(
+                                'ALWAYS ON',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey,
+                                  fontSize: constraints.maxWidth * 0.03,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              SelectAppliances(
+                                title: 'Refridgerator',
+                                description: 'Single, Double Door',
+                                svgPath: SvgAssets.fridge_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Television',
+                                description: 'LCD, LED, Smart',
+                                svgPath: SvgAssets.tv_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Wi-Fi Router',
+                                description: 'Modem, Extender',
+                                svgPath: SvgAssets.wifi_router_icon,
+                              ),
+
+                              // OCCASIONAL USE
+                              Text(
+                                'OCCASIONAL USE',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey,
+                                  fontSize: constraints.maxWidth * 0.03,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              SelectAppliances(
+                                title: 'Washing Machine',
+                                description: 'Front Load, Top Load',
+                                svgPath: SvgAssets.washing_machine_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Microwave Oven',
+                                description: 'Solo, Grill, Convection',
+                                svgPath: SvgAssets.microwave_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Water Purifier',
+                                description: 'RO, UV',
+                                svgPath: SvgAssets.water_purifier_icon,
+                              ),
+
+                              SelectAppliances(
+                                title: 'Computer',
+                                description: 'Desktop, Workstation',
+                                svgPath: SvgAssets.computer_icon,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Step 4 of 5',
-                        style: GoogleFonts.poppins(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: fontSize * 0.65,
-                        ),
-                      ),
 
-                      SizedBox(height: width * 0.05),
-
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        children: [
-                          Text(
-                            'Select Your Appliances',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: fontSize * 1.3,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          Text(
-                            'Check the ones you have at home. this helps us identify where you can save.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: fontSize * 0.75,
-                            ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(width * 0.05),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blueGrey.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: Offset(0, -2),
                           ),
                         ],
                       ),
-
-                      SizedBox(height: width * 0.05),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // cooling
-                          Text(
-                            'COOLING',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey,
-                              fontSize: constraints.maxWidth * 0.03,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          SelectAppliances(
-                            title: 'Air Conditioner',
-                            description: 'Split AC, Window AC, Inverter',
-                            svgPath: SvgAssets.ac_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Air Cooler',
-                            description: 'Desert, Personal, Tower',
-                            svgPath: SvgAssets.wind_icon,
-                          ),
-
-                          // HEATING
-                          Text(
-                            'HEATING',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey,
-                              fontSize: constraints.maxWidth * 0.03,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          SelectAppliances(
-                            title: 'Geyser',
-                            description: 'Electric, Gas, Instant',
-                            svgPath: SvgAssets.geyser_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Room Heater',
-                            description: 'Fan, Oil, Halogen',
-                            svgPath: SvgAssets.room_heater_icon,
-                          ),
-
-                          // always on
-                          Text(
-                            'ALWAYS ON',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey,
-                              fontSize: constraints.maxWidth * 0.03,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          SelectAppliances(
-                            title: 'Refridgerator',
-                            description: 'Single, Double Door',
-                            svgPath: SvgAssets.fridge_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Television',
-                            description: 'LCD, LED, Smart',
-                            svgPath: SvgAssets.tv_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Wi-Fi Router',
-                            description: 'Modem, Extender',
-                            svgPath: SvgAssets.wifi_router_icon,
-                          ),
-
-                          // OCCASIONAL USE
-                          Text(
-                            'OCCASIONAL USE',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey,
-                              fontSize: constraints.maxWidth * 0.03,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          SelectAppliances(
-                            title: 'Washing Machine',
-                            description: 'Front Load, Top Load',
-                            svgPath: SvgAssets.washing_machine_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Microwave Oven',
-                            description: 'Solo, Grill, Convection',
-                            svgPath: SvgAssets.microwave_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Water Purifier',
-                            description: 'RO, UV',
-                            svgPath: SvgAssets.water_purifier_icon,
-                          ),
-
-                          SelectAppliances(
-                            title: 'Computer',
-                            description: 'Desktop, Workstation',
-                            svgPath: SvgAssets.computer_icon,
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: width * 0.08),
-
-                      CtaButton(
+                      child: CtaButton(
                         text: 'Continue, [] Selected',
-                        onPressed: () {},
+                        onPressed: () {
+                          pageController.nextPage(
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],

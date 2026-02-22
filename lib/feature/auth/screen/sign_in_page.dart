@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/screen/sign_up_page.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
 import 'package:wattwise_app/feature/auth/widgets/sign_in_with_google.dart';
+import 'package:wattwise_app/feature/on_boarding/screens/on_boarding_screen.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class SignInPage extends StatelessWidget {
@@ -176,7 +177,17 @@ class SignInPage extends StatelessWidget {
                     SizedBox(height: fontSize * 2),
 
                     // CTA : sign in
-                    CtaButton(text: 'Sign In', onPressed: () {}),
+                    CtaButton(
+                      text: 'Sign In',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OnBoardingScreen(),
+                          ),
+                        );
+                      },
+                    ),
 
                     SizedBox(height: fontSize * 1),
 
