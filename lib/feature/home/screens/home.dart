@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 // Import your theme
 
@@ -14,83 +15,99 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // 1. Top App Bar
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Welcome back,",
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final fontSize = width / 60;
+        return Scaffold(
+          // 1. Top App Bar
+          appBar: AppBar(
+            // disable the default back button
+            automaticallyImplyLeading: false,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Welcome back,",
+
+                  style: GoogleFonts.poppins(
+                    fontSize: fontSize * 2.2,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  "Madhur Chouhan",
+                  style: GoogleFonts.poppins(
+                    fontSize: fontSize * 3.2,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
-            const Text(
-              "Alex Johnson", // We will make this dynamic later
-              style: TextStyle(fontWeight: FontWeight.bold),
+            actions: [
+              CircleAvatar(
+                
+                radius: fontSize * 2.5,
+                backgroundImage: const NetworkImage(
+                  "https://avatars.githubusercontent.com/u/30585596?s=400&u=f003965be0a53be549780f833f556bed3a3e95b6&v=4",
+                ),
+              ),
+              SizedBox(width: fontSize * 3),
+            ],
+          ),
+
+          // 2. The Body (Just a placeholder for now)
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.bolt, size: 64, color: Colors.blue),
+                const SizedBox(height: 16),
+                Text(
+                  "Dashboard Content Goes Here",
+                  style: GoogleFonts.poppins(
+                    fontSize: fontSize * 2.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-
-      // 2. The Body (Just a placeholder for now)
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.bolt, size: 64, color: Colors.blue),
-            const SizedBox(height: 16),
-            Text(
-              "Dashboard Content Goes Here",
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
-      ),
-
-      // 3. Bottom Navigation Bar (Matches your PDF Design)
-      bottomNavigationBar: SalomonBottomBar(
-        margin: EdgeInsets.all(20),
-        itemPadding: EdgeInsets.all(18),
-        curve: Curves.easeInOut,
-        items: [
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.home),
-            title: const Text("Home"),
-            selectedColor: Colors.blue,
-          ),
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.bar_chart),
-            title: const Text("Analytics"),
-            selectedColor: Colors.green,
           ),
 
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.energy_savings_leaf),
-            title: const Text("Energy Tips"),
-          ),
+          bottomNavigationBar: SalomonBottomBar(
+            margin: EdgeInsets.all(22),
+            itemPadding: EdgeInsets.all(18),
+            curve: Curves.easeInOut,
+            items: [
+              SalomonBottomBarItem(
+                icon: const Icon(Icons.home_outlined),
+                title: const Text("Home"),
+              ),
+              SalomonBottomBarItem(
+                icon: const Icon(Icons.insights_outlined),
+                title: const Text("Insights"),
+              ),
 
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.settings),
-            title: const Text("Settings"),
-            selectedColor: Colors.orange,
+              SalomonBottomBarItem(
+                icon: const Icon(Icons.receipt_long_rounded),
+                title: const Text("Bills"),
+              ),
+
+              SalomonBottomBarItem(
+                icon: const Icon(Icons.person_outline_rounded),
+                title: const Text("Profile"),
+              ),
+            ],
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
           ),
-        ],
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+        );
+      },
     );
   }
 }
