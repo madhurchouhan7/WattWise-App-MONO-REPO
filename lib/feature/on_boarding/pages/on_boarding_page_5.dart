@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -7,10 +10,29 @@ import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
 
-// No local class definitions here anymore; using models from on_boarding_state.dart
-
-class OnBoardingPage5 extends ConsumerWidget {
+class OnBoardingPage5 extends ConsumerStatefulWidget {
   const OnBoardingPage5({super.key});
+
+  @override
+  ConsumerState<OnBoardingPage5> createState() => _OnBoardingPage5State();
+}
+
+class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
+  late ConfettiController confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    confettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+  @override
+  void dispose() {
+    confettiController.dispose();
+    super.dispose();
+  }
 
   Widget _buildLevelButton(
     WidgetRef ref,
@@ -68,12 +90,16 @@ class OnBoardingPage5 extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final selectedAppliances = ref.watch(selectedAppliancesProvider);
     final width = MediaQuery.sizeOf(context).width;
     // pageState contains all localStates for appliances
     ref.watch(onBoardingPage5Provider);
     final notifier = ref.read(onBoardingPage5Provider.notifier);
+
+    void playConfetti() {
+      confettiController.play();
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -89,6 +115,24 @@ class OnBoardingPage5 extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // shoot from centre top
+                    Center(
+                      child: ConfettiWidget(
+                        blastDirection: -pi / 2,
+                        confettiController: confettiController,
+                        blastDirectionality: BlastDirectionality.directional,
+                        shouldLoop: false,
+                        particleDrag: 0.05,
+                        numberOfParticles: 50,
+                        colors: const [
+                          Color(0xFF5568FE),
+                          Color(0xFFFE5568),
+                          Color(0xFF56FE55),
+                          Color(0xFFFFC300),
+                          Color(0xFF00BFFF),
+                        ],
+                      ),
+                    ),
                     Text(
                       'ALMOST DONE! 🎉',
                       style: GoogleFonts.poppins(
@@ -156,9 +200,7 @@ class OnBoardingPage5 extends ConsumerWidget {
                           margin: const EdgeInsets.only(bottom: 24),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFFCFCFD,
-                            ), // Very light grey/white
+                            color: Colors.blueGrey[40],
                             border: Border.all(
                               color: Colors.grey.shade100,
                               width: 1.5,
@@ -438,8 +480,12 @@ class OnBoardingPage5 extends ConsumerWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
+                  // add a confetti animation
                   onPressed: selectedAppliances.isNotEmpty
-                      ? () => notifier.finishSetup(selectedAppliances)
+                      ? () {
+                          playConfetti();
+                          notifier.finishSetup(selectedAppliances);
+                        }
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5568FE),
