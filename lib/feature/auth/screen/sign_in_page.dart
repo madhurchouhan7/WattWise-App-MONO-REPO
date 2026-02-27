@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/screen/sign_up_page.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
 import 'package:wattwise_app/feature/auth/widgets/sign_in_with_google.dart';
+import 'package:wattwise_app/feature/on_boarding/screens/on_boarding_screen.dart';
+import 'package:wattwise_app/feature/root/screens/root_screen.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class SignInPage extends ConsumerStatefulWidget {
@@ -27,39 +30,38 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     super.dispose();
   }
 
+  // ─── Navigation helper ─────────────────────────────────────────────────────
+
+  void _navigateAfterAuth(UserModel user) {
+    if (!mounted) return;
+    final destination = user.isOnboardingComplete
+        ? const RootScreen()
+        : const OnBoardingScreen();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => destination),
+      (route) => false, // Clear entire back-stack
+    );
+  }
+
+  // ─── Auth actions ───────────────────────────────────────────────────────────
+
   Future<void> _handleSignIn() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
-
-    final success = await ref
+    await ref
         .read(authNotifierProvider.notifier)
         .signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
-
-    if (!success && mounted) {
-      final errorMsg =
-          ref.read(authNotifierProvider).errorMessage ?? 'An error occurred.';
-      _showSnackBar(errorMsg, isError: true);
-    }
+    // Navigation is handled by ref.listen below — no manual push here.
   }
 
   Future<void> _handleGoogleSignIn() async {
     FocusScope.of(context).unfocus();
-    final success = await ref
-        .read(authNotifierProvider.notifier)
-        .signInWithGoogle();
-
-    if (!success && mounted) {
-      final authState = ref.read(authNotifierProvider);
-      if (authState.status == AuthStatus.error) {
-        _showSnackBar(
-          authState.errorMessage ?? 'Google sign-in failed.',
-          isError: true,
-        );
-      }
-    }
+    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    // Navigation handled by ref.listen.
   }
 
   Future<void> _handleForgotPassword() async {
@@ -71,7 +73,6 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     await ref
         .read(authNotifierProvider.notifier)
         .sendPasswordReset(email: email);
-
     if (mounted) {
       _showSnackBar(
         'Password reset email sent! Check your inbox.',
@@ -99,8 +100,25 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ── Reactive navigation: fires whenever authStateProvider changes ──────────
+    // This is the KEY fix — it runs even while SignInPage is on the nav stack.
+    ref.listen<AsyncValue<UserModel?>>(authStateProvider, (_, next) {
+      next.whenData((user) {
+        if (user != null) _navigateAfterAuth(user);
+      });
+    });
+
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
+
+    // Show errors via snackbar (only when status just became error)
+    ref.listen<AuthState>(authNotifierProvider, (prev, curr) {
+      if (curr.status == AuthStatus.error &&
+          curr.errorMessage != null &&
+          mounted) {
+        _showSnackBar(curr.errorMessage!, isError: true);
+      }
+    });
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -117,7 +135,7 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // ── Header ──────────────────────────────────────
+                    // ── Header ────────────────────────────────────────────
                     Row(
                       children: [
                         Column(
@@ -143,7 +161,7 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                       ],
                     ),
 
-                    // ── Hero Image ────────────────────────────────────
+                    // ── Hero image ────────────────────────────────────────
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: fontSize * 1.2),
                       child: ClipOval(
@@ -156,12 +174,13 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                       ),
                     ),
 
-                    // ── Email Field ───────────────────────────────────
+                    // ── Email ─────────────────────────────────────────────
                     TextFormField(
                       controller: _emailController,
                       style: GoogleFonts.nunito(color: Colors.black),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
+                      enabled: !isLoading,
                       validator: (val) {
                         if (val == null || val.trim().isEmpty) {
                           return 'Email is required';
@@ -171,48 +190,21 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                         }
                         return null;
                       },
-                      decoration: InputDecoration(
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 15, right: 5),
-                          child: Icon(Icons.email_outlined, color: Colors.grey),
-                        ),
-                        hintText: 'Enter email address',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey[400]!),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFF2563EB),
-                            width: 1.8,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEF4444),
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEF4444),
-                            width: 1.8,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      decoration: _inputDecoration(
+                        hint: 'Enter email address',
+                        prefixIcon: Icons.email_outlined,
                       ),
                     ),
 
                     SizedBox(height: fontSize * 0.7),
 
-                    // ── Password Field ────────────────────────────────
+                    // ── Password ──────────────────────────────────────────
                     TextFormField(
                       controller: _passwordController,
                       style: GoogleFonts.nunito(color: Colors.black),
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
+                      enabled: !isLoading,
                       onFieldSubmitted: (_) => _handleSignIn(),
                       validator: (val) {
                         if (val == null || val.isEmpty) {
@@ -223,11 +215,9 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                         }
                         return null;
                       },
-                      decoration: InputDecoration(
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 15, right: 5),
-                          child: Icon(Icons.lock_outline, color: Colors.grey),
-                        ),
+                      decoration: _inputDecoration(
+                        hint: 'Password',
+                        prefixIcon: Icons.lock_outline,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -235,40 +225,16 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                                 : Icons.visibility_outlined,
                             color: Colors.grey,
                           ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
-                        ),
-                        hintText: 'Password',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey[400]!),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFF2563EB),
-                            width: 1.8,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEF4444),
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEF4444),
-                            width: 1.8,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
+                          onPressed: isLoading
+                              ? null
+                              : () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
                         ),
                       ),
                     ),
 
-                    // ── Forgot Password ────────────────────────────────
+                    // ── Forgot password ────────────────────────────────────
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -279,14 +245,16 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                             style: GoogleFonts.poppins(
                               fontSize: fontSize * 0.75,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).primaryColor,
+                              color: isLoading
+                                  ? Colors.grey[400]
+                                  : Theme.of(context).primaryColor,
                             ),
                           ),
                         ),
                       ],
                     ),
 
-                    // ── OR Divider ────────────────────────────────────
+                    // ── OR divider ─────────────────────────────────────────
                     Row(
                       children: [
                         Expanded(
@@ -313,7 +281,7 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
                     SizedBox(height: fontSize * 0.8),
 
-                    // ── Google Sign-In ────────────────────────────────
+                    // ── Google sign-in ─────────────────────────────────────
                     SignInWithGoogle(
                       svgAssets: SvgAssets.google_svg,
                       onPressed: isLoading ? null : _handleGoogleSignIn,
@@ -321,22 +289,17 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
                     SizedBox(height: fontSize * 1.5),
 
-                    // ── CTA: Sign In ──────────────────────────────────
-                    isLoading
-                        ? const SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF2563EB),
-                              ),
-                            ),
-                          )
-                        : CtaButton(text: 'Sign In', onPressed: _handleSignIn),
+                    // ── CTA: Sign In (stays in place, just turns muted) ────
+                    CtaButton(
+                      text: 'Sign In',
+                      isLoading: isLoading,
+                      loadingText: 'Signing in...',
+                      onPressed: _handleSignIn,
+                    ),
 
                     SizedBox(height: fontSize),
 
-                    // ── Sign Up link ──────────────────────────────────
+                    // ── Sign Up link ───────────────────────────────────────
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -361,7 +324,9 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                             style: GoogleFonts.poppins(
                               fontSize: fontSize * 0.75,
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).primaryColor,
+                              color: isLoading
+                                  ? Colors.grey[400]
+                                  : Theme.of(context).primaryColor,
                             ),
                           ),
                         ),
@@ -373,6 +338,42 @@ class _SignInPageState extends ConsumerState<SignInPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      prefixIcon: Padding(
+        padding: const EdgeInsets.only(left: 15, right: 5),
+        child: Icon(prefixIcon, color: Colors.grey),
+      ),
+      suffixIcon: suffixIcon,
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey[400]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.8),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xFFEF4444)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }

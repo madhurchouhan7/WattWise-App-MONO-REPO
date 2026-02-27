@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
 import 'package:wattwise_app/feature/auth/widgets/sign_in_with_google.dart';
+import 'package:wattwise_app/feature/on_boarding/screens/on_boarding_screen.dart';
+import 'package:wattwise_app/feature/root/screens/root_screen.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
@@ -33,6 +36,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     super.dispose();
   }
 
+  // ─── Navigation helper ─────────────────────────────────────────────────────
+
+  void _navigateAfterAuth(UserModel user) {
+    if (!mounted) return;
+    final destination = user.isOnboardingComplete
+        ? const RootScreen()
+        : const OnBoardingScreen();
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => destination),
+      (route) => false,
+    );
+  }
+
+  // ─── Auth actions ───────────────────────────────────────────────────────────
+
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
@@ -43,38 +62,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       return;
     }
     FocusScope.of(context).unfocus();
-
-    final success = await ref
+    await ref
         .read(authNotifierProvider.notifier)
         .signUpWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
           displayName: _nameController.text,
         );
-
-    if (!success && mounted) {
-      final errorMsg =
-          ref.read(authNotifierProvider).errorMessage ?? 'An error occurred.';
-      _showSnackBar(errorMsg, isError: true);
-    }
-    // On success, AppRouter will automatically transition to onboarding.
+    // Navigation is handled by ref.listen in build().
   }
 
   Future<void> _handleGoogleSignIn() async {
     FocusScope.of(context).unfocus();
-    final success = await ref
-        .read(authNotifierProvider.notifier)
-        .signInWithGoogle();
-
-    if (!success && mounted) {
-      final authState = ref.read(authNotifierProvider);
-      if (authState.status == AuthStatus.error) {
-        _showSnackBar(
-          authState.errorMessage ?? 'Google sign-in failed.',
-          isError: true,
-        );
-      }
-    }
+    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    // Navigation handled by ref.listen.
   }
 
   void _showSnackBar(String message, {required bool isError}) {
@@ -125,6 +126,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ── Reactive navigation ──────────────────────────────────────────────────
+    ref.listen<AsyncValue<UserModel?>>(authStateProvider, (_, next) {
+      next.whenData((user) {
+        if (user != null) _navigateAfterAuth(user);
+      });
+    });
+
+    // ── Show errors via snackbar ─────────────────────────────────────────────
+    ref.listen<AuthState>(authNotifierProvider, (_, curr) {
+      if (curr.status == AuthStatus.error &&
+          curr.errorMessage != null &&
+          mounted) {
+        _showSnackBar(curr.errorMessage!, isError: true);
+      }
+    });
+
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -371,20 +388,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 SizedBox(height: fontSize * 1.2),
 
                 // ── Create Account Button ─────────────────────────
-                isLoading
-                    ? const SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF2563EB),
-                          ),
-                        ),
-                      )
-                    : CtaButton(
-                        text: 'Create Account',
-                        onPressed: _handleSignUp,
-                      ),
+                CtaButton(
+                  text: 'Create Account',
+                  isLoading: isLoading,
+                  loadingText: 'Creating account...',
+                  onPressed: _handleSignUp,
+                ),
 
                 SizedBox(height: fontSize),
 
