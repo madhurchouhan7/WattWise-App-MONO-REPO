@@ -9,7 +9,7 @@ import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
-import 'package:wattwise_app/feature/root/screens/root_screen.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 
 class OnBoardingPage5 extends ConsumerStatefulWidget {
   const OnBoardingPage5({super.key});
@@ -481,15 +481,24 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                 child: ElevatedButton(
                   // add a confetti animation
                   onPressed: selectedAppliances.isNotEmpty
-                      ? () {
+                      ? () async {
                           playConfetti();
                           notifier.finishSetup(selectedAppliances);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RootScreen(),
-                            ),
-                          );
+                          // Persist the onboarding-complete flag so AppRouter
+                          // can reactively route to RootScreen.
+                          final authUserModel = ref
+                              .read(authStateProvider)
+                              .value;
+                          if (authUserModel != null) {
+                            await ref
+                                .read(authNotifierProvider.notifier)
+                                .markOnboardingComplete(authUserModel.uid);
+                          }
+                          // Wait for the confetti to play, then refresh.
+                          await Future.delayed(const Duration(seconds: 1));
+                          if (context.mounted) {
+                            ref.invalidate(authStateProvider);
+                          }
                         }
                       : null,
                   style: ElevatedButton.styleFrom(

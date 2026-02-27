@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "3925576112",
+    "project_id": "wattwise-cd1b5",
+    "storage_bucket": "wattwise-cd1b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:3925576112:android:a820fa82cead9f6ebcae75",
+        "android_client_info": {
+          "package_name": "com.example.wattwise_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB_8Z_NqgRytEQ-pBMK0cwqxR-txAw5pE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
