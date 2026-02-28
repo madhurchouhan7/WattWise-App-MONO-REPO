@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 
-
 // Provider that holds the list of selected appliances
 final selectedAppliancesProvider =
     StateNotifierProvider<SelectedAppliancesNotifier, List<ApplianceModel>>(
-  (ref) => SelectedAppliancesNotifier(),
-);
+      (ref) => SelectedAppliancesNotifier(),
+    );
 
 class SelectedAppliancesNotifier extends StateNotifier<List<ApplianceModel>> {
   SelectedAppliancesNotifier() : super([]);
@@ -14,7 +13,7 @@ class SelectedAppliancesNotifier extends StateNotifier<List<ApplianceModel>> {
   // Toggle appliance selection (add or remove)
   void toggleAppliance(ApplianceModel appliance) {
     final isSelected = state.any((item) => item.id == appliance.id);
-    
+
     if (isSelected) {
       // Remove from list
       state = state.where((item) => item.id != appliance.id).toList();
@@ -22,6 +21,11 @@ class SelectedAppliancesNotifier extends StateNotifier<List<ApplianceModel>> {
       // Add to list
       state = [...state, appliance];
     }
+  }
+
+  // Explicitly set appliances list
+  void setAppliances(List<ApplianceModel> appliances) {
+    state = appliances;
   }
 
   // Check if an appliance is selected
@@ -33,7 +37,9 @@ class SelectedAppliancesNotifier extends StateNotifier<List<ApplianceModel>> {
   void updateUsageHours(String applianceId, double hours) {
     state = state.map((appliance) {
       if (appliance.id == applianceId) {
-        return appliance.copyWith(usageHours: hours); // 🎯 copyWith from Freezed
+        return appliance.copyWith(
+          usageHours: hours,
+        ); // 🎯 copyWith from Freezed
       }
       return appliance;
     }).toList();

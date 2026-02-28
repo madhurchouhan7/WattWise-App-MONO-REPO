@@ -10,6 +10,7 @@ import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/core/router/app_router.dart';
 
 class OnBoardingPage5 extends ConsumerStatefulWidget {
   const OnBoardingPage5({super.key});
@@ -427,12 +428,13 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                                                       fontSize: 14,
                                                     ),
                                                     onChanged: (val) {
-                                                      if (val != null)
+                                                      if (val != null) {
                                                         notifier.updateDropdown(
                                                           app,
                                                           config.label,
                                                           val,
                                                         );
+                                                      }
                                                     },
                                                     items: config.options.map((
                                                       opt,
@@ -483,7 +485,7 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                   onPressed: selectedAppliances.isNotEmpty
                       ? () async {
                           playConfetti();
-                          notifier.finishSetup(selectedAppliances);
+                          await notifier.finishSetup(selectedAppliances);
                           // Persist the onboarding-complete flag so AppRouter
                           // can reactively route to RootScreen.
                           final authUserModel = ref
@@ -494,9 +496,16 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                                 .read(authNotifierProvider.notifier)
                                 .markOnboardingComplete(authUserModel.uid);
                           }
-                          // Wait for the confetti to play, then refresh.
+                          // Wait for the confetti to play, then route to Home.
                           await Future.delayed(const Duration(seconds: 1));
                           if (context.mounted) {
+                            ref
+                                    .read(
+                                      sessionOnboardingCompleteProvider
+                                          .notifier,
+                                    )
+                                    .state =
+                                true;
                             ref.invalidate(authStateProvider);
                           }
                         }

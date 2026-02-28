@@ -8,6 +8,7 @@ import 'package:wattwise_app/feature/profile/widgets/logout_button.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_header.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_menu_section.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_stats_card.dart';
+import 'package:wattwise_app/feature/profile/screens/manage_appliances_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -48,7 +49,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.kitchen_rounded,
                     title: "Manage Appliances",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageAppliancesScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0),

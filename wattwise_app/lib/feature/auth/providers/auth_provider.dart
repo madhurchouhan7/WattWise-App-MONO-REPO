@@ -131,22 +131,30 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   String _friendlyError(String raw) {
-    if (raw.contains('user-not-found'))
+    if (raw.contains('user-not-found')) {
       return 'No account found with this email.';
-    if (raw.contains('wrong-password'))
+    }
+    if (raw.contains('wrong-password')) {
       return 'Incorrect password. Please try again.';
-    if (raw.contains('email-already-in-use'))
+    }
+    if (raw.contains('email-already-in-use')) {
       return 'An account with this email already exists.';
-    if (raw.contains('weak-password'))
+    }
+    if (raw.contains('weak-password')) {
       return 'Password should be at least 6 characters.';
-    if (raw.contains('invalid-email'))
+    }
+    if (raw.contains('invalid-email')) {
       return 'Please enter a valid email address.';
-    if (raw.contains('network-request-failed'))
+    }
+    if (raw.contains('network-request-failed')) {
       return 'No internet connection. Please try again.';
-    if (raw.contains('too-many-requests'))
+    }
+    if (raw.contains('too-many-requests')) {
       return 'Too many attempts. Please try again later.';
-    if (raw.contains('invalid-credential'))
+    }
+    if (raw.contains('invalid-credential')) {
       return 'Invalid credentials. Please check and try again.';
+    }
     return 'Something went wrong. Please try again.';
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
+import 'package:wattwise_app/feature/on_boarding/widget/onboarding_top_bar.dart';
 import 'package:wattwise_app/feature/welcome/widgets/feature_card.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
@@ -13,44 +14,52 @@ class OnBoardingPage1 extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final fontSize = width * 0.05;
+
     return Column(
       children: [
-        // fixed row at the top
+        // ── Top bar ───────────────────────────────────────────────
         Padding(
           padding: EdgeInsets.symmetric(
             horizontal: width * 0.05,
-            vertical: width * 0.02,
+            vertical: width * 0.03,
           ),
-          child: Row(
-            children: [
-              // TODO: Add Progress Indicator here
-              Placeholder(fallbackHeight: 10, fallbackWidth: 100),
-
-              Spacer(),
-
-              TextButton(onPressed: () {}, child: Text('Skip Setup')),
-            ],
+          child: OnboardingTopBar(
+            currentStep: 1,
+            trailing: OnboardingSkipButton(
+              onSkip: () {
+                // Skip directly to the home flow by jumping to page 5.
+                pageController.animateToPage(
+                  4,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
           ),
         ),
 
-        // scrollable content
+        // ── Scrollable content ────────────────────────────────────
         Expanded(
           child: Stack(
             children: [
               SingleChildScrollView(
+                padding: EdgeInsets.only(bottom: width * 0.28),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: width * 0.05,
                     vertical: width * 0.02,
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Headline
                       Text(
                         'Step 1 of 5',
                         style: GoogleFonts.poppins(
                           color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.w600,
                           fontSize: fontSize * 0.65,
+                          letterSpacing: 0.5,
                         ),
                       ),
 
@@ -58,53 +67,55 @@ class OnBoardingPage1 extends StatelessWidget {
 
                       Image.asset(
                         'assets/svg/onboarding_1.png',
-                        width: width * 0.8,
+                        width: width * 0.75,
                       ),
 
-                      SizedBox(height: width * 0.05),
+                      SizedBox(height: width * 0.06),
 
-                      Wrap(
-                        children: [
-                          Text(
-                            'Let\'s Set Up Your Profile',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: fontSize * 1.3,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        "Let's Set Up Your Profile",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: fontSize * 1.3,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
+                        ),
                       ),
 
-                      SizedBox(height: width * 0.05),
+                      SizedBox(height: width * 0.02),
 
-                      // your location card
+                      Text(
+                        'Answer a few quick questions so WattWise can give you\npersonalised energy-saving insights.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey.shade600,
+                          fontSize: fontSize * 0.72,
+                          height: 1.5,
+                        ),
+                      ),
+
+                      SizedBox(height: width * 0.07),
+
+                      // Feature cards
                       FeatureCard(
                         title: 'Your Location',
-                        description:
-                            'So we can use accurate \nElectricity Rates',
+                        description: 'Accurate electricity rates for your area',
                         svgIcon: SvgAssets.location_icon,
                       ),
-
-                      // household size card
                       FeatureCard(
                         title: 'Household Size',
-                        description: 'To estimate your typical Usage',
+                        description: 'Estimate your typical usage',
                         svgIcon: SvgAssets.group_icon,
                       ),
-
-                      // your appliances card
                       FeatureCard(
                         title: 'Your Appliances',
-                        description: 'To Identify saving opportunities',
+                        description: 'Identify saving opportunities',
                         svgIcon: SvgAssets.shop_icon,
                       ),
-
-                      // use pattern card
                       FeatureCard(
                         title: 'Usage Patterns',
-                        description: 'For Personalized Saving Plans',
+                        description: 'Personalised saving plans',
                         svgIcon: SvgAssets.insights_icon,
                       ),
                     ],
@@ -112,6 +123,7 @@ class OnBoardingPage1 extends StatelessWidget {
                 ),
               ),
 
+              // ── Sticky CTA ─────────────────────────────────────
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -119,22 +131,21 @@ class OnBoardingPage1 extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.all(width * 0.05),
                   decoration: BoxDecoration(
+                    color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blueGrey.withOpacity(0.1),
+                        color: Colors.black.withOpacity(0.06),
                         blurRadius: 20,
-                        offset: Offset(0, -2),
+                        offset: const Offset(0, -4),
                       ),
                     ],
                   ),
                   child: CtaButton(
-                    text: 'Lets Go',
-                    onPressed: () {
-                      pageController.nextPage(
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
+                    text: "Let's Go  →",
+                    onPressed: () => pageController.nextPage(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeInOut,
+                    ),
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
+import 'package:wattwise_app/feature/on_boarding/widget/onboarding_top_bar.dart';
 import 'package:wattwise_app/feature/on_boarding/widget/select_appliances.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
@@ -12,56 +13,54 @@ class OnBoardingPage4 extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the selected count
     final selectedCount = ref.watch(
-      selectedAppliancesProvider.select((appliances) => appliances.length),
+      selectedAppliancesProvider.select((list) => list.length),
     );
+
     final width = MediaQuery.sizeOf(context).width;
     final fontSize = width * 0.05;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
           children: [
-            // fixed row at the top
+            // ── Top bar ─────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: width * 0.05,
-                vertical: width * 0.02,
+                vertical: width * 0.03,
               ),
-              child: Row(
-                children: [
-                  // TODO: Add Progress Indicator here
-                  Placeholder(fallbackHeight: 10, fallbackWidth: 100),
-
-                  Spacer(),
-
-                  TextButton(
-                    onPressed: () {
-                      // Clear selections and skip
-                      ref.read(selectedAppliancesProvider.notifier).clearAll();
-                      pageController.nextPage(
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Text('Skip Setup'),
-                  ),
-                ],
+              child: OnboardingTopBar(
+                currentStep: 4,
+                onBack: () => pageController.previousPage(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.easeInOut,
+                ),
+                trailing: OnboardingSkipButton(
+                  onSkip: () {
+                    ref.read(selectedAppliancesProvider.notifier).clearAll();
+                    pageController.nextPage(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
               ),
             ),
 
-            // scrollable content
+            // ── Scrollable content ───────────────────────────────
             Expanded(
               child: Stack(
                 children: [
                   SingleChildScrollView(
-                    padding: EdgeInsets.only(bottom: width * 0.25),
+                    padding: EdgeInsets.only(bottom: width * 0.28),
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: width * 0.05,
                         vertical: width * 0.02,
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             'Step 4 of 5',
@@ -69,57 +68,50 @@ class OnBoardingPage4 extends ConsumerWidget {
                               color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.w600,
                               fontSize: fontSize * 0.65,
+                              letterSpacing: 0.5,
                             ),
                           ),
 
-                          SizedBox(height: width * 0.05),
+                          SizedBox(height: width * 0.04),
 
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              Text(
-                                'Select Your Appliances',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: fontSize * 1.3,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              Text(
-                                'Check the ones you have at home. this helps us identify where you can save.',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey[600],
-                                  fontSize: fontSize * 0.75,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'Select Your Appliances',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: fontSize * 1.3,
+                              fontWeight: FontWeight.bold,
+                              height: 1.25,
+                            ),
                           ),
 
-                          SizedBox(height: width * 0.05),
+                          SizedBox(height: width * 0.015),
+
+                          Text(
+                            'Check the ones you have at home — this helps us\nidentify where you can save the most.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey.shade600,
+                              fontSize: fontSize * 0.72,
+                              height: 1.5,
+                            ),
+                          ),
+
+                          SizedBox(height: width * 0.06),
 
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // cooling
-                              Text(
-                                'COOLING',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey,
-                                  fontSize: constraints.maxWidth * 0.03,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              _CategoryLabel(
+                                label: 'COOLING',
+                                constraints: constraints,
                               ),
-
                               SelectAppliances(
                                 title: 'Air Conditioner',
                                 description: 'Split AC, Window AC, Inverter',
                                 svgPath: SvgAssets.ac_icon,
                                 category: 'COOLING',
                               ),
-
                               SelectAppliances(
                                 title: 'Air Cooler',
                                 description: 'Desert, Personal, Tower',
@@ -127,23 +119,17 @@ class OnBoardingPage4 extends ConsumerWidget {
                                 category: 'COOLING',
                               ),
 
-                              // HEATING
-                              Text(
-                                'HEATING',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey,
-                                  fontSize: constraints.maxWidth * 0.03,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              SizedBox(height: width * 0.03),
+                              _CategoryLabel(
+                                label: 'HEATING',
+                                constraints: constraints,
                               ),
-
                               SelectAppliances(
                                 title: 'Geyser',
                                 description: 'Electric, Gas, Instant',
                                 svgPath: SvgAssets.geyser_icon,
                                 category: 'HEATING',
                               ),
-
                               SelectAppliances(
                                 title: 'Room Heater',
                                 description: 'Fan, Oil, Halogen',
@@ -151,30 +137,23 @@ class OnBoardingPage4 extends ConsumerWidget {
                                 category: 'HEATING',
                               ),
 
-                              // always on
-                              Text(
-                                'ALWAYS ON',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey,
-                                  fontSize: constraints.maxWidth * 0.03,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              SizedBox(height: width * 0.03),
+                              _CategoryLabel(
+                                label: 'ALWAYS ON',
+                                constraints: constraints,
                               ),
-
                               SelectAppliances(
                                 title: 'Refridgerator',
                                 description: 'Single, Double Door',
                                 svgPath: SvgAssets.fridge_icon,
                                 category: 'ALWAYS ON',
                               ),
-
                               SelectAppliances(
                                 title: 'Television',
-                                description: 'LCD, LED, Smart',
+                                description: 'LCD, LED, Smart TV',
                                 svgPath: SvgAssets.tv_icon,
                                 category: 'ALWAYS ON',
                               ),
-
                               SelectAppliances(
                                 title: 'Wi-Fi Router',
                                 description: 'Modem, Extender',
@@ -182,37 +161,29 @@ class OnBoardingPage4 extends ConsumerWidget {
                                 category: 'ALWAYS ON',
                               ),
 
-                              // OCCASIONAL USE
-                              Text(
-                                'OCCASIONAL USE',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.grey,
-                                  fontSize: constraints.maxWidth * 0.03,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              SizedBox(height: width * 0.03),
+                              _CategoryLabel(
+                                label: 'OCCASIONAL USE',
+                                constraints: constraints,
                               ),
-
                               SelectAppliances(
                                 title: 'Washing Machine',
                                 description: 'Front Load, Top Load',
                                 svgPath: SvgAssets.washing_machine_icon,
                                 category: 'OCCASIONAL USE',
                               ),
-
                               SelectAppliances(
                                 title: 'Microwave Oven',
                                 description: 'Solo, Grill, Convection',
                                 svgPath: SvgAssets.microwave_icon,
                                 category: 'OCCASIONAL USE',
                               ),
-
                               SelectAppliances(
                                 title: 'Water Purifier',
                                 description: 'RO, UV',
                                 svgPath: SvgAssets.water_purifier_icon,
                                 category: 'OCCASIONAL USE',
                               ),
-
                               SelectAppliances(
                                 title: 'Computer',
                                 description: 'Desktop, Workstation',
@@ -226,6 +197,7 @@ class OnBoardingPage4 extends ConsumerWidget {
                     ),
                   ),
 
+                  // ── Sticky CTA ────────────────────────────────
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -236,23 +208,21 @@ class OnBoardingPage4 extends ConsumerWidget {
                         color: Colors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueGrey.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.06),
                             blurRadius: 20,
-                            offset: Offset(0, -2),
+                            offset: const Offset(0, -4),
                           ),
                         ],
                       ),
                       child: CtaButton(
                         text: selectedCount > 0
-                            ? 'Continue, $selectedCount Selected'
+                            ? 'Continue  ($selectedCount selected)'
                             : 'Select at least one',
                         onPressed: selectedCount > 0
-                            ? () {
-                                pageController.nextPage(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
+                            ? () => pageController.nextPage(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeInOut,
+                              )
                             : null,
                       ),
                     ),
@@ -263,6 +233,29 @@ class OnBoardingPage4 extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _CategoryLabel extends StatelessWidget {
+  final String label;
+  final BoxConstraints constraints;
+
+  const _CategoryLabel({required this.label, required this.constraints});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 6),
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(
+          color: Colors.grey.shade500,
+          fontSize: constraints.maxWidth * 0.03,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
+      ),
     );
   }
 }

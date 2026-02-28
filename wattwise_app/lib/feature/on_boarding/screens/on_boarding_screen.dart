@@ -31,7 +31,8 @@ class _OnBoardingScreenState extends ConsumerState<OnBoardingScreen> {
             Expanded(
               child: PageView(
                 controller: pageController,
-                physics: NeverScrollableScrollPhysics(), // Disable swipe navigation
+                physics:
+                    NeverScrollableScrollPhysics(), // Disable swipe navigation
                 children: [
                   OnBoardingPage1(pageController: pageController),
                   OnBoardingPage2(pageController: pageController),

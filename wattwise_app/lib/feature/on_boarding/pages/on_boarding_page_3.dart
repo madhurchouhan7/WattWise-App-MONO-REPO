@@ -1,254 +1,283 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
+import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_3_notifier.dart';
+import 'package:wattwise_app/feature/on_boarding/widget/onboarding_top_bar.dart';
 import 'package:wattwise_app/feature/on_boarding/widget/people_select.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
-class OnBoardingPage3 extends StatefulWidget {
+class OnBoardingPage3 extends ConsumerStatefulWidget {
   final PageController pageController;
   const OnBoardingPage3({super.key, required this.pageController});
 
   @override
-  State<OnBoardingPage3> createState() => _OnBoardingPage3State();
+  ConsumerState<OnBoardingPage3> createState() => _OnBoardingPage3State();
 }
 
-class _OnBoardingPage3State extends State<OnBoardingPage3> {
-  int _peopleCount = 2;
-  String? _selectedFamilyType;
-  String? _selectedHouseType;
-
-  final List<String> _familyOptions = [
+class _OnBoardingPage3State extends ConsumerState<OnBoardingPage3> {
+  static const _familyOptions = [
     'Just Me',
     'Small Family',
     'Large Family',
-    'Join Family',
+    'Joint Family',
   ];
 
-  void _increment() {
-    setState(() {
-      _peopleCount++;
-    });
-  }
-
-  void _decrement() {
-    if (_peopleCount > 1) {
-      setState(() {
-        _peopleCount--;
-      });
-    }
-  }
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(onBoardingPage3Provider);
+    final notifier = ref.read(onBoardingPage3Provider.notifier);
+
     final width = MediaQuery.sizeOf(context).width;
     final fontSize = width * 0.05;
-    final primaryColor = Theme.of(context).primaryColor;
+    final primary = Theme.of(context).primaryColor;
 
     return Column(
       children: [
-        // fixed row at the top
+        // ── Top bar ───────────────────────────────────────────────
         Padding(
           padding: EdgeInsets.symmetric(
             horizontal: width * 0.05,
-            vertical: width * 0.02,
+            vertical: width * 0.03,
           ),
-          child: Row(
-            children: [
-              // TODO: Add Progress Indicator here
-              const Placeholder(fallbackHeight: 10, fallbackWidth: 100),
-
-              const Spacer(),
-
-              TextButton(onPressed: () {}, child: const Text('Skip Setup')),
-            ],
+          child: OnboardingTopBar(
+            currentStep: 3,
+            onBack: () => widget.pageController.previousPage(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOut,
+            ),
+            trailing: OnboardingSkipButton(
+              onSkip: () => widget.pageController.nextPage(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeInOut,
+              ),
+            ),
           ),
         ),
 
-        // scrollable content
+        // ── Scrollable content ────────────────────────────────────
         Expanded(
           child: Stack(
             children: [
               SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: width * 0.05,
-                    vertical: width * 0.02,
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Step 3 of 5',
-                        style: GoogleFonts.poppins(
-                          color: primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: fontSize * 0.65,
-                        ),
+                padding: EdgeInsets.only(
+                  bottom: width * 0.28,
+                  left: width * 0.05,
+                  right: width * 0.05,
+                  top: width * 0.02,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Step 3 of 5',
+                      style: GoogleFonts.poppins(
+                        color: primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: fontSize * 0.65,
+                        letterSpacing: 0.5,
                       ),
+                    ),
 
-                      SizedBox(height: width * 0.05),
+                    SizedBox(height: width * 0.04),
 
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        children: [
-                          Text(
-                            'How many People live with you?',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: fontSize * 1.3,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          Text(
-                            'This helps us estimate typical electricity usage for your household.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: fontSize * 0.75,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      'Your Household',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: fontSize * 1.3,
+                        fontWeight: FontWeight.bold,
+                        height: 1.25,
                       ),
-                      SizedBox(height: width * 0.05),
+                    ),
 
-                      SvgPicture.asset(
-                        SvgAssets.people_home_svg,
-                        width: width * 0.4,
+                    SizedBox(height: width * 0.015),
+
+                    Text(
+                      'This helps us estimate electricity usage accurately for your home.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey.shade600,
+                        fontSize: fontSize * 0.72,
+                        height: 1.5,
                       ),
+                    ),
 
-                      Row(
+                    SizedBox(height: width * 0.05),
+
+                    SvgPicture.asset(
+                      SvgAssets.people_home_svg,
+                      width: width * 0.38,
+                    ),
+
+                    SizedBox(height: width * 0.05),
+
+                    // ── People count picker ───────────────────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          PeopleSelect(text: '-', onTap: _decrement),
+                          PeopleSelect(
+                            text: '−',
+                            onTap: notifier.decrementPeople,
+                          ),
 
                           Column(
                             children: [
                               Text(
-                                '$_peopleCount',
+                                '${state.peopleCount}',
                                 style: GoogleFonts.poppins(
-                                  fontSize: fontSize * 3,
+                                  fontSize: fontSize * 2.8,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: primary,
                                 ),
                               ),
-
                               Text(
-                                'People',
+                                state.peopleCount == 1 ? 'Person' : 'People',
                                 style: GoogleFonts.poppins(
-                                  fontSize: fontSize * 0.75,
-                                  color: Colors.grey[600],
+                                  fontSize: fontSize * 0.72,
+                                  color: Colors.grey.shade500,
                                 ),
                               ),
                             ],
                           ),
-                          PeopleSelect(text: '+', onTap: _increment),
+
+                          PeopleSelect(
+                            text: '+',
+                            onTap: notifier.incrementPeople,
+                          ),
                         ],
                       ),
+                    ),
 
-                      SizedBox(height: width * 0.05),
+                    SizedBox(height: width * 0.06),
 
-                      Wrap(
-                        spacing: 12, // More compact spacing
-                        runSpacing: 10,
-                        alignment: WrapAlignment.center,
-                        children: _familyOptions.map((option) {
-                          final isSelected = _selectedFamilyType == option;
-                          return ChoiceChip(
-                            label: Text(option),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedFamilyType = selected ? option : null;
-                              });
-                            },
-                            labelStyle: GoogleFonts.poppins(
-                              fontSize: fontSize * 0.75,
-                              color: isSelected
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.black87,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                            selectedColor: Colors.blueGrey[50],
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? primaryColor
-                                    : Colors.grey.shade300,
-                                width: 1.5,
-                              ),
-                            ),
-                            showCheckmark: false, // Cleaner look as requested
+                    // ── Family type chips ─────────────────────────
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Family Type',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: _familyOptions.map((option) {
+                        final isSelected = state.selectedFamilyType == option;
+                        return GestureDetector(
+                          onTap: () => notifier.updateFamilyType(
+                            isSelected ? null : option,
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 18,
+                              vertical: 10,
                             ),
-                          );
-                        }).toList(),
-                      ),
-
-                      SizedBox(height: width * 0.07),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '\tMore Details(optional)',
-                            style: GoogleFonts.poppins(
-                              fontSize: fontSize * 0.75,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? primary.withOpacity(0.09)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected
+                                    ? primary
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 1.8 : 1.2,
+                              ),
                             ),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          DropdownButtonFormField<String>(
-                            initialValue: _selectedHouseType,
-                            items:
-                                ['Apartment', 'Bungalow', 'Independent House']
-                                    .map(
-                                      (type) => DropdownMenuItem(
-                                        value: type,
-                                        child: Text(type),
-                                      ),
-                                    )
-                                    .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedHouseType = value;
-                              });
-                            },
-                            hint: const Text('HOUSE TYPE'),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: width * 0.04,
-                                vertical: width * 0.03,
+                            child: Text(
+                              option,
+                              style: GoogleFonts.poppins(
+                                fontSize: fontSize * 0.74,
+                                color: isSelected ? primary : Colors.black87,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                               ),
                             ),
                           ),
+                        );
+                      }).toList(),
+                    ),
 
-                          SizedBox(height: width * 0.05),
-                        ],
+                    SizedBox(height: width * 0.06),
+
+                    // ── House type (optional) ─────────────────────
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'House Type  (optional)',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    DropdownButtonFormField<String>(
+                      value: state.selectedHouseType,
+                      items: ['Apartment', 'Bungalow', 'Independent House']
+                          .map(
+                            (type) => DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) => notifier.updateHouseType(value),
+                      hint: Text(
+                        'Select house type',
+                        style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                      ),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primary, width: 1.5),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: width * 0.04,
+                          vertical: width * 0.035,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
+              // ── Sticky CTA ─────────────────────────────────────
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -261,17 +290,24 @@ class _OnBoardingPage3State extends State<OnBoardingPage3> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
                         blurRadius: 20,
-                        offset: const Offset(0, -5),
+                        offset: const Offset(0, -4),
                       ),
                     ],
                   ),
                   child: CtaButton(
                     text: 'Continue',
-                    onPressed: () {
-                      widget.pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
+                    isLoading: _isSaving,
+                    onPressed: () async {
+                      setState(() => _isSaving = true);
+                      try {
+                        await notifier.saveDetails();
+                        widget.pageController.nextPage(
+                          duration: const Duration(milliseconds: 350),
+                          curve: Curves.easeInOut,
+                        );
+                      } finally {
+                        if (mounted) setState(() => _isSaving = false);
+                      }
                     },
                   ),
                 ),

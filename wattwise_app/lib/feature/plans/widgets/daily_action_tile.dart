@@ -84,7 +84,7 @@ class DailyActionTile extends StatelessWidget {
                 child: Switch(
                   value: isSwitchedOn,
                   onChanged: onChanged,
-                  activeColor: Colors.white,
+                  activeThumbColor: Colors.white,
                   activeTrackColor: AppColors.primaryBlue,
                   inactiveThumbColor: Colors.white,
                   inactiveTrackColor: Colors.grey.shade300,

@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_2_notifier.dart';
 
-class UseMyCurrentLocation extends StatelessWidget {
+class UseMyCurrentLocation extends ConsumerWidget {
   const UseMyCurrentLocation({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(onBoardingPage2Provider.notifier);
+    final state = ref.watch(onBoardingPage2Provider);
+
     return InkWell(
       splashColor: Colors.transparent,
-      // onTap: onPressed,
+      onTap: () => notifier.determineLocation(),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.065,
@@ -28,14 +34,30 @@ class UseMyCurrentLocation extends StatelessWidget {
               ),
               SizedBox(width: 12),
               // text
-              Text(
-                'Use My Current Location',
-                style: GoogleFonts.poppins(
-                  fontSize: MediaQuery.of(context).size.width / 600 * 24,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
+              state.isLoadingLocation
+                  ? Shimmer.fromColors(
+                      baseColor: Theme.of(context).primaryColor,
+                      highlightColor: Theme.of(
+                        context,
+                      ).primaryColor.withOpacity(0.4),
+                      child: Text(
+                        'Fetching...',
+                        style: GoogleFonts.poppins(
+                          fontSize:
+                              MediaQuery.of(context).size.width / 600 * 24,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      'Use My Current Location',
+                      style: GoogleFonts.poppins(
+                        fontSize: MediaQuery.of(context).size.width / 600 * 24,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
             ],
           ),
         ),

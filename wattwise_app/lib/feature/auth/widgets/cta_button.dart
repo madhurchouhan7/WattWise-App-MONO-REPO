@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CtaButton extends StatelessWidget {
   const CtaButton({
@@ -54,30 +55,32 @@ class CtaButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: isLoading ? null : onPressed,
         child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isLoading) ...[
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          child: isLoading
+              ? Shimmer.fromColors(
+                  baseColor: Colors.white,
+                  highlightColor: Colors.white60,
+                  child: Text(
+                    labelText,
+                    style: GoogleFonts.poppins(
+                      fontSize: MediaQuery.of(context).size.width / 600 * 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      labelText,
+                      style: GoogleFonts.poppins(
+                        fontSize: MediaQuery.of(context).size.width / 600 * 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-              ],
-              Text(
-                labelText,
-                style: GoogleFonts.poppins(
-                  fontSize: MediaQuery.of(context).size.width / 600 * 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

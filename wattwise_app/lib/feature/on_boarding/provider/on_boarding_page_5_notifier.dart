@@ -1,14 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
+import 'package:wattwise_app/feature/on_boarding/repository/appliance_repository.dart';
 
 final onBoardingPage5Provider =
     StateNotifierProvider<OnBoardingPage5Notifier, OnBoardingPage5State>((ref) {
-      return OnBoardingPage5Notifier();
+      final repository = ref.read(applianceRepositoryProvider);
+      return OnBoardingPage5Notifier(repository: repository);
     });
 
 class OnBoardingPage5Notifier extends StateNotifier<OnBoardingPage5State> {
-  OnBoardingPage5Notifier() : super(const OnBoardingPage5State());
+  final ApplianceRepository _repository;
+
+  OnBoardingPage5Notifier({required ApplianceRepository repository})
+    : _repository = repository,
+      super(const OnBoardingPage5State());
 
   List<LevelOption> getUsageOptions(ApplianceModel appliance) {
     switch (appliance.category) {
@@ -92,6 +98,10 @@ class OnBoardingPage5Notifier extends StateNotifier<OnBoardingPage5State> {
     return state.localStates[app.id] ?? _createDefaultState(app);
   }
 
+  void preloadState(Map<String, ApplianceLocalState> existingStates) {
+    state = state.copyWith(localStates: existingStates);
+  }
+
   void updateUsageLevel(ApplianceModel app, String level) {
     final currentState = getOrInitState(app);
     state = state.copyWith(
@@ -130,13 +140,24 @@ class OnBoardingPage5Notifier extends StateNotifier<OnBoardingPage5State> {
     );
   }
 
-  void finishSetup(List<ApplianceModel> selectedAppliances) {
+  Future<void> finishSetup(List<ApplianceModel> selectedAppliances) async {
     // Ensure we have a complete state including defaults for untouched appliances
-    final Map<String, ApplianceLocalState> finalStates = {};
+    final List<Map<String, dynamic>> finalData = [];
     for (var app in selectedAppliances) {
-      finalStates[app.id] = getOrInitState(app);
+      final state = getOrInitState(app);
+      finalData.add({
+        'applianceId': app.id,
+        'title': app.title,
+        'category': app.category,
+        'usageHours': app.usageHours,
+        'usageLevel': state.usageLevel,
+        'count': state.count,
+        'selectedDropdowns': state.selectedDropdowns,
+        'svgPath': app.svgPath,
+      });
     }
-    print("Setup Finished with states: $finalStates");
-    // TODO: Persist finalStates to database/backend
+    print("Setup Finished with data: $finalData");
+    // Persist to backend
+    await _repository.saveAppliances(finalData);
   }
 }

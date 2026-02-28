@@ -43,3 +43,12 @@ app.*.map.json
 **/android/app/debug
 **/android/app/profile
 **/android/app/release
+
+# ─── Node.js / Backend ────────────────────────────────────
+backend/node_modules/
+backend/.env
+# keep .env.example tracked
+!backend/.env.example
+backend/logs/
+backend/*.log
+backend/config/wattwise-firebase-adminsdk.json

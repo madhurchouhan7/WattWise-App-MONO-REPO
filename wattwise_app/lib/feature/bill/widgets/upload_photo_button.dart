@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
-import 'dart:math';
 
 class UploadPhotoButton extends StatelessWidget {
   final VoidCallback onPressed;
