@@ -12,7 +12,20 @@
           "package_name": "com.example.wattwise_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "3925576112-86gj3551ft53gcrani7ik8kf1u9jv06b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.wattwise_app",
+            "certificate_hash": "fba8698098ad65506661c88dd4fce7928eb98f72"
+          }
+        },
+        {
+          "client_id": "3925576112-77ekjd4v5f3gt3npueunsna3ttpufbcn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCB_8Z_NqgRytEQ-pBMK0cwqxR-txAw5pE"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "3925576112-77ekjd4v5f3gt3npueunsna3ttpufbcn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "3925576112-189karngisq3bingcd1kprfu3s817v1v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wattwiseApp"
+              }
+            }
+          ]
         }
       }
     }

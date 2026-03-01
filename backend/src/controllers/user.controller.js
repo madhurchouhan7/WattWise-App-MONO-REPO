@@ -20,7 +20,7 @@ exports.getMe = async (req, res, next) => {
 exports.updateMe = async (req, res, next) => {
     try {
         // Prevent updating email/password through this endpoint
-        const { name, monthlyBudget, currency, avatarUrl, address, household } = req.body;
+        const { name, monthlyBudget, currency, avatarUrl, address, household, planPreferences } = req.body;
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (monthlyBudget !== undefined) updates.monthlyBudget = monthlyBudget;
@@ -28,11 +28,12 @@ exports.updateMe = async (req, res, next) => {
         if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
         if (address !== undefined) updates.address = address;
         if (household !== undefined) updates.household = household;
+        if (planPreferences !== undefined) updates.planPreferences = planPreferences;
 
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { $set: updates },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!user) throw new ApiError(404, 'User not found.');
@@ -56,7 +57,7 @@ exports.updateAppliances = async (req, res, next) => {
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { $set: { appliances, onboardingCompleted: true } },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!user) throw new ApiError(404, 'User not found.');

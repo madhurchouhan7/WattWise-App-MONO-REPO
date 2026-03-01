@@ -96,6 +96,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState(status: AuthStatus.success);
       return true;
     } on Exception catch (e) {
+      print("Google SignIn Exception: $e");
       state = AuthState(
         status: AuthStatus.error,
         errorMessage: _friendlyError(e.toString()),
@@ -154,6 +155,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
     if (raw.contains('invalid-credential')) {
       return 'Invalid credentials. Please check and try again.';
+    }
+    if (raw.contains('sign_in_failed') || raw.contains('ApiException: 10')) {
+      return 'Google Sign-In misconfigured. Please update google-services.json.';
     }
     return 'Something went wrong. Please try again.';
   }

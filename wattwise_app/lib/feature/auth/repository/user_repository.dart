@@ -55,4 +55,20 @@ class UserRepository {
       throw Exception('Failed to save household details: $e');
     }
   }
+
+  Future<void> savePlanPreferences({
+    required List<String> mainGoals,
+    required String focusArea,
+  }) async {
+    try {
+      await _apiClient.put(
+        '/users/me',
+        data: {
+          'planPreferences': {'mainGoals': mainGoals, 'focusArea': focusArea},
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to save plan preferences: $e');
+    }
+  }
 }

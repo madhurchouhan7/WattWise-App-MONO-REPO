@@ -10,7 +10,6 @@ import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
-import 'package:wattwise_app/core/router/app_router.dart';
 
 class OnBoardingPage5 extends ConsumerStatefulWidget {
   const OnBoardingPage5({super.key});
@@ -21,6 +20,7 @@ class OnBoardingPage5 extends ConsumerStatefulWidget {
 
 class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
   late ConfettiController confettiController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -482,34 +482,54 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                 height: 56,
                 child: ElevatedButton(
                   // add a confetti animation
-                  onPressed: selectedAppliances.isNotEmpty
-                      ? () async {
-                          playConfetti();
-                          await notifier.finishSetup(selectedAppliances);
-                          // Persist the onboarding-complete flag so AppRouter
-                          // can reactively route to RootScreen.
-                          final authUserModel = ref
-                              .read(authStateProvider)
-                              .value;
-                          if (authUserModel != null) {
-                            await ref
-                                .read(authNotifierProvider.notifier)
-                                .markOnboardingComplete(authUserModel.uid);
+                  onPressed: (_isLoading || selectedAppliances.isEmpty)
+                      ? null
+                      : () async {
+                          setState(() {
+                            _isLoading = true;
+                          });
+
+                          try {
+                            // Run setup logic
+                            await notifier.finishSetup(selectedAppliances);
+
+                            // Persist the onboarding-complete flag
+                            final authUserModel = ref
+                                .read(authStateProvider)
+                                .value;
+                            if (authUserModel != null) {
+                              await ref
+                                  .read(authNotifierProvider.notifier)
+                                  .markOnboardingComplete(authUserModel.uid);
+                            }
+
+                            // Visual Confetti Celebration
+                            playConfetti();
+                            await Future.delayed(const Duration(seconds: 1));
+
+                            // Invalidating triggers AppRouter to flip to RootScreen
+                            if (context.mounted) {
+                              ref.invalidate(authStateProvider);
+                            }
+                          } catch (error) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to finish setup: $error',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
                           }
-                          // Wait for the confetti to play, then route to Home.
-                          await Future.delayed(const Duration(seconds: 1));
-                          if (context.mounted) {
-                            ref
-                                    .read(
-                                      sessionOnboardingCompleteProvider
-                                          .notifier,
-                                    )
-                                    .state =
-                                true;
-                            ref.invalidate(authStateProvider);
-                          }
-                        }
-                      : null,
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     disabledBackgroundColor: Colors.grey.shade300,
@@ -518,14 +538,23 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Finish Setup 🎉',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'Finish Setup 🎉',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ),

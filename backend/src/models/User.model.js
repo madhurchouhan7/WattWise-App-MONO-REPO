@@ -56,6 +56,11 @@ const UserSchema = new mongoose.Schema(
             familyType: { type: String, default: null },
             houseType: { type: String, default: null },
         },
+        // AI Energy Plan Preferences
+        planPreferences: {
+            mainGoals: { type: [String], default: [] },
+            focusArea: { type: String, default: 'ai_decide' }
+        },
         // Track which onboarding steps the user has completed
         onboardingCompleted: {
             type: Boolean,

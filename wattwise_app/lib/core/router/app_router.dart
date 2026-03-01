@@ -6,9 +6,6 @@ import 'package:wattwise_app/feature/root/screens/root_screen.dart';
 import 'package:wattwise_app/feature/splash_screen/splash_screen.dart';
 import 'package:wattwise_app/feature/welcome/screens/welcome_screen.dart';
 
-// Debugging: state provider to override onboarding status for the current session
-final sessionOnboardingCompleteProvider = StateProvider<bool>((ref) => false);
-
 /// Central routing widget.
 /// Listens to [authStateProvider] and decides which screen to render.
 class AppRouter extends ConsumerWidget {
@@ -31,12 +28,8 @@ class AppRouter extends ConsumerWidget {
           return const WelcomeScreen();
         }
 
-        final isLocalOnboardingComplete = ref.watch(
-          sessionOnboardingCompleteProvider,
-        );
-
-        // For debugging: Force onboarding flow unless we just completed it in this session.
-        if (!isLocalOnboardingComplete) {
+        // If not onboarded, show onboarding.
+        if (!user.isOnboardingComplete) {
           return const OnBoardingScreen();
         }
 

@@ -16,6 +16,24 @@ const generateEfficiencyPlan = async (userData) => {
     const appliances = userData.appliances || [];
     const bill = userData.bill || {};
 
+    // Fetch real-time weather data
+    let weatherContext = "No live weather data provided.";
+    const weatherApiKey = process.env.OPENWEATHER_API_KEY;
+
+    if (weatherApiKey) {
+        try {
+            const wRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(userLocation)}&appid=${weatherApiKey}&units=metric`);
+            if (wRes.ok) {
+                const wData = await wRes.json();
+                weatherContext = `Temperature: ${wData.main.temp}°C, Conditions: ${wData.weather[0].description}, Humidity: ${wData.main.humidity}%`;
+            } else {
+                console.warn(`[WeatherAPI] Fetch failed with status ${wRes.status}`);
+            }
+        } catch (error) {
+            console.error("[WeatherAPI] Error fetching weather context:", error.message);
+        }
+    }
+
     // Build the prompt
     let prompt = `You are an expert energy efficiency advisor for Indian households.
 Analyze the following electricity usage data and generate a personalized efficiency plan.
@@ -24,6 +42,8 @@ USER CONTEXT:
 - Goal: ${userGoal}
 - Focus Area: ${userFocus}
 - Location: ${userLocation}
+- Live Weather: ${weatherContext}
+- WEATHER INSTRUCTION: Extensively adjust your device recommendations, baseline temperatures, and action items structurally around the live weather context so your advice is logically applicable right now.
 
 APPLIANCES:
 `;
@@ -121,7 +141,7 @@ Base calculations on standard Indian electricity rates and BEE star ratings.
     };
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: schema,
