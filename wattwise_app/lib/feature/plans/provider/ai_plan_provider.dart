@@ -7,6 +7,7 @@ import 'package:wattwise_app/feature/plans/repository/ai_plan_repository.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
 import 'package:wattwise_app/feature/plans/provider/plan_preferences_provider.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
 const String _kCachedPlanKey = 'cached_ai_efficiency_plan';
 
@@ -45,11 +46,27 @@ class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
         "location": "India",
       };
 
+      final savedBill = ref.read(savedBillProvider);
+
+      num unitsConsumed = 0;
+      num totalAmount = 0;
+
+      if (savedBill != null) {
+        if (savedBill['units'] != null) {
+          unitsConsumed = num.tryParse(savedBill['units'].toString()) ?? 0;
+        }
+        if (savedBill['amountExact'] != null) {
+          totalAmount = num.tryParse(savedBill['amountExact'].toString()) ?? 0;
+        }
+      }
+
       final billInfo = {
-        "month": "January 2026",
-        "unitsConsumed": 450,
-        "totalAmount": 3200,
-        "pricePerUnit": 7.11,
+        "month": savedBill?['billerId'] ?? "Recent Bill",
+        "unitsConsumed": unitsConsumed.toInt(),
+        "totalAmount": totalAmount.toInt(),
+        "pricePerUnit": unitsConsumed > 0
+            ? (totalAmount / unitsConsumed)
+            : 7.11,
       };
 
       final generatedPlan = await repository.generatePlan(

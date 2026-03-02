@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/plans/screens/cooling_plan_screen.dart';
 
-class PlanStatusCard extends StatelessWidget {
+class PlanStatusCard extends ConsumerWidget {
   const PlanStatusCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateProvider);
+    final activePlan = userAsync.valueOrNull?.activePlan;
+
+    final planName = activePlan?['planName']?.toString() ?? "No Plan Activated";
+    final efficiencyScore = activePlan?['efficiencyScore']?.toString() ?? "--";
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -47,9 +55,9 @@ class PlanStatusCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Summer Cooling Plan",
+                    planName,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -109,7 +117,7 @@ class PlanStatusCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "88%",
+                        "$efficiencyScore%",
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

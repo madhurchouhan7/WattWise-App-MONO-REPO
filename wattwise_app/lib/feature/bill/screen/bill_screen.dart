@@ -7,12 +7,26 @@ import 'package:wattwise_app/feature/bill/screen/add_bill_screen.dart';
 import 'package:wattwise_app/feature/bill/widgets/bill_header.dart';
 import 'package:wattwise_app/feature/bill/widgets/current_cycle_card.dart';
 import 'package:wattwise_app/feature/bill/widgets/bill_history_tile.dart';
+import '../providers/fetch_bill_provider.dart';
 
 class BillScreen extends ConsumerWidget {
   const BillScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    String amountStr = '0';
+    if (savedBill != null && savedBill['amountExact'] != null) {
+      final rawAmount = savedBill['amountExact'];
+      if (rawAmount is int) {
+        amountStr = rawAmount.toString();
+      } else if (rawAmount is double) {
+        amountStr = rawAmount.toStringAsFixed(2);
+      } else {
+        amountStr = rawAmount.toString();
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -77,6 +91,23 @@ class BillScreen extends ConsumerWidget {
               ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0),
 
               const SizedBox(height: 16),
+
+              if (savedBill != null)
+                BillHistoryTile(
+                  icon: Icons.bolt_rounded,
+                  iconColor: AppColors.ecoGreen,
+                  date: savedBill['billerId'] ?? "Default",
+                  usage:
+                      savedBill['units'].toString() == '0' ||
+                          savedBill['units'] == null
+                      ? '450'
+                      : savedBill['units'].toString(),
+                  rate: "-",
+                  amount: "₹$amountStr",
+                  trend: "New",
+                  isTrendingUp: false,
+                  isTrendNeutral: true,
+                ).animate().fade(delay: 250.ms).slideY(begin: 0.1, end: 0),
 
               // Mock items as per UI design
               const BillHistoryTile(

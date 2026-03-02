@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
-class BillAmountCard extends StatelessWidget {
+class BillAmountCard extends ConsumerWidget {
   const BillAmountCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+
+    // Exact identical amount safely checked from Setu
+    final rawAmount = savedBill?['amountExact'];
+    String amountStr = '3,450';
+    if (rawAmount != null) {
+      if (rawAmount is int) {
+        amountStr = rawAmount.toString();
+      } else if (rawAmount is double) {
+        amountStr = rawAmount.toStringAsFixed(2);
+      } else {
+        amountStr = rawAmount.toString();
+      }
+    }
+
+    final int units = savedBill != null && savedBill['units'] != null
+        ? int.tryParse(savedBill['units'].toString()) ?? 420
+        : 420;
+    final int dailyAvg = (units / 30).round();
+
+    final dueDate = savedBill?['dueDate'] ?? 'Unknown';
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -35,7 +59,7 @@ class BillAmountCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                "₹3,450",
+                "₹$amountStr",
                 style: GoogleFonts.poppins(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
@@ -63,7 +87,7 @@ class BillAmountCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      "Due in 5 days",
+                      "Due $dueDate",
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -102,7 +126,7 @@ class BillAmountCard extends StatelessWidget {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                "420",
+                                units.toString(),
                                 style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -149,7 +173,7 @@ class BillAmountCard extends StatelessWidget {
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
-                                  "14",
+                                  dailyAvg.toString(),
                                   style: GoogleFonts.poppins(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -191,7 +215,7 @@ class BillAmountCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "July 01 - July 31",
+                      savedBill?['billerId'] ?? "Default",
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

@@ -1,108 +1,170 @@
 // src/models/User.model.js
-// Mongoose schema for WattWise users.
-//
-// ⚠️  Authentication is handled entirely by Firebase Auth on the client.
-//     This collection stores app-specific data and mirrors Firebase's uid.
-//     There is NO password field — never store or hash passwords here.
+/**
+ * Mongoose Schema for WattWise users.
+ *
+ * ⚠️ Authentication is handled entirely by Firebase Auth on the client edge.
+ *    This collection stores deep app-specific telemetry, configurations, and
+ *    mirrors the raw Firebase edge `uid`. There is NO password field — never
+ *    store or hash credentials here natively.
+ */
 
 const mongoose = require('mongoose');
 
+// ─── Constants & Enums ────────────────────────────────────────────────────────
+
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
+
+// ─── Sub-Schemas ─────────────────────────────────────────────────────────────
+// Defined as explicit schemas to enforce strict typing while disabling `_id`
+// generation for optimal database footprint size.
+
+const AddressSchema = new mongoose.Schema(
+    {
+        state: { type: String, default: null, trim: true },
+        city: { type: String, default: null, trim: true },
+        discom: { type: String, default: null, trim: true },
+        lat: { type: Number, default: null, min: -90, max: 90 },
+        lng: { type: Number, default: null, min: -180, max: 180 },
+    },
+    { _id: false }
+);
+
+const HouseholdSchema = new mongoose.Schema(
+    {
+        peopleCount: { type: Number, default: 2, min: 1 },
+        familyType: { type: String, default: null, trim: true },
+        houseType: { type: String, default: null, trim: true },
+    },
+    { _id: false }
+);
+
+const PlanPreferencesSchema = new mongoose.Schema(
+    {
+        mainGoals: { type: [String], default: [] },
+        focusArea: { type: String, default: 'ai_decide', trim: true },
+    },
+    { _id: false }
+);
+
+const ApplianceSchema = new mongoose.Schema(
+    {
+        applianceId: { type: String, required: true },
+        title: { type: String, required: true, trim: true },
+        category: { type: String, trim: true },
+        usageHours: { type: Number, min: 0, max: 24, default: 0 },
+        usageLevel: { type: String, trim: true },
+        count: { type: Number, min: 1, default: 1 },
+        selectedDropdowns: {
+            type: Map,
+            of: String,
+            default: {},
+        },
+        svgPath: { type: String, trim: true },
+    },
+    { _id: false }
+);
+
+// ─── Main User Schema ────────────────────────────────────────────────────────
+
 const UserSchema = new mongoose.Schema(
     {
-        // ── Identity (from Firebase) ─────────────────────────────────────────────
+        // ── Identity (Synced with Firebase) ──────────────────────────────────
         firebaseUid: {
             type: String,
-            required: true,
+            required: [true, 'Firebase UID is mandatory for user synchronization.'],
             unique: true,
             index: true,
         },
         email: {
             type: String,
-            required: true,
+            required: [true, 'Email field is required.'],
             unique: true,
             lowercase: true,
             trim: true,
+            match: [
+                /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                'Please fill a valid email address.',
+            ],
         },
         name: {
             type: String,
             trim: true,
+            maxlength: [100, 'Name cannot exceed 100 characters.'],
         },
         avatarUrl: {
             type: String,
             default: null,
+            trim: true,
         },
 
-        // ── WattWise-specific app data ───────────────────────────────────────────
+        // ── Preferences & Config ─────────────────────────────────────────────
         monthlyBudget: {
             type: Number,
             default: 0,
+            min: [0, 'Monthly budget cannot be less than 0.'],
         },
         currency: {
             type: String,
+            enum: {
+                values: CURRENCIES,
+                message: '{VALUE} is not a supported currency.',
+            },
             default: 'INR',
-            enum: ['INR', 'USD', 'EUR', 'GBP', 'AED'],
         },
-        // Address specific data
+
+        // ── Embedded Sub-Documents ───────────────────────────────────────────
         address: {
-            state: { type: String, default: null },
-            city: { type: String, default: null },
-            discom: { type: String, default: null },
-            lat: { type: Number, default: null },
-            lng: { type: Number, default: null },
+            type: AddressSchema,
+            default: () => ({}), // Ensures nested objects initialize automatically
         },
-        // Household specific data
         household: {
-            peopleCount: { type: Number, default: 2 },
-            familyType: { type: String, default: null },
-            houseType: { type: String, default: null },
+            type: HouseholdSchema,
+            default: () => ({}),
         },
-        // AI Energy Plan Preferences
         planPreferences: {
-            mainGoals: { type: [String], default: [] },
-            focusArea: { type: String, default: 'ai_decide' }
+            type: PlanPreferencesSchema,
+            default: () => ({}),
         },
-        // Generated Energy Plan
+        appliances: {
+            type: [ApplianceSchema],
+            default: [],
+        },
+
+        // ── Plan Management ──────────────────────────────────────────────────
         activePlan: {
-            type: Object,
+            type: mongoose.Schema.Types.Mixed, // Keeps unstructured AI map responses flexible
             default: null,
         },
         previousPlans: {
-            type: Array,
-            default: []
+            type: [mongoose.Schema.Types.Mixed],
+            default: [],
         },
-        // Track which onboarding steps the user has completed
+
+        // ── Application State ────────────────────────────────────────────────
         onboardingCompleted: {
             type: Boolean,
             default: false,
         },
-        // User's configured appliances
-        appliances: {
-            type: [{
-                applianceId: String,
-                title: String,
-                category: String,
-                usageHours: Number,
-                usageLevel: String,
-                count: Number,
-                selectedDropdowns: {
-                    type: Map,
-                    of: String
-                },
-                svgPath: String
-            }],
-            default: []
-        },
     },
     {
-        timestamps: true, // createdAt + updatedAt
+        timestamps: true, // Automatically manages `createdAt` and `updatedAt`
+        minimize: false,  // Prevents Mongoose from naturally dropping completely empty `{}` objects
     }
 );
 
-// ── Virtual: expose _id as 'id' (matches Flutter model convention) ────────────
+// ─── Database Indexes ────────────────────────────────────────────────────────
+// Note: `firebaseUid` and `email` natively generate unique indexes via their definitions.
+
+// ─── Virtuals & Transformers ─────────────────────────────────────────────────
+/**
+ * Global schema serialization formatting.
+ * Destroys internal node keys (`__v`, `_id`) and maps `id` accurately natively.
+ * This guarantees the JSON shipping into Flutter matches Riverpod models 1:1.
+ */
 UserSchema.set('toJSON', {
     virtuals: true,
-    transform: (_doc, ret) => {
-        ret.id = ret._id;
+    transform: (doc, ret) => {
+        ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
         return ret;

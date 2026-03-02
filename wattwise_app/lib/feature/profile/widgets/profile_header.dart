@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 
-class ProfileHeader extends StatelessWidget {
+class ProfileHeader extends ConsumerWidget {
   const ProfileHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.valueOrNull;
+
+    final displayName =
+        user?.displayName ?? user?.email.split('@').first ?? 'User';
+    final photoUrl = user?.photoUrl;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
@@ -28,16 +37,21 @@ class ProfileHeader extends StatelessWidget {
                     backgroundColor: const Color(
                       0xFFEFF6FF,
                     ), // blue.shade50 equivalent
-                    backgroundImage: Image.network(
-                      'https://avatars.githubusercontent.com/u/30585596?s=400&u=f003965be0a53be549780f833f556bed3a3e95b6&v=4',
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.person,
-                          size: 40,
-                          color: AppColors.primaryBlue,
-                        );
-                      },
-                    ).image, // Replace with Sarah's image if preferred
+                    backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                        ? NetworkImage(photoUrl)
+                        : null,
+                    child: photoUrl == null || photoUrl.isEmpty
+                        ? Text(
+                            displayName.isNotEmpty
+                                ? displayName[0].toUpperCase()
+                                : 'U',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.primaryBlue,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
                 Positioned(
@@ -61,7 +75,7 @@ class ProfileHeader extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              "Madhur Chouhan",
+              displayName,
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,

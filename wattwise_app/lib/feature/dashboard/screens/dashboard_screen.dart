@@ -7,6 +7,8 @@ import 'package:wattwise_app/feature/dashboard/providers/dashboard_provider.dart
 import 'package:wattwise_app/feature/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:wattwise_app/feature/dashboard/widgets/no_bills_empty_state.dart';
 import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_sheet.dart';
+import 'package:wattwise_app/feature/auth/models/user_model.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -28,8 +30,11 @@ class DashboardScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFFF8FAFF),
         body: SafeArea(
           child: hasBills
-              ? _DataView(displayName: displayName)
-              : _EmptyView(displayName: displayName),
+              ? _DataView(displayName: displayName, user: userAsync.valueOrNull)
+              : _EmptyView(
+                  displayName: displayName,
+                  user: userAsync.valueOrNull,
+                ),
         ),
       ),
     );
@@ -39,7 +44,8 @@ class DashboardScreen extends ConsumerWidget {
 // ─── Empty State (no bills added) ─────────────────────────────────────────────
 class _EmptyView extends StatelessWidget {
   final String displayName;
-  const _EmptyView({required this.displayName});
+  final UserModel? user;
+  const _EmptyView({required this.displayName, this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +61,7 @@ class _EmptyView extends StatelessWidget {
             vertical: width * 0.04,
           ),
           child: DashboardAppBar(
+            user: user,
             displayName: displayName,
             onNotificationTap: () {
               // TODO: navigate to notifications
@@ -84,7 +91,8 @@ class _EmptyView extends StatelessWidget {
 // ─── Data View (bills exist) ──────────────────────────────────────────────────
 class _DataView extends ConsumerWidget {
   final String displayName;
-  const _DataView({required this.displayName});
+  final UserModel? user;
+  const _DataView({required this.displayName, this.user});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,21 +102,30 @@ class _DataView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DashboardAppBar(displayName: displayName),
+            DashboardAppBar(
+              displayName: displayName,
+              user: user,
+              onNotificationTap: () {
+                // TODO: Navigate to notifications
+              },
+              onProfileTap: () {
+                // TODO: Navigate to profile
+              },
+            ),
             const SizedBox(height: 32),
-            _buildStatCards(),
+            _buildStatCards(ref),
             const SizedBox(height: 28),
             _buildSectionTitle('Active Plan', showIndicator: true),
             const SizedBox(height: 16),
-            _buildActivePlanCard(context),
+            _buildActivePlanCard(context, user),
             const SizedBox(height: 28),
             _buildSectionTitle('Action Items'),
             const SizedBox(height: 16),
-            _buildActionItems(),
+            _buildActionItems(user),
             const SizedBox(height: 28),
             _buildSectionTitleWithAction('Recent Activity', 'View All'),
             const SizedBox(height: 16),
-            _buildRecentActivity(),
+            _buildRecentActivity(ref),
             const SizedBox(height: 24),
           ],
         ),
@@ -116,7 +133,23 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCards() {
+  Widget _buildStatCards(WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    final currentBillAmount = savedBill?['amountExact'];
+    String currentBillStr;
+    if (currentBillAmount != null) {
+      if (currentBillAmount is int) {
+        currentBillStr = currentBillAmount.toString();
+      } else if (currentBillAmount is double) {
+        currentBillStr = currentBillAmount.toStringAsFixed(2);
+      } else {
+        currentBillStr = '--';
+      }
+    } else {
+      currentBillStr = '--';
+    }
+    final hasBill = savedBill != null;
+
     return Row(
       children: [
         Expanded(
@@ -127,9 +160,14 @@ class _DataView extends ConsumerWidget {
               size: 20,
             ),
             iconBg: const Color(0xFFEFF6FF),
-            badge: _TrendBadge(value: '4%', isUp: true),
-            label: 'Est. Current Bill',
-            value: '₹5,240',
+            badge: hasBill
+                ? const _TrendBadge(value: 'NEW', isUp: false)
+                : null,
+            label: 'Current Bill',
+            value: '₹$currentBillStr',
+            subLabel: hasBill
+                ? 'Due ${savedBill['dueDate'] ?? 'Soon'}'
+                : 'No bill fetched',
           ),
         ),
         const SizedBox(width: 16),
@@ -142,8 +180,8 @@ class _DataView extends ConsumerWidget {
             ),
             iconBg: const Color(0xFFECFDF5),
             label: 'Last Paid',
-            value: '₹4,890',
-            subLabel: 'Paid on Feb 1st',
+            value: hasBill ? '₹--' : '--',
+            subLabel: hasBill ? 'Checking history...' : 'No local history',
           ),
         ),
       ],
@@ -193,7 +231,71 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivePlanCard(BuildContext context) {
+  Widget _buildActivePlanCard(BuildContext context, UserModel? user) {
+    if (user?.activePlan == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.auto_awesome, color: Color(0xFF94A3B8), size: 32),
+            const SizedBox(height: 12),
+            Text(
+              'No AI Plan Active',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Head to the Plans tab to generate your AI savings strategy!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final p = user!.activePlan!;
+    final planName = 'AI Efficiency Plan';
+    final estSavingsObj = p['estimatedSavingsIfFollowed'];
+    final pct = estSavingsObj?['percentage'] ?? 0;
+    final tierDesc = 'Targeting $pct% savings';
+
+    var usageTarget = 'Optimizing...';
+    double fillRatio = 0.6; // fallback 60%
+
+    if (p['estimatedCurrentMonthlyCost'] != null &&
+        estSavingsObj?['rupees'] != null) {
+      final targetRupees =
+          (p['estimatedCurrentMonthlyCost'] - estSavingsObj['rupees'])
+              .toDouble();
+      if (targetRupees > 0) {
+        usageTarget = '₹${targetRupees.toInt()} Target';
+        if (p['estimatedCurrentMonthlyCost'] > 0) {
+          fillRatio = targetRupees / p['estimatedCurrentMonthlyCost'];
+        }
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -217,14 +319,18 @@ class _DataView extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'AC Cooling Plan',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  planName,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -247,7 +353,7 @@ class _DataView extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Tier 2 Usage',
+            tierDesc,
             style: GoogleFonts.poppins(
               color: Colors.white.withOpacity(0.8),
               fontSize: 12,
@@ -266,7 +372,7 @@ class _DataView extends ConsumerWidget {
                 ),
               ),
               Text(
-                '650 / 800 kWh',
+                usageTarget,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 12,
@@ -290,7 +396,7 @@ class _DataView extends ConsumerWidget {
                   ),
                   Container(
                     height: 8,
-                    width: constraints.maxWidth * 0.81,
+                    width: constraints.maxWidth * fillRatio.clamp(0.0, 1.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(4),
@@ -335,14 +441,94 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionItems() {
-    return Column(
-      children: [
+  Widget _buildActionItems(UserModel? user) {
+    List<Widget> customStrategies = [];
+
+    if (user?.activePlan != null && user!.activePlan!['keyActions'] != null) {
+      final actions = user.activePlan!['keyActions'] as List<dynamic>;
+      // Take first 2 strategies for dashboard compact view
+      for (var actionItem in actions.take(2)) {
+        final priority =
+            actionItem['priority']?.toString().toLowerCase() ?? 'medium';
+        Color iconColor;
+        Color bgColor;
+        Color borderColor;
+        IconData icon;
+
+        if (priority == 'high') {
+          iconColor = const Color(0xFFEA580C);
+          bgColor = const Color(0xFFFFF7ED);
+          borderColor = const Color(0xFFFFEDD5);
+          icon = Icons.priority_high_rounded;
+        } else {
+          iconColor = const Color(0xFF16A34A);
+          bgColor = const Color(0xFFF0FDF4);
+          borderColor = const Color(0xFFBBF7D0);
+          icon = Icons.tips_and_updates_outlined;
+        }
+
+        customStrategies.add(
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: bgColor,
+              border: Border.all(color: borderColor),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        actionItem['appliance']?.toString() ?? 'Smart Strategy',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        actionItem['action']?.toString() ??
+                            'Optimize to save...',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: const Color(0xFF64748B),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    // Default placeholder if strategies array is totally empty/missing
+    if (customStrategies.isEmpty) {
+      customStrategies.add(
         Container(
           padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF7ED),
-            border: Border.all(color: const Color(0xFFFFEDD5)),
+            color: const Color(0xFFF8FAFC),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -355,8 +541,8 @@ class _DataView extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Icons.wb_sunny_outlined,
-                  color: Color(0xFFEA580C),
+                  Icons.auto_awesome,
+                  color: Color(0xFF94A3B8),
                   size: 24,
                 ),
               ),
@@ -366,7 +552,7 @@ class _DataView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'High Heat Advisory',
+                      'AI Actions Pending',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -375,7 +561,7 @@ class _DataView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Expect higher usage today due to temperatures reaching 40°C.',
+                      'Generate a plan to see customized savings tips here.',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: const Color(0xFF64748B),
@@ -388,6 +574,12 @@ class _DataView extends ConsumerWidget {
             ],
           ),
         ),
+      );
+    }
+
+    return Column(
+      children: [
+        ...customStrategies,
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
@@ -421,31 +613,56 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivity() {
-    final activities = [
-      {
-        'title': 'February Bill',
-        'subtitle': 'Due Feb 28',
-        'amount': '₹4,890',
-        'status': 'Paid',
-        'isPaid': true,
-      },
-      {
-        'title': 'January Bill',
-        'subtitle': 'Due Jan 31',
-        'amount': '₹4,310',
-        'status': 'Paid',
-        'isPaid': true,
-      },
-      {
-        'title': 'Service Fee',
-        'subtitle': 'Jan 15',
-        'amount': '₹180',
-        'status': 'Posted',
+  Widget _buildRecentActivity(WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    final activities = <Map<String, dynamic>>[];
+
+    // Inject the real tracked bill if it exists
+    if (savedBill != null) {
+      activities.add({
+        'title': savedBill['billerId'] ?? 'Electricity Bill',
+        'subtitle': 'Due ${savedBill['dueDate'] ?? 'Soon'}',
+        'amount': '₹${savedBill['amountExact']?.toString() ?? 0}',
+        'status': 'Pending',
         'isPaid': false,
-        'isGrey': true,
-      },
-    ];
+        'isGrey': false,
+      });
+    }
+
+    if (activities.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.history_toggle_off,
+              color: Color(0xFF94A3B8),
+              size: 32,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No recent activity',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(

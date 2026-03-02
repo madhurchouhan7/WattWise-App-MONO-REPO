@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
-class ProfileStatsCard extends StatelessWidget {
+class ProfileStatsCard extends ConsumerWidget {
   const ProfileStatsCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    final hasBills = savedBill != null;
+
+    final String billsCount = hasBills ? "1" : "0";
+    final String savings = hasBills
+        ? "₹${(savedBill['amountExact'] ?? 0) * 0.1 > 100 ? 120 : 0}"
+        : "₹0";
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -23,11 +33,11 @@ class ProfileStatsCard extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatColumn("24", "Bills"),
+              _buildStatColumn(billsCount, "Bills"),
               _buildDivider(),
-              _buildStatColumn("₹12k", "Saved"),
+              _buildStatColumn(savings, "Saved"),
               _buildDivider(),
-              _buildStatColumn("8", "Streak"),
+              _buildStatColumn(hasBills ? "1" : "0", "Streak"),
             ],
           ),
         );

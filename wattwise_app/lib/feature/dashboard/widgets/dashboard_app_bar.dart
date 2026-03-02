@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/feature/auth/models/user_model.dart';
 
 /// Top app-bar row shown on the DashboardScreen.
 ///
 /// Left  side: greeting text + bold user display name.
-/// Right side: notification bell button.
+/// Right side: notification bell button and user profile icon.
 class DashboardAppBar extends StatelessWidget {
   final String displayName;
+  final UserModel? user;
   final VoidCallback? onNotificationTap;
+  final VoidCallback? onProfileTap;
 
   const DashboardAppBar({
     super.key,
     required this.displayName,
+    this.user,
     this.onNotificationTap,
+    this.onProfileTap,
   });
 
   @override
@@ -56,8 +61,8 @@ class DashboardAppBar extends StatelessWidget {
           child: Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -65,6 +70,29 @@ class DashboardAppBar extends StatelessWidget {
               color: Color(0xFF334155),
               size: 22,
             ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // ── Profile Icon ──────────────────────────────────────
+        GestureDetector(
+          onTap: onProfileTap,
+          child: CircleAvatar(
+            radius: 22,
+            backgroundColor: const Color(0xFF1E60F2).withOpacity(0.1),
+            backgroundImage:
+                user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                ? NetworkImage(user!.photoUrl!)
+                : null,
+            child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                ? Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1E60F2),
+                    ),
+                  )
+                : null,
           ),
         ),
       ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ActivePlanScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> activePlan;
@@ -96,18 +97,40 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              _buildPrimaryCard(plan),
+              _buildPrimaryCard(plan).animate().fade().slideY(
+                begin: 0.1,
+                end: 0,
+                duration: 400.ms,
+                curve: Curves.easeOutCubic,
+              ),
               const SizedBox(height: 24),
-              _buildMetricsRow(savingsRupees, savingsPercent),
+              _buildMetricsRow(savingsRupees, savingsPercent)
+                  .animate()
+                  .fade(delay: 100.ms)
+                  .slideY(
+                    begin: 0.1,
+                    end: 0,
+                    duration: 400.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
               const SizedBox(height: 32),
-              _buildSectionHeader('Daily Actions', 'Manage'),
+              _buildSectionHeader(
+                'Daily Actions',
+                'Manage',
+              ).animate().fade(delay: 200.ms),
               const SizedBox(height: 16),
               ...List.generate(actions.length, (index) {
                 final action = actions[index] as Map<String, dynamic>;
-                return _buildActionTile(action, index);
+                return _buildActionTile(action, index)
+                    .animate()
+                    .fade(delay: (250 + (index * 50)).ms)
+                    .slideX(begin: 0.1, end: 0, duration: 400.ms);
               }),
               const SizedBox(height: 32),
-              _buildSectionHeader('Previous Plans', 'View All'),
+              _buildSectionHeader(
+                'Previous Plans',
+                'View All',
+              ).animate().fade(delay: 350.ms),
               const SizedBox(height: 16),
               _buildPreviousPlanTile(
                 icon: Icons.local_fire_department,
@@ -115,7 +138,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                 subtitle: 'Ended Mar 30 • ',
                 highlight: '92% Adherence',
                 highlightColor: Colors.green,
-              ),
+              ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
               const SizedBox(height: 12),
               _buildPreviousPlanTile(
                 icon: Icons.bolt,
@@ -123,7 +146,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                 subtitle: 'Ended May 30 • ',
                 highlight: '78% Adherence',
                 highlightColor: Colors.orange,
-              ),
+              ).animate().fade(delay: 450.ms).slideY(begin: 0.1, end: 0),
               const SizedBox(height: 100), // padding for invisible bottom nav
             ],
           ),

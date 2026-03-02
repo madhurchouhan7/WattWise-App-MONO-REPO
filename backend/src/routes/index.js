@@ -10,9 +10,11 @@ const userRoutes = require('./user.routes');
 // const applianceRoutes = require('./appliance.routes');
 // const billRoutes      = require('./bill.routes');
 const aiRoutes = require('./ai.routes');
+const bbpsRoutes = require('./bbps.routes');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/ai', aiRoutes);
+router.use('/bbps', bbpsRoutes);
 
 module.exports = router;

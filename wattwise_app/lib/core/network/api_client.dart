@@ -75,9 +75,17 @@ class _AuthInterceptor extends Interceptor {
   ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // forceRefresh: false — Firebase caches the token and refreshes automatically
-      final token = await user.getIdToken();
-      options.headers['Authorization'] = 'Bearer $token';
+      try {
+        // forceRefresh: false — Firebase caches the token and refreshes automatically
+        final token = await user.getIdToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+      } catch (e) {
+        debugPrint('Failed to get Firebase token: $e');
+        // Let the request continue locally without a token.
+        // Our backend Express middleware has a dynamic NODE_ENV==='development' fallback to catch this!
+      }
     }
     handler.next(options);
   }

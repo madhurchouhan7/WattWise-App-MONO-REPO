@@ -21,6 +21,28 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
   Widget build(BuildContext context) {
     final aiPlanState = ref.watch(aiPlanProvider);
 
+    final now = DateTime.now();
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final startStr =
+        '${months[now.month - 1]} ${now.day.toString().padLeft(2, '0')}';
+    final end = now.add(const Duration(days: 90));
+    final endStr =
+        '${months[end.month - 1]} ${end.day.toString().padLeft(2, '0')}';
+    final dynamicPlanName = "Smart Efficiency Plan";
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -155,7 +177,7 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Summer Efficiency Plan',
+                                      dynamicPlanName,
                                       style: GoogleFonts.inter(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
@@ -172,7 +194,7 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          'May 01 - Jul 31', // Mock or dynamic from somewhere
+                                          '$startStr - $endStr',
                                           style: GoogleFonts.inter(
                                             color: Colors.white70,
                                             fontSize: 13,
@@ -380,9 +402,11 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                     });
 
                                     try {
+                                      final payload = plan.toJson();
+                                      payload['planName'] = dynamicPlanName;
                                       await ref
                                           .read(userRepositoryProvider)
-                                          .saveActivePlan(plan.toJson());
+                                          .saveActivePlan(payload);
                                       // Refreshes global app state natively back to PlansScreen -> ActivePlanScreen branch
                                       if (context.mounted) {
                                         ref.invalidate(authStateProvider);

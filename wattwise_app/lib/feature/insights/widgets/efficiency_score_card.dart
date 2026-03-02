@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
 
-class EfficiencyScoreCard extends StatelessWidget {
+class EfficiencyScoreCard extends ConsumerWidget {
   const EfficiencyScoreCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final score = ref.watch(efficiencyScoreProvider);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -55,7 +59,7 @@ class EfficiencyScoreCard extends StatelessWidget {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        "82",
+                        score.toString(),
                         style: GoogleFonts.poppins(
                           fontSize: 56,
                           fontWeight: FontWeight.bold,

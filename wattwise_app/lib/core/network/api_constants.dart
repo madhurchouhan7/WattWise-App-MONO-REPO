@@ -5,12 +5,10 @@ class ApiConstants {
   ApiConstants._();
 
   // ── Base URLs ─────────────────────────────────────────────────────────────
-  // Use 10.0.2.2 on Android emulator (maps to host machine's localhost).
-  // Use localhost for web / iOS simulator.
-  // For a physical device, replace with your machine's local IP (e.g. 192.168.x.x).
-  static const String _localHost = 'http://10.0.2.2:5000'; // Android emulator
-  // static const String _localHost = 'http://localhost:5000'; // Web / iOS sim
-  // static const String _localHost = 'http://192.168.1.x:5000'; // Physical device
+  // Bound dynamically to your host machine's physical network IPv4 space
+  // This allows BOTH Emulators and Real Devices on your Wi-Fi to hit the backend!
+  static const String _localHost = 'http://10.78.211.93:5000';
+  // static const String _localHost = 'http://10.0.2.2:5000'; // Android emulator ONLY
 
   static const String baseUrl = '$_localHost/api/v1';
   static const String healthUrl = '$_localHost/health';
@@ -26,6 +24,9 @@ class ApiConstants {
 
   // ── User Routes ───────────────────────────────────────────────────────────
   static const String userProfile = '/users/profile';
+
+  // ── BBPS Routes ───────────────────────────────────────────────────────────
+  static const String bbpsFetchBill = '/bbps/fetch-bill';
 
   // ── (Add more as you build features) ─────────────────────────────────────
 }

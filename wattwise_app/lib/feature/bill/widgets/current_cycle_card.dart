@@ -1,20 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/bill/screen/bill_detail_screen.dart';
+import '../providers/fetch_bill_provider.dart';
 
-class CurrentCycleCard extends StatelessWidget {
+class CurrentCycleCard extends ConsumerWidget {
   const CurrentCycleCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+
+    // Extract real values or default to dummy representations
+    final rawAmount = savedBill?['amountExact'];
+    String amount = '84.50';
+    if (rawAmount != null) {
+      if (rawAmount is int) {
+        amount = rawAmount.toString();
+      } else if (rawAmount is double) {
+        amount = rawAmount.toStringAsFixed(2);
+      } else {
+        amount = rawAmount.toString();
+      }
+    }
+
+    final String usage =
+        savedBill?['units']?.toString() == '0' || savedBill?['units'] == null
+        ? '450'
+        : savedBill!['units'].toString();
+    // Assuming remaining days calculation if dueDate exists, but mock as 12 if N/A or null
+    final String dueDate = savedBill?['dueDate']?.toString() ?? '';
+    String remainingDays = '12';
+    if (dueDate.isNotEmpty && dueDate != 'N/A') {
+      try {
+        final parsedDate = DateTime.parse(dueDate);
+        remainingDays = parsedDate.difference(DateTime.now()).inDays.toString();
+        if (int.parse(remainingDays) < 0) remainingDays = '0';
+      } catch (_) {}
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF), // Light blue background
+            color: AppColors.primaryBlue.withAlpha(50), // Light blue background
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white, width: 1.5),
             boxShadow: [
@@ -59,7 +90,7 @@ class CurrentCycleCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "\$84.50",
+                        "₹$amount",
                         style: GoogleFonts.poppins(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
@@ -97,9 +128,11 @@ class CurrentCycleCard extends StatelessWidget {
 
               Row(
                 children: [
-                  Expanded(child: _buildInfoCard("Usage", "450", "kWh")),
+                  Expanded(child: _buildInfoCard("Usage", usage, "kWh")),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildInfoCard("Remaining", "12", "Days")),
+                  Expanded(
+                    child: _buildInfoCard("Remaining", remainingDays, "Days"),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

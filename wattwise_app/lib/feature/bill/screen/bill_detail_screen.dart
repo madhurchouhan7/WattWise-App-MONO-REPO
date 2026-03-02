@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/bill/widgets/bill_amount_card.dart';
 import 'package:wattwise_app/feature/bill/widgets/spending_alert_banner.dart';
 import 'package:wattwise_app/feature/bill/widgets/bill_decoder_card.dart';
@@ -9,11 +11,14 @@ import 'package:wattwise_app/feature/bill/widgets/tariff_breakdown_card.dart';
 import 'package:wattwise_app/feature/bill/widgets/consumption_estimate_card.dart';
 import 'package:wattwise_app/feature/bill/widgets/plan_status_card.dart';
 
-class BillDetailScreen extends StatelessWidget {
+class BillDetailScreen extends ConsumerWidget {
   const BillDetailScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    final title = savedBill?['billerId'] ?? "Electricity Bill";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Very light grey bg
       appBar: AppBar(
@@ -29,7 +34,7 @@ class BillDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "July 2023",
+          title,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.bold,
