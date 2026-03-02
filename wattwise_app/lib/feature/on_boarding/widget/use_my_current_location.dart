@@ -14,7 +14,23 @@ class UseMyCurrentLocation extends ConsumerWidget {
 
     return InkWell(
       splashColor: Colors.transparent,
-      onTap: () => notifier.determineLocation(),
+      onTap: () async {
+        final result = await notifier.determineLocation();
+        if (!context.mounted) return;
+
+        if (result == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('GPS Coordinates fetched and stored successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result), backgroundColor: Colors.redAccent),
+          );
+        }
+      },
       child: Container(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.065,

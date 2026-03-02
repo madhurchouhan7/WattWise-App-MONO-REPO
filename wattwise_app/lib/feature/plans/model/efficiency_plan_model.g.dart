@@ -30,10 +30,10 @@ Map<String, dynamic> _$EfficiencyPlanModelToJson(
 ) => <String, dynamic>{
   'summary': instance.summary,
   'estimatedCurrentMonthlyCost': instance.estimatedCurrentMonthlyCost,
-  'estimatedSavingsIfFollowed': instance.estimatedSavingsIfFollowed,
+  'estimatedSavingsIfFollowed': instance.estimatedSavingsIfFollowed.toJson(),
   'efficiencyScore': instance.efficiencyScore,
-  'keyActions': instance.keyActions,
-  'slabAlert': instance.slabAlert,
+  'keyActions': instance.keyActions.map((e) => e.toJson()).toList(),
+  'slabAlert': instance.slabAlert.toJson(),
   'quickWins': instance.quickWins,
   'monthlyTip': instance.monthlyTip,
 };

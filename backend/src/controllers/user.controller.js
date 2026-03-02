@@ -20,15 +20,27 @@ exports.getMe = async (req, res, next) => {
 exports.updateMe = async (req, res, next) => {
     try {
         // Prevent updating email/password through this endpoint
-        const { name, monthlyBudget, currency, avatarUrl, address, household, planPreferences } = req.body;
+        const { name, monthlyBudget, currency, avatarUrl, address, household, planPreferences, activePlan } = req.body;
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (monthlyBudget !== undefined) updates.monthlyBudget = monthlyBudget;
         if (currency !== undefined) updates.currency = currency;
         if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
-        if (address !== undefined) updates.address = address;
-        if (household !== undefined) updates.household = household;
+
+        if (address !== undefined) {
+            Object.keys(address).forEach(key => {
+                updates[`address.${key}`] = address[key];
+            });
+        }
+
+        if (household !== undefined) {
+            Object.keys(household).forEach(key => {
+                updates[`household.${key}`] = household[key];
+            });
+        }
+
         if (planPreferences !== undefined) updates.planPreferences = planPreferences;
+        if (activePlan !== undefined) updates.activePlan = activePlan;
 
         const user = await User.findByIdAndUpdate(
             req.user.id,

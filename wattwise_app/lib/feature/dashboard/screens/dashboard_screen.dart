@@ -19,7 +19,7 @@ class DashboardScreen extends ConsumerWidget {
 
     final displayName =
         userAsync.valueOrNull?.displayName?.split(' ').first ??
-        userAsync.valueOrNull?.email?.split('@').first ??
+        userAsync.valueOrNull?.email.split('@').first ??
         'there';
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -616,7 +616,7 @@ class _StatCard extends StatelessWidget {
                 ),
                 child: iconWidget,
               ),
-              if (badge != null) badge!,
+              ?badge,
             ],
           ),
           const SizedBox(height: 16),

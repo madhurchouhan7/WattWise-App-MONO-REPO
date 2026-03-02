@@ -3,6 +3,7 @@ class UserModel {
   final String email;
   final String? displayName;
   final String? photoUrl;
+  final Map<String, dynamic>? activePlan;
   final bool isOnboardingComplete;
 
   const UserModel({
@@ -10,6 +11,7 @@ class UserModel {
     required this.email,
     this.displayName,
     this.photoUrl,
+    this.activePlan,
     this.isOnboardingComplete = false,
   });
 
@@ -18,6 +20,7 @@ class UserModel {
     String? email,
     String? displayName,
     String? photoUrl,
+    Map<String, dynamic>? activePlan,
     bool? isOnboardingComplete,
   }) {
     return UserModel(
@@ -25,6 +28,7 @@ class UserModel {
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
       photoUrl: photoUrl ?? this.photoUrl,
+      activePlan: activePlan ?? this.activePlan,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
     );
   }
@@ -35,6 +39,7 @@ class UserModel {
       'email': email,
       'displayName': displayName,
       'photoUrl': photoUrl,
+      'activePlan': activePlan,
       'isOnboardingComplete': isOnboardingComplete,
     };
   }
@@ -45,12 +50,13 @@ class UserModel {
       email: map['email'] as String,
       displayName: map['displayName'] as String?,
       photoUrl: map['photoUrl'] as String?,
+      activePlan: map['activePlan'] as Map<String, dynamic>?,
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
     );
   }
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, displayName: $displayName, isOnboardingComplete: $isOnboardingComplete)';
+    return 'UserModel(uid: $uid, email: $email, activePlan: ${activePlan != null}, isOnboardingComplete: $isOnboardingComplete)';
   }
 }

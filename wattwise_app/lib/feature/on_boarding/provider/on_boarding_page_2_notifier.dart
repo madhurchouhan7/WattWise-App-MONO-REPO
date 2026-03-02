@@ -146,7 +146,7 @@ class OnBoardingPage2Notifier extends StateNotifier<OnBoardingPage2State> {
     state = state.copyWith(selectedDiscom: newDiscom);
   }
 
-  Future<void> determineLocation() async {
+  Future<String?> determineLocation() async {
     state = state.copyWith(isLoadingLocation: true, locationError: null);
 
     try {
@@ -159,7 +159,7 @@ class OnBoardingPage2Notifier extends StateNotifier<OnBoardingPage2State> {
           isLoadingLocation: false,
           locationError: 'Location services are disabled.',
         );
-        return;
+        return 'Location services are disabled.';
       }
 
       permission = await Geolocator.checkPermission();
@@ -170,7 +170,7 @@ class OnBoardingPage2Notifier extends StateNotifier<OnBoardingPage2State> {
             isLoadingLocation: false,
             locationError: 'Location permissions are denied',
           );
-          return;
+          return 'Location permissions are denied.';
         }
       }
 
@@ -180,14 +180,34 @@ class OnBoardingPage2Notifier extends StateNotifier<OnBoardingPage2State> {
           locationError:
               'Location permissions are permanently denied, we cannot request permissions.',
         );
-        return;
+        return 'Location permissions are permanently denied.';
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-      );
+      Position? position;
 
       try {
+        // Try to get a high-accuracy fresh GPS ping within 7 seconds
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+        ).timeout(const Duration(seconds: 7));
+      } catch (e) {
+        // If it hangs (Emulator quirk) or signal is terribly weak, instantly fallback to the device's cached location.
+        position = await Geolocator.getLastKnownPosition();
+
+        if (position == null) {
+          throw Exception(
+            "GPS signal lost. Please drag the map pin in your Emulator settings, or open Google Maps once to initialize.",
+          );
+        }
+      }
+
+      try {
+        // Automatically save GPS coordinates exactly as requested by User
+        await _repository.saveGPSAddress(
+          lat: position.latitude,
+          lng: position.longitude,
+        );
+
         List<Placemark> placemarks = await placemarkFromCoordinates(
           position.latitude,
           position.longitude,
@@ -217,25 +237,33 @@ class OnBoardingPage2Notifier extends StateNotifier<OnBoardingPage2State> {
             } else {
               state = state.copyWith(selectedCity: null);
             }
+            return null; // pure success
           } else {
             state = state.copyWith(
-              isLoadingLocation: false,
               locationError:
                   'Could not match location "$foundState" to our list.',
             );
+            return 'Matched location "$foundState", but it\'s not in the active database. GPS Saved.';
           }
         }
+
+        state = state.copyWith(
+          locationError: 'Could not reverse geocode your location.',
+        );
+        return 'Could not reverse geocode your location, but GPS was saved!';
       } catch (e) {
         state = state.copyWith(
-          isLoadingLocation: false,
-          locationError: 'Could not determine address.',
+          locationError: 'Could not determine address: $e',
         );
+        return 'Database error or geocoding failed: $e';
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoadingLocation: false,
-        locationError: e.toString(),
-      );
+      state = state.copyWith(locationError: e.toString());
+      return e.toString();
+    } finally {
+      if (mounted) {
+        state = state.copyWith(isLoadingLocation: false);
+      }
     }
   }
 

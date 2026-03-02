@@ -3,13 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
+import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:shimmer/shimmer.dart';
 
-class PlanReadyScreen extends ConsumerWidget {
+class PlanReadyScreen extends ConsumerStatefulWidget {
   const PlanReadyScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlanReadyScreen> createState() => _PlanReadyScreenState();
+}
+
+class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
+  bool _isActivating = false;
+
+  @override
+  Widget build(BuildContext context) {
     final aiPlanState = ref.watch(aiPlanProvider);
 
     return Scaffold(
@@ -41,9 +50,13 @@ class PlanReadyScreen extends ConsumerWidget {
                               Icons.arrow_back,
                               color: AppColors.textPrimary,
                             ),
-                            onPressed: () => Navigator.of(
-                              context,
-                            ).pop(), // Pop to DesignPlanScreen or root?
+                            onPressed: () {
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              } else {
+                                ref.read(aiPlanProvider.notifier).clearPlan();
+                              }
+                            },
                           ),
                           Expanded(
                             child: Center(
@@ -243,7 +256,7 @@ class PlanReadyScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       plan.summary,
-                                      maxLines: 1,
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.inter(
                                         color: Colors.white,
@@ -329,7 +342,7 @@ class PlanReadyScreen extends ConsumerWidget {
                       }),
 
                       const SizedBox(
-                        height: 120,
+                        height: 150,
                       ), // Padding for sticky bottom buttons
                     ],
                   ),
@@ -359,35 +372,83 @@ class PlanReadyScreen extends ConsumerWidget {
                           width: double.infinity,
                           height: 56,
                           child: ElevatedButton(
-                            onPressed: () {
-                              // Activate Plan actions
-                            },
+                            onPressed: _isActivating
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isActivating = true;
+                                    });
+
+                                    try {
+                                      await ref
+                                          .read(userRepositoryProvider)
+                                          .saveActivePlan(plan.toJson());
+                                      // Refreshes global app state natively back to PlansScreen -> ActivePlanScreen branch
+                                      if (context.mounted) {
+                                        ref.invalidate(authStateProvider);
+                                        if (Navigator.of(context).canPop()) {
+                                          Navigator.of(
+                                            context,
+                                          ).popUntil((route) => route.isFirst);
+                                        }
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Failed to save plan: $e',
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() {
+                                          _isActivating = false;
+                                        });
+                                      }
+                                    }
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primaryBlue,
+                              disabledBackgroundColor: Colors.grey.shade300,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.bolt,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Activate Plan',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                            child: _isActivating
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.bolt,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Activate Plan',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                         const SizedBox(height: 12),

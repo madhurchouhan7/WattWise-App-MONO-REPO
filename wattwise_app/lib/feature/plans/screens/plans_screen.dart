@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:wattwise_app/feature/plans/screens/design_plan_screen.dart';
-import 'package:wattwise_app/feature/plans/widgets/generated_plan_view.dart';
+import 'package:wattwise_app/feature/plans/screens/active_plan_screen.dart';
+import 'package:wattwise_app/feature/plans/screens/plan_ready_screen.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -18,38 +20,23 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
   @override
   Widget build(BuildContext context) {
     final aiPlanState = ref.watch(aiPlanProvider);
+    final authUser = ref.watch(authStateProvider).value;
 
     return aiPlanState.when(
       data: (plan) {
+        // 1. If user has an already active AI Plan persisting in the backend, show Dashboard
+        if (authUser?.activePlan != null) {
+          return ActivePlanScreen(activePlan: authUser!.activePlan!);
+        }
+
+        // 2. If plan hasn't been generated yet, show the design flow
         if (plan == null) {
           // 1. If plan hasn't been generated yet, show the design flow
           return const DesignPlanScreen();
         }
 
-        // 2. If plan is generated, show the GeneratedPlanView with its Scaffold
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            title: Text(
-              'AI Efficiency Plan',
-              style: GoogleFonts.poppins(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            actions: [
-              IconButton(
-                onPressed: () {
-                  ref.read(aiPlanProvider.notifier).generatePlan();
-                },
-                icon: const Icon(Icons.refresh, color: AppColors.textPrimary),
-              ),
-            ],
-          ),
-          body: GeneratedPlanView(plan: plan),
-        );
+        // 3. If plan is generated but NOT active to the backend yet, show the staging PlanReadyScreen preview
+        return const PlanReadyScreen();
       },
       loading: () =>
           Scaffold(backgroundColor: Colors.white, body: _buildLoadingShimmer()),

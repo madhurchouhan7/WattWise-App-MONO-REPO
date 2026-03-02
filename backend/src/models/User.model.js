@@ -61,6 +61,15 @@ const UserSchema = new mongoose.Schema(
             mainGoals: { type: [String], default: [] },
             focusArea: { type: String, default: 'ai_decide' }
         },
+        // Generated Energy Plan
+        activePlan: {
+            type: Object,
+            default: null,
+        },
+        previousPlans: {
+            type: Array,
+            default: []
+        },
         // Track which onboarding steps the user has completed
         onboardingCompleted: {
             type: Boolean,

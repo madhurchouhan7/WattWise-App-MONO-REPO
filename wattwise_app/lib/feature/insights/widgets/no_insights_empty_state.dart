@@ -38,6 +38,7 @@ class NoInsightsEmptyState extends StatelessWidget {
       title: 'Log your Bill',
       subtitle: 'Upload your latest utility statement to establish a baseline.',
       isActive: true,
+      isDone: false,
     ),
     _Step(
       icon: Icons.tips_and_updates_rounded,
@@ -181,7 +182,7 @@ class _RobotIcon extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(size * 0.25),
       ),
       child: Icon(
@@ -261,7 +262,7 @@ class _StepRow extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: active
-                          ? const Color(0xFF2563EB).withOpacity(0.3)
+                          ? const Color(0xFF2563EB).withValues(alpha: 0.3)
                           : const Color(0xFFE2E8F0),
                       width: 1.5,
                     ),

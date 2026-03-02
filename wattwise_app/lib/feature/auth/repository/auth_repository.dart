@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/services/auth_service.dart';
+import 'package:wattwise_app/core/network/api_client.dart';
 
 /// Key used in SharedPreferences to persist onboarding status.
 const String _kOnboardingCompleteKey = 'onboarding_complete';
@@ -30,11 +31,24 @@ class AuthRepository {
         prefs.getBool('${_kOnboardingCompleteKey}_${firebaseUser.uid}') ??
         false;
 
+    Map<String, dynamic>? activePlan;
+    try {
+      // Fetch backend user state safely
+      final response = await ApiClient.instance.get('/users/me');
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        activePlan =
+            response.data['data']['activePlan'] as Map<String, dynamic>?;
+      }
+    } catch (e) {
+      // Failsafe catch if network fails or unregistered flow skips Node
+    }
+
     return UserModel(
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? '',
       displayName: firebaseUser.displayName,
       photoUrl: firebaseUser.photoURL,
+      activePlan: activePlan,
       isOnboardingComplete: isOnboardingComplete,
     );
   }

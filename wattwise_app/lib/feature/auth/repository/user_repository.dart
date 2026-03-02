@@ -10,6 +10,22 @@ class UserRepository {
 
   UserRepository({required ApiClient apiClient}) : _apiClient = apiClient;
 
+  Future<void> saveGPSAddress({
+    required double lat,
+    required double lng,
+  }) async {
+    try {
+      await _apiClient.put(
+        '/users/me',
+        data: {
+          'address': {'lat': lat, 'lng': lng},
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to save GPS location: $e');
+    }
+  }
+
   Future<void> saveAddress({
     required String state,
     required String city,
@@ -25,8 +41,8 @@ class UserRepository {
             'state': state,
             'city': city,
             'discom': discom,
-            if (lat != null) 'lat': lat,
-            if (lng != null) 'lng': lng,
+            'lat': ?lat,
+            'lng': ?lng,
           },
         },
       );
@@ -69,6 +85,14 @@ class UserRepository {
       );
     } catch (e) {
       throw Exception('Failed to save plan preferences: $e');
+    }
+  }
+
+  Future<void> saveActivePlan(Map<String, dynamic> planData) async {
+    try {
+      await _apiClient.put('/users/me', data: {'activePlan': planData});
+    } catch (e) {
+      throw Exception('Failed to activate plan: $e');
     }
   }
 }

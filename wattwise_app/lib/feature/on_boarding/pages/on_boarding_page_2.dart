@@ -138,7 +138,7 @@ class OnBoardingPage2 extends ConsumerWidget {
                     _FieldLabel(label: 'State'),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: state.selectedState,
+                      initialValue: state.selectedState,
                       items: notifier.states
                           .map(
                             (s) => DropdownMenuItem(value: s, child: Text(s)),
@@ -158,7 +158,7 @@ class OnBoardingPage2 extends ConsumerWidget {
                     _FieldLabel(label: 'City'),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: state.selectedCity,
+                      initialValue: state.selectedCity,
                       items: state.selectedState != null
                           ? notifier.availableCities
                                 .map(
@@ -187,7 +187,7 @@ class OnBoardingPage2 extends ConsumerWidget {
                     _FieldLabel(label: 'Electricity Provider (DISCOM)'),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: state.selectedDiscom,
+                      initialValue: state.selectedDiscom,
                       items: availableDiscoms
                           .map(
                             (d) => DropdownMenuItem(value: d, child: Text(d)),

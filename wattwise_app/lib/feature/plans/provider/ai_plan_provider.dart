@@ -1,16 +1,32 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/feature/plans/model/efficiency_plan_model.dart';
 import 'package:wattwise_app/feature/plans/repository/ai_plan_repository.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/on_boarding_page_5_notifier.dart';
 import 'package:wattwise_app/feature/plans/provider/plan_preferences_provider.dart';
 
-class AiPlanNotifier extends AutoDisposeAsyncNotifier<EfficiencyPlanModel?> {
+const String _kCachedPlanKey = 'cached_ai_efficiency_plan';
+
+class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
   @override
-  FutureOr<EfficiencyPlanModel?> build() {
-    // Return null initially so we show the preference screen flow first.
-    return null;
+  FutureOr<EfficiencyPlanModel?> build() async {
+    // Attempt to hydrate from disk cache when the app starts.
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString(_kCachedPlanKey);
+
+    if (cachedData != null) {
+      try {
+        final decoded = jsonDecode(cachedData);
+        return EfficiencyPlanModel.fromJson(decoded);
+      } catch (e) {
+        // Fallback gracefully on corrupted local cache
+      }
+    }
+
+    return null; // Go to preference flow
   }
 
   Future<void> generatePlan() async {
@@ -36,17 +52,32 @@ class AiPlanNotifier extends AutoDisposeAsyncNotifier<EfficiencyPlanModel?> {
         "pricePerUnit": 7.11,
       };
 
-      return await repository.generatePlan(
+      final generatedPlan = await repository.generatePlan(
         userGoalParams: userGoalParams,
         appliances: appliances,
         applianceStates: applianceStates,
         billInfo: billInfo,
       );
+
+      // Save it locally!
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _kCachedPlanKey,
+        jsonEncode(generatedPlan.toJson()),
+      );
+
+      return generatedPlan;
     });
+  }
+
+  Future<void> clearPlan() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kCachedPlanKey);
+    state = const AsyncData(null);
   }
 }
 
 final aiPlanProvider =
-    AsyncNotifierProvider.autoDispose<AiPlanNotifier, EfficiencyPlanModel?>(
+    AsyncNotifierProvider<AiPlanNotifier, EfficiencyPlanModel?>(
       AiPlanNotifier.new,
     );

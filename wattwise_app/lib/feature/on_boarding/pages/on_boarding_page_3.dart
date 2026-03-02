@@ -238,7 +238,7 @@ class _OnBoardingPage3State extends ConsumerState<OnBoardingPage3> {
                     const SizedBox(height: 8),
 
                     DropdownButtonFormField<String>(
-                      value: state.selectedHouseType,
+                      initialValue: state.selectedHouseType,
                       items: ['Apartment', 'Bungalow', 'Independent House']
                           .map(
                             (type) => DropdownMenuItem(
