@@ -46,10 +46,11 @@ WattWise is a **cross-platform energy management application** that helps Indian
 | **Smart Onboarding** | 5-step wizard — Location → Household → Appliances → Usage → Dashboard |
 | **Live GPS Location** | Auto-detect state & city via device GPS with manual fallback |
 | **Appliance Manager** | Add, edit, remove, and tune usage parameters per appliance |
-| **Bill Tracking** | Upload and break down monthly electricity bills |
-| **Insights Dashboard** | Visual energy trends with category-level drill-downs |
-| **Savings Plans** | Personalised tips and adherence tracking |
-| **Profile Management** | Edit household details and appliances at any time |
+| **Live BBPS Integration** | Securely fetch mock real-time utility bills via Setu BBPS architecture |
+| **Insights Dashboard** | Visual energy heatmap trends with category-level drill-downs |
+| **Generative AI Plans** | Gemini 2.5 Flash generates custom efficiency targets based on live weather, location, and appliances |
+| **Dynamic Dashboard** | 100% interconnected Riverpod UI reflecting live BBPS and Gemini payloads |
+| **Profile Management** | Edit household details and preferences at any time |
 | **Shimmer Loading** | Skeleton loaders across every async screen — no spinners |
 | **Offline-friendly** | Riverpod state persists across widget rebuilds |
 
@@ -59,6 +60,8 @@ WattWise is a **cross-platform energy management application** that helps Indian
 | **RESTful API** | Express 5 with versioned routes (`/api/v1`) |
 | **Firebase Middleware** | Stateless JWT verification on every protected route |
 | **MongoDB Persistence** | Mongoose ODM with timestamps, virtuals and validators |
+| **Gemini AI Engine** | Integrates `@google/generative-ai` to natively calculate structured JSON schemas based on user constraints |
+| **Setu BBPS Simulator** | Validates consumer IDs and simulates official Bharat Bill Payment System payloads |
 | **Rate Limiting** | 200 req / 15 min per IP via `express-rate-limit` |
 | **Security** | Helmet headers, CORS whitelist, 10 kb body limit |
 | **Health Check** | `GET /health` for uptime monitoring |
@@ -122,6 +125,7 @@ WattWise is a **cross-platform energy management application** that helps Indian
 |---|---|
 | `express` 5 | HTTP framework |
 | `mongoose` | MongoDB ODM |
+| `@google/generative-ai` | Gemini 2.5 Flash SDK |
 | `firebase-admin` | Server-side token verification |
 | `helmet` | HTTP security headers |
 | `cors` | Cross-origin request handling |
@@ -145,7 +149,9 @@ WattWise Mono Repo/
 │       ├── app.js                  # Express entry point
 │       ├── controllers/
 │       │   ├── auth.controller.js  # Sign-up / sign-in logic
-│       │   └── user.controller.js  # Profile, appliances
+│       │   ├── user.controller.js  # Profile, appliances
+│       │   ├── ai.controller.js    # Gemini structured responses
+│       │   └── bill.controller.js  # BBPS integration payload
 │       ├── middleware/
 │       │   ├── auth.middleware.js  # Firebase JWT guard
 │       │   └── errorHandler.js     # Global error handler
@@ -154,7 +160,12 @@ WattWise Mono Repo/
 │       ├── routes/
 │       │   ├── index.js
 │       │   ├── auth.routes.js
-│       │   └── user.routes.js
+│       │   ├── user.routes.js
+│       │   ├── ai.routes.js        # Protected AI pathways
+│       │   └── bill.routes.js      # BBPS proxy routes
+│       ├── services/
+│       │   ├── gemini.service.js   # Prompt engineering core
+│       │   └── bbps.service.js     # Mock internal simulator
 │       └── utils/
 │           ├── ApiError.js
 │           └── ApiResponse.js
@@ -268,6 +279,10 @@ MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/wattwise?retryWr
 # Path to your Firebase service account JSON key
 FIREBASE_SERVICE_ACCOUNT_PATH=./config/serviceAccountKey.json
 
+# ── Gemini & Third Party ───────────────────
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENWEATHER_API_KEY=your_weather_api_key_here
+
 # ── CORS ───────────────────────────────────
 # Comma-separated list of allowed origins (leave empty to allow all)
 ALLOWED_ORIGINS=
@@ -295,7 +310,13 @@ Authorization: Bearer <firebase_id_token>
 |--------|----------|------|-------------|
 | `GET` | `/me` | ✅ | Fetch current user profile |
 | `PATCH` | `/me` | ✅ | Update name, budget, address, household |
-| `PUT` | `/me/appliances` | ✅ | Replace the full appliance list |
+| `PUT` | `/me/activplan` | ✅ | Register the Gemini mapped output |
+
+### Integrations — `/api/v1/ai` & `/api/v1/bills`
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/ai/generate-plan` | ✅ | Feed context to Gemini for JSON schema return |
+| `POST` | `/bills/fetch` | ✅ | Send BillerID + Consumer Number to BBPS simulator |
 
 ### Response Format
 ```json
@@ -350,8 +371,9 @@ The router watches `sessionOnboardingCompleteProvider` — once `true`, the app 
 
 ## 🗺️ Roadmap
 
+- [x] Integrate AI-powered usage predictions (Gemini 2.5 Flash)
+- [x] BBPS Electricity fetch integration
 - [ ] Real-time electricity tariff rates by DISCOM
-- [ ] AI-powered usage predictions
 - [ ] Push notification reminders (budget alerts)
 - [ ] Multi-home / multi-meter support
 - [ ] Bill OCR — auto-extract units from a photo

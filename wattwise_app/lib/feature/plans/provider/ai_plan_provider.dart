@@ -79,7 +79,7 @@ class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
       // Save it locally!
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
-        _kCachedPlanKey,
+        _kCachedPlanKey, 
         jsonEncode(generatedPlan.toJson()),
       );
 
