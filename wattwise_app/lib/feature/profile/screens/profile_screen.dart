@@ -9,6 +9,7 @@ import 'package:wattwise_app/feature/profile/widgets/profile_header.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_menu_section.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_stats_card.dart';
 import 'package:wattwise_app/feature/profile/screens/manage_appliances_screen.dart';
+import 'package:wattwise_app/feature/profile/screens/settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -17,6 +18,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -69,7 +71,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.settings_outlined,
                     title: "Settings",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.solar_power_outlined,

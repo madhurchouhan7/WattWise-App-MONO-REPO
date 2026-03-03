@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
+import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class ActivePlanScreen extends ConsumerStatefulWidget {
@@ -68,6 +70,25 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () async {
+              try {
+                await ref.read(userRepositoryProvider).saveActivePlan(null);
+                await ref.read(aiPlanProvider.notifier).clearPlan();
+                if (context.mounted) {
+                  ref.invalidate(authStateProvider);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete plan: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+          ),
           IconButton(
             onPressed: () {},
             icon: const Icon(
@@ -159,6 +180,13 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
     // Determine priority
     final highestPriority = plan['keyActions']?[0]?['priority'] ?? 'High';
 
+    int totalActions = actionToggles.length;
+    int activeActions = actionToggles.where((e) => e).length;
+    double adherenceRatio = totalActions > 0
+        ? activeActions / totalActions
+        : 0.0;
+    int adherenceValue = (adherenceRatio * 100).round();
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -240,7 +268,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
               fit: StackFit.expand,
               children: [
                 CircularProgressIndicator(
-                  value: 0.85,
+                  value: adherenceRatio,
                   strokeWidth: 12,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
@@ -251,7 +279,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '85%',
+                        '$adherenceValue%',
                         style: GoogleFonts.poppins(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,

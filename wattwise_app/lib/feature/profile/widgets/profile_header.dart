@@ -75,7 +75,7 @@ class ProfileHeader extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              displayName,
+              displayName.isNotEmpty ? displayName : 'User',
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -84,7 +84,7 @@ class ProfileHeader extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "Member since Jan 2024",
+              "Member since March ${DateTime.now().year}",
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,

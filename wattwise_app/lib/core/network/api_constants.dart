@@ -7,8 +7,13 @@ class ApiConstants {
   // ── Base URLs ─────────────────────────────────────────────────────────────
   // Bound dynamically to your host machine's physical network IPv4 space
   // This allows BOTH Emulators and Real Devices on your Wi-Fi to hit the backend!
-  static const String _localHost = 'http://10.78.211.93:5000';
-  // static const String _localHost = 'http://10.0.2.2:5000'; // Android emulator ONLY
+  // static const String _localHost = 'http://10.78.211.93:5000';
+
+  // static const String _localHost =
+  //     'http://10.0.2.2:5000'; // Android emulator ONLY
+
+  static const String _localHost =
+      'https://wattwise-app-mono-repo.onrender.com';
 
   static const String baseUrl = '$_localHost/api/v1';
   static const String healthUrl = '$_localHost/health';

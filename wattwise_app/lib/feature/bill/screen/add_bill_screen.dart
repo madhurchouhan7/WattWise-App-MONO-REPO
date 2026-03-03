@@ -400,7 +400,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 hintColor: AppColors.textSecondary.withAlpha(150),
               ),
 
-               const SizedBox(height: 48),
+              const SizedBox(height: 48),
 
               SizedBox(
                 width: double.infinity,
@@ -410,7 +410,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                       ? null
                       : () {
                           // Store exactly what is in the text fields locally for UI updates
-                          ref.read(savedBillProvider.notifier).state = {
+                          ref.read(savedBillProvider.notifier).saveBill({
                             'amountExact': _amountController.text.isNotEmpty
                                 ? _amountController.text
                                 : '0.00',
@@ -425,7 +425,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                             'units': _unitsController.text.isNotEmpty
                                 ? _unitsController.text
                                 : '0',
-                          };
+                          });
                           Navigator.pop(context);
                         },
                   style: ElevatedButton.styleFrom(

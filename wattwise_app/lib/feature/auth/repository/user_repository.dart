@@ -88,7 +88,7 @@ class UserRepository {
     }
   }
 
-  Future<void> saveActivePlan(Map<String, dynamic> planData) async {
+  Future<void> saveActivePlan(Map<String, dynamic>? planData) async {
     try {
       await _apiClient.put('/users/me', data: {'activePlan': planData});
     } catch (e) {

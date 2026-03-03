@@ -9,6 +9,7 @@ import 'package:wattwise_app/feature/dashboard/widgets/no_bills_empty_state.dart
 import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_sheet.dart';
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
+import 'package:wattwise_app/feature/profile/screens/profile_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -110,6 +111,12 @@ class _DataView extends ConsumerWidget {
               },
               onProfileTap: () {
                 // TODO: Navigate to profile
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 32),
@@ -809,7 +816,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

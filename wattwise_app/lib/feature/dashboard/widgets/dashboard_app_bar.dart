@@ -41,7 +41,7 @@ class DashboardAppBar extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                displayName,
+                displayName.isNotEmpty ? displayName : 'User',
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,

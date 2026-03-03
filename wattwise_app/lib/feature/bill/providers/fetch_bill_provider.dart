@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/bbps_service.dart';
+import 'package:wattwise_app/main.dart';
 
 /// Provider for the [BbpsService] instance.
 final bbpsServiceProvider = Provider<BbpsService>((ref) {
@@ -14,7 +16,36 @@ final fetchBillProvider =
     );
 
 /// Provider to store the saved/active bill locally for UI binding.
-final savedBillProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+final savedBillProvider =
+    StateNotifierProvider<SavedBillNotifier, Map<String, dynamic>?>((ref) {
+      return SavedBillNotifier();
+    });
+
+class SavedBillNotifier extends StateNotifier<Map<String, dynamic>?> {
+  static const _key = 'saved_bill_data';
+
+  SavedBillNotifier() : super(_loadBill());
+
+  static Map<String, dynamic>? _loadBill() {
+    final str = sharedPrefs.getString(_key);
+    if (str != null) {
+      try {
+        return json.decode(str) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  void saveBill(Map<String, dynamic> bill) {
+    state = bill;
+    sharedPrefs.setString(_key, json.encode(bill));
+  }
+
+  void clearBill() {
+    state = null;
+    sharedPrefs.remove(_key);
+  }
+}
 
 class FetchBillNotifier extends AsyncNotifier<Map<String, dynamic>?> {
   late final BbpsService _bbpsService;

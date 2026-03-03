@@ -5,6 +5,9 @@ import 'package:wattwise_app/core/network/api_client.dart';
 import 'package:wattwise_app/core/router/app_router.dart';
 import 'package:wattwise_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+late SharedPreferences sharedPrefs;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +16,8 @@ void main() async {
 
   // Initialise the Dio API client (sets base URL, interceptors, etc.)
   ApiClient.instance.init();
+
+  sharedPrefs = await SharedPreferences.getInstance();
 
   runApp(const ProviderScope(child: MyApp()));
 }
