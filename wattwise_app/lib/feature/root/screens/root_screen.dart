@@ -38,8 +38,8 @@ class RootScreen extends ConsumerWidget {
           ],
         ),
         child: SalomonBottomBar(
-          margin: const EdgeInsets.all(20),
-          itemPadding: const EdgeInsets.all(18),
+          margin: const EdgeInsets.all(18),
+          itemPadding: const EdgeInsets.all(14),
           curve: Curves.easeInOut,
           selectedItemColor: const Color(0xFF1E60F2),
           unselectedItemColor: const Color(0xFF94A3B8),
@@ -55,12 +55,12 @@ class RootScreen extends ConsumerWidget {
             SalomonBottomBarItem(
               icon: const Icon(Icons.my_library_books_rounded),
               activeIcon: const Icon(Icons.my_library_books),
-              title: const Text("Plans"),
+              title: const Text("Plan"),
             ),
             SalomonBottomBarItem(
               icon: const Icon(Icons.insights_outlined),
               activeIcon: const Icon(Icons.insights),
-              title: const Text("Insights"),
+              title: const Text("Insight"),
             ),
             SalomonBottomBarItem(
               icon: const Icon(Icons.receipt_long_outlined),
