@@ -9,6 +9,8 @@
 [![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)](https://expressjs.com)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![Commit](https://img.shields.io/badge/Commit-Conventional-brightgreen.svg)](https://conventionalcommits.org)
+[![Husky](https://img.shields.io/badge/husky-hooks-blueviolet)](https://typicode.github.io/husky/)
 [![License](https://img.shields.io/badge/license-ISC-blue)](LICENSE)
 
 ---
@@ -259,7 +261,7 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
-> **Note:** The app targets Android API 21+ and iOS 13+.
+> **Note:** The app targets Android API 21+ and iOS 15+.
 
 ---
 
@@ -382,6 +384,30 @@ The router watches `sessionOnboardingCompleteProvider` — once `true`, the app 
 - [ ] Dark mode
 - [ ] Widget / home-screen energy summary (Android)
 - [ ] Unit + integration tests
+
+---
+
+## 📝 Development Guidelines
+
+This project enforces code quality and consistent commit history through **Husky** and **Commitlint**.
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. A typical commit message should look like this:
+
+```
+<type>(<scope>): <subject>
+```
+
+**Allowed Types:**
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `perf`: A code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Changes to the build process or auxiliary tools and libraries
+
+**Note:** Husky hooks are automatically set up after installing dependencies in the root mono-repo environment.
 
 ---
 
