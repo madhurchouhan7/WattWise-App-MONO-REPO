@@ -222,7 +222,7 @@ class BillAmountCard extends ConsumerWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                  ], 
+                  ],
                 ),
               ),
             ],
