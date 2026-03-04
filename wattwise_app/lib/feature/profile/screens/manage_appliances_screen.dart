@@ -540,7 +540,7 @@ class _ManageAppliancesScreenState
                               });
                               try {
                                 await notifier.finishSetup(selectedAppliances);
-                                if (mounted) {
+                                if (!mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(

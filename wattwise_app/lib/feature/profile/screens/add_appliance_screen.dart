@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
-import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
 import 'package:wattwise_app/feature/on_boarding/widget/select_appliances.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
@@ -12,9 +11,10 @@ class AddApplianceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch the selected count
-    final selectedCount = ref.watch(
-      selectedAppliancesProvider.select((appliances) => appliances.length),
-    );
+
+    // final selectedCount = ref.watch(
+    //   selectedAppliancesProvider.select((appliances) => appliances.length),
+    // );
     final width = MediaQuery.sizeOf(context).width;
     final fontSize = width * 0.05;
 
