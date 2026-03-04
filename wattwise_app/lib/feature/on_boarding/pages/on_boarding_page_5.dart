@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/core/router/app_router.dart';
 import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/feature/on_boarding/provider/selected_appliance_notifier.dart';
@@ -510,6 +511,12 @@ class _OnBoardingPage5State extends ConsumerState<OnBoardingPage5> {
                             // Invalidating triggers AppRouter to flip to RootScreen
                             if (context.mounted) {
                               ref.invalidate(authStateProvider);
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => const AppRouter(),
+                                ),
+                                (route) => false,
+                              );
                             }
                           } catch (error) {
                             if (context.mounted) {

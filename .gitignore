@@ -52,3 +52,5 @@ backend/.env
 backend/logs/
 backend/*.log
 backend/config/wattwise-firebase-adminsdk.json
+
+node_modules/

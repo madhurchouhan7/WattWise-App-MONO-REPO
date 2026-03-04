@@ -3,14 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/plans/model/efficiency_plan_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
+import 'package:wattwise_app/core/network/api_constants.dart';
 
 final aiPlanRepositoryProvider = Provider((ref) => AiPlanRepository(Dio()));
 
 class AiPlanRepository {
   final Dio _dio;
 
-  // Use 10.0.2.2 for Android emulator, localhost for iOS simulator, or your local network IP
-  final String _baseUrl = 'http://10.0.2.2:5000/api/v1/ai';
+  // Use centrally configured Base URL instead of hardcoded emulator IP
+  final String _baseUrl = '${ApiConstants.baseUrl}/ai';
 
   AiPlanRepository(this._dio);
 
