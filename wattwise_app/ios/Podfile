@@ -42,6 +42,13 @@ post_install do |installer|
     target.build_configurations.each do |config|
       # Force every pod to target iOS 15.0
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      
+      # Permission Handler configurations specifically required by the app
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_PHOTOS=1'
+      ]
     end
   end
 end

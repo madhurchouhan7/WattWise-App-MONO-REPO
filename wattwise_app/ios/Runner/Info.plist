@@ -14,6 +14,12 @@
 		<string>6.0</string>
 		<key>CFBundleName</key>
 		<string>wattwise_app</string>
+        
+		<!-- Required for OCR Scanning & Uploading Photos -->
+		<key>NSCameraUsageDescription</key>
+		<string>Wattwise requires camera access to cleanly scan and extract electricity bills natively.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Wattwise requires photo library access so you can easily upload previous electricity bill screenshots.</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
