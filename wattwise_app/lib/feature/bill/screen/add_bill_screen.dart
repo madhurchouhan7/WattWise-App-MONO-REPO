@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/bill/widgets/upload_photo_button.dart';
 import '../providers/fetch_bill_provider.dart';
+import '../providers/ocr_provider.dart';
+import 'package:wattwise_app/core/network/api_client.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddBillScreen extends ConsumerStatefulWidget {
   const AddBillScreen({super.key});
@@ -35,6 +38,47 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
   Widget build(BuildContext context) {
     // Watch state to update UI like loading indicators
     final fetchState = ref.watch(fetchBillProvider);
+    final ocrState = ref.watch(ocrProvider);
+
+    // Listen to OCR provider for side effects
+    ref.listen(ocrProvider, (previous, next) {
+      if (next.isLoading) return;
+
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('OCR Error: ${next.error.toString().split('Exception: ').last}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (next.hasValue && next.value != null && previous?.value != next.value) {
+        final data = next.value!;
+        
+        setState(() {
+          if (data['amountExact']?.isNotEmpty == true) {
+            _amountController.text = data['amountExact']!;
+          }
+          if (data['billNumber']?.isNotEmpty == true) {
+            _billNumberController.text = data['billNumber']!;
+          }
+          if (data['dueDate']?.isNotEmpty == true) {
+            _dueDateController.text = data['dueDate']!;
+          }
+          if (data['units']?.isNotEmpty == true) {
+            _unitsController.text = data['units']!;
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bill data extracted successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
 
     // Listen to provider for exactly-once side effects (snackbars) and state mutations
     ref.listen(fetchBillProvider, (previous, next) {
@@ -115,7 +159,136 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UploadPhotoButton(onPressed: () {}),
+              UploadPhotoButton(onPressed: () async {
+                // Request camera and storage/photo permissions
+                final statuses = await [
+                  Permission.camera,
+                  Permission.storage,
+                  Permission.photos,
+                ].request();
+
+                bool isAnyGranted = false;
+                bool isAnyPermanentlyDenied = false;
+
+                for (var status in statuses.values) {
+                  if (status.isGranted || status.isLimited) {
+                    isAnyGranted = true;
+                  }
+                  if (status.isPermanentlyDenied) {
+                    isAnyPermanentlyDenied = true;
+                  }
+                }
+
+                if (!context.mounted) return;
+
+                if (!isAnyGranted) {
+                  if (isAnyPermanentlyDenied) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: Colors.white,
+                        title: Text('Permissions Required', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                        content: Text('Camera and photos permissions are restricted. Please enable them in system settings to upload or scan a bill.', style: GoogleFonts.poppins()),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.textSecondary)),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              openAppSettings();
+                            },
+                            child: Text('Open Settings', style: GoogleFonts.poppins(color: AppColors.primaryBlue, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Permissions are required to scan or upload files.'),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (context) {
+                    return SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Scan Electricity Bill",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ListTile(
+                              leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primaryBlue),
+                              title: Text("Scan bill using camera", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                              onTap: () {
+                                Navigator.pop(context);
+                                ref.read(ocrProvider.notifier).scanFromCamera();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.photo_library_rounded, color: AppColors.primaryBlue),
+                              title: Text("Upload bill image from gallery", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                              onTap: () {
+                                Navigator.pop(context);
+                                ref.read(ocrProvider.notifier).scanFromGallery();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primaryBlue),
+                              title: Text("Upload bill PDF", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                              onTap: () {
+                                Navigator.pop(context);
+                                ref.read(ocrProvider.notifier).scanFromPdf();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }),
+              if (ocrState.isLoading) ...[
+                const SizedBox(height: 16),
+                const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    "Processing document...",
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
 
               Row(
@@ -163,7 +336,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: fetchState.isLoading
+                  onPressed: fetchState.isLoading || ocrState.isLoading
                       ? null
                       : () {
                           FocusScope.of(context).unfocus(); // Dismiss keyboard
@@ -406,11 +579,10 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: fetchState.isLoading
+                  onPressed: fetchState.isLoading || ocrState.isLoading
                       ? null
-                      : () {
-                          // Store exactly what is in the text fields locally for UI updates
-                          ref.read(savedBillProvider.notifier).saveBill({
+                      : () async {
+                          final billData = {
                             'amountExact': _amountController.text.isNotEmpty
                                 ? _amountController.text
                                 : '0.00',
@@ -425,8 +597,29 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                             'units': _unitsController.text.isNotEmpty
                                 ? _unitsController.text
                                 : '0',
-                          });
-                          Navigator.pop(context);
+                          };
+
+                          // Upload to MongoDB database via Backend API call
+                          try {
+                            await ApiClient.instance.post('/bills/add', data: billData);
+                            if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Bill stored securely in DB!'),
+                                    backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                            }
+                          } catch (e) {
+                             // Ignore error and continue saving locally if endpoint is not ready
+                          }
+
+                          // Store exactly what is in the text fields locally for UI updates
+                          ref.read(savedBillProvider.notifier).saveBill(billData);
+                          if (context.mounted) {
+                             Navigator.pop(context);
+                          }
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
