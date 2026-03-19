@@ -1,6 +1,8 @@
 // lib/core/network/api_constants.dart
 // Central place for all API base URLs and route paths.
 
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
   ApiConstants._();
 
@@ -12,11 +14,31 @@ class ApiConstants {
   // static const String _localHost =
   //     'http://10.0.2.2:5000'; // Android emulator ONLY
 
-  static const String _localHost =
+  //  Define your Production URL
+  static const String _productionUrl =
       'https://wattwise-app-mono-repo.onrender.com';
 
-  static const String baseUrl = '$_localHost/api/v1';
-  static const String healthUrl = '$_localHost/health';
+  //  Define your Local URL (Choose one based on how you test)
+  // Use 10.0.2.2 if testing on Android Emulator
+  // Use your computer's IP (e.g., 192.168.1.X) if testing on a physical phone on the same WiFi
+  //static const String _developmentUrl = 'http://10.0.2.2:5000';
+  static const String _developmentUrl = 'http://10.190.85.93:5000';
+
+  //  Automatically pick the base URL based on build mode!
+  static String get _baseUrl {
+    if (kReleaseMode) {
+      // If we are building a release APK/AAB for the store, ALWAYS use production
+      return _productionUrl;
+    } else {
+      // If we are just clicking "Run" or "Debug" in VS Code, ALWAYS use local development
+      // NOTE: You can temporarily change this to _productionUrl if you specifically need to debug prod data.
+      return _developmentUrl;
+    }
+  }
+
+  // ── Final URLs ─────────────────────────────────────────────────────────────
+  static String get baseUrl => '$_baseUrl/api/v1';
+  static String get healthUrl => '$_baseUrl/health';
 
   // ── Timeouts ──────────────────────────────────────────────────────────────
   static const Duration connectTimeout = Duration(seconds: 10);

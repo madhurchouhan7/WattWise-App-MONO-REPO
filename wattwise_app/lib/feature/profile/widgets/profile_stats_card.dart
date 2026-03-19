@@ -13,9 +13,16 @@ class ProfileStatsCard extends ConsumerWidget {
     final hasBills = savedBill != null;
 
     final String billsCount = hasBills ? "1" : "0";
-    final String savings = hasBills
-        ? "₹${(savedBill['amountExact'] ?? 0) * 0.1 > 100 ? 120 : 0}"
-        : "₹0";
+    double amount = 0;
+    if (hasBills && savedBill['amountExact'] != null) {
+      amount = double.tryParse(savedBill['amountExact'].toString()) ?? 0;
+    }
+    double subsidy = 0;
+    if (hasBills && savedBill['subsidyAmount'] != null) {
+      subsidy = double.tryParse(savedBill['subsidyAmount'].toString()) ?? 0;
+    }
+    double totalSaved = subsidy > 0 ? subsidy : (amount * 0.1 > 100 ? 120 : 0);
+    final String savings = hasBills ? "₹${totalSaved.toInt()}" : "₹0";
 
     return LayoutBuilder(
       builder: (context, constraints) {

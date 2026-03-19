@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -45,6 +46,41 @@ class BillScreen extends ConsumerWidget {
                   .fade(delay: 100.ms)
                   .slideY(begin: 0.1, end: 0),
 
+              if (savedBill != null && savedBill['imageBase64'] != null && savedBill['imageBase64'].toString().isNotEmpty) ...[
+                const SizedBox(height: 32),
+                Text(
+                  "Scanned Bill",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ).animate().fade(delay: 150.ms).slideY(begin: 0.1, end: 0),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.memory(
+                      base64Decode(savedBill['imageBase64']),
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                    ),
+                  ),
+                ).animate().fade(delay: 150.ms).slideY(begin: 0.1, end: 0),
+              ],
+
               const SizedBox(height: 32),
 
               Row(
@@ -62,7 +98,7 @@ class BillScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(
+                        icon: Icon( 
                           Icons.delete_outline,
                           color: savedBill != null ? Colors.red : Colors.grey,
                           size: 20,
@@ -134,55 +170,54 @@ class BillScreen extends ConsumerWidget {
                   isTrendNeutral: true,
                 ).animate().fade(delay: 250.ms).slideY(begin: 0.1, end: 0),
 
-              // Mock items as per UI design
-              const BillHistoryTile(
-                icon: Icons.wb_sunny_outlined,
-                iconColor: AppColors.solarAmber,
-                date: "July 2023",
-                usage: "520",
-                rate: "16.7",
-                amount: "\$98.20",
-                trend: "5%",
-                isTrendingUp: false,
-                isTrendNeutral: false,
-              ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
+              // ── Mock bill history (commented out until real data is available) ──
+              // const BillHistoryTile(
+              //   icon: Icons.wb_sunny_outlined,
+              //   iconColor: AppColors.solarAmber,
+              //   date: "July 2023",
+              //   usage: "520",
+              //   rate: "16.7",
+              //   amount: "\$98.20",
+              //   trend: "5%",
+              //   isTrendingUp: false,
+              //   isTrendNeutral: false,
+              // ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
 
-              const BillHistoryTile(
-                icon: Icons.water_drop_outlined,
-                iconColor: AppColors.primaryBlue,
-                date: "June 2023",
-                usage: "480",
-                rate: "16.0",
-                amount: "\$92.15",
-                trend: "0%",
-                isTrendingUp: false,
-                isTrendNeutral: true,
-              ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
+              // const BillHistoryTile(
+              //   icon: Icons.water_drop_outlined,
+              //   iconColor: AppColors.primaryBlue,
+              //   date: "June 2023",
+              //   usage: "480",
+              //   rate: "16.0",
+              //   amount: "\$92.15",
+              //   trend: "0%",
+              //   isTrendingUp: false,
+              //   isTrendNeutral: true,
+              // ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
 
-              const BillHistoryTile(
-                icon: Icons.cloud_outlined,
-                iconColor: Colors.purpleAccent,
-                date: "May 2023",
-                usage: "455",
-                rate: "14.6",
-                amount: "\$88.40",
-                trend: "2%",
-                isTrendingUp: true,
-                isTrendNeutral: false,
-              ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),
+              // const BillHistoryTile(
+              //   icon: Icons.cloud_outlined,
+              //   iconColor: Colors.purpleAccent,
+              //   date: "May 2023",
+              //   usage: "455",
+              //   rate: "14.6",
+              //   amount: "\$88.40",
+              //   trend: "2%",
+              //   isTrendingUp: true,
+              //   isTrendNeutral: false,
+              // ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),
 
-              // Partial view of April
-              const BillHistoryTile(
-                icon: Icons.cloud_queue_rounded,
-                iconColor: Colors.grey,
-                date: "April 2023",
-                usage: "410",
-                rate: "13.6",
-                amount: "\$84.10",
-                trend: "1%",
-                isTrendingUp: true,
-                isTrendNeutral: false,
-              ).animate().fade(delay: 600.ms).slideY(begin: 0.1, end: 0),
+              // const BillHistoryTile(
+              //   icon: Icons.cloud_queue_rounded,
+              //   iconColor: Colors.grey,
+              //   date: "April 2023",
+              //   usage: "410",
+              //   rate: "13.6",
+              //   amount: "\$84.10",
+              //   trend: "1%",
+              //   isTrendingUp: true,
+              //   isTrendNeutral: false,
+              // ).animate().fade(delay: 600.ms).slideY(begin: 0.1, end: 0),
 
               const SizedBox(
                 height: 80,

@@ -68,23 +68,6 @@ const authMiddleware = async (req, res, next) => {
         req.user = user; // full Mongoose document
         next();
     } catch (error) {
-
-        // Specially bypass error in development if the emulator internet is acting up
-        if (process.env.NODE_ENV === 'development') {
-            console.log('⚠️ Bypassing Firebase auth error in development mode. Falling back to test user.');
-            let mockUser = await User.findOne({});
-            if (!mockUser) {
-                mockUser = await User.create({
-                    firebaseUid: 'mock_dev_uid_123',
-                    email: 'test@developer.com',
-                    name: 'Local Dev User',
-                });
-            }
-            req.user = mockUser;
-            req.firebaseUser = { uid: mockUser.firebaseUid, email: mockUser.email };
-            return next();
-        }
-
         // Firebase throws typed errors; pass through our ApiErrors
         if (error instanceof ApiError) return next(error);
 
@@ -94,6 +77,7 @@ const authMiddleware = async (req, res, next) => {
             return next(new ApiError(401, 'Token expired or revoked. Please sign in again.'));
         }
 
+        console.error("Firebase Auth Error:", error);
         return next(new ApiError(401, 'Authentication failed. Invalid token.'));
     }
 };

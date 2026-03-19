@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -145,17 +146,31 @@ class _DataView extends ConsumerWidget {
     final currentBillAmount = savedBill?['amountExact'];
     String currentBillStr;
     if (currentBillAmount != null) {
-      if (currentBillAmount is int) {
-        currentBillStr = currentBillAmount.toString();
-      } else if (currentBillAmount is double) {
-        currentBillStr = currentBillAmount.toStringAsFixed(2);
+      // amountExact can be int, double, or String (from OCR/text fields)
+      final parsed = double.tryParse(currentBillAmount.toString());
+      if (parsed != null) {
+        currentBillStr = parsed == parsed.truncateToDouble()
+            ? parsed.toInt().toString()
+            : parsed.toStringAsFixed(2);
       } else {
-        currentBillStr = '--';
+        currentBillStr = currentBillAmount.toString();
       }
     } else {
       currentBillStr = '--';
     }
     final hasBill = savedBill != null;
+    
+    final rawSubsidy = savedBill?['subsidyAmount'];
+    String? subsidyStr;
+    if (rawSubsidy != null && rawSubsidy.toString() != '0.00' && rawSubsidy.toString().isNotEmpty) {
+      if (rawSubsidy is int) {
+        subsidyStr = rawSubsidy.toString();
+      } else if (rawSubsidy is double) {
+        subsidyStr = rawSubsidy.toStringAsFixed(2);
+      } else {
+        subsidyStr = rawSubsidy.toString();
+      }
+    }
 
     return Row(
       children: [
@@ -186,9 +201,9 @@ class _DataView extends ConsumerWidget {
               size: 20,
             ),
             iconBg: const Color(0xFFECFDF5),
-            label: 'Last Paid',
-            value: hasBill ? '₹--' : '--',
-            subLabel: hasBill ? 'Checking history...' : 'No local history',
+            label: subsidyStr != null ? 'Subsidy Saved' : 'Last Paid',
+            value: subsidyStr != null ? '₹$subsidyStr' : (hasBill ? '₹--' : '--'),
+            subLabel: subsidyStr != null ? 'Govt Subsidy Applied!' : (hasBill ? 'Checking history...' : 'No local history'),
           ),
         ),
       ],
@@ -633,6 +648,7 @@ class _DataView extends ConsumerWidget {
         'status': 'Pending',
         'isPaid': false,
         'isGrey': false,
+        'imageBase64': savedBill['imageBase64'],
       });
     }
 
@@ -702,17 +718,25 @@ class _DataView extends ConsumerWidget {
                         color: isGrey
                             ? const Color(0xFFF1F5F9)
                             : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(32),
+                        borderRadius: BorderRadius.circular(item['imageBase64'] != null ? 8 : 32),
+                        image: item['imageBase64'] != null && item['imageBase64'].toString().isNotEmpty
+                            ? DecorationImage(
+                                image: MemoryImage(base64Decode(item['imageBase64'])),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: Icon(
-                        isGrey
-                            ? Icons.build_outlined
-                            : Icons.description_outlined,
-                        color: isGrey
-                            ? const Color(0xFF64748B)
-                            : const Color(0xFF1E60F2),
-                        size: 20,
-                      ),
+                      child: item['imageBase64'] != null && item['imageBase64'].toString().isNotEmpty
+                          ? const SizedBox(width: 24, height: 24) // Empty space to respect image size
+                          : Icon(
+                              isGrey
+                                  ? Icons.build_outlined
+                                  : Icons.description_outlined,
+                              color: isGrey
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF1E60F2),
+                              size: 20,
+                            ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(

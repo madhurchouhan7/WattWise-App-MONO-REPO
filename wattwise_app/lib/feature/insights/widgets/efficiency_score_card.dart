@@ -100,7 +100,7 @@ class EfficiencyScoreCard extends ConsumerWidget {
                           ),
                         ),
                         TextSpan(
-                          text: "65%",
+                          text: "${score.toString()}%",
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

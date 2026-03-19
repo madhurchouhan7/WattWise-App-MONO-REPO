@@ -129,6 +129,10 @@ const UserSchema = new mongoose.Schema(
             type: [ApplianceSchema],
             default: [],
         },
+        bills: {
+            type: [mongoose.Schema.Types.Mixed],
+            default: [],
+        },
 
         // ── Plan Management ──────────────────────────────────────────────────
         activePlan: {

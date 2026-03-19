@@ -5,6 +5,7 @@ import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
+import 'package:wattwise_app/feature/plans/screens/design_plan_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class ActivePlanScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class ActivePlanScreen extends ConsumerStatefulWidget {
 class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
   // Mock Toggle states for daily actions
   List<bool> actionToggles = [];
+  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -72,18 +74,75 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              try {
-                await ref.read(userRepositoryProvider).saveActivePlan(null);
-                await ref.read(aiPlanProvider.notifier).clearPlan();
-                if (context.mounted) {
-                  ref.invalidate(authStateProvider);
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to delete plan: $e')),
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Delete Plan?',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                      ),
+                    ),
+                    content: Text(
+                      'Are you sure you want to delete the current plan? This action cannot be undone.',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          'Delete',
+                          style: GoogleFonts.poppins(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
+                },
+              );
+
+              if (confirm == true) {
+                setState(() => _isDeleting = true);
+                try {
+                  await ref.read(userRepositoryProvider).saveActivePlan(null);
+                  await ref.read(aiPlanProvider.notifier).clearPlan();
+                  if (context.mounted) {
+                    ref.invalidate(authStateProvider);
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const DesignPlanScreen(),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    setState(() => _isDeleting = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to delete plan: $e')),
+                    );
+                  }
                 }
               }
             },
@@ -111,69 +170,142 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildPrimaryCard(plan).animate().fade().slideY(
-                begin: 0.1,
-                end: 0,
-                duration: 400.ms,
-                curve: Curves.easeOutCubic,
+      body: _isDeleting
+          ? _buildShimmerLoading()
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildPrimaryCard(plan).animate().fade().slideY(
+                      begin: 0.1,
+                      end: 0,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildMetricsRow(savingsRupees, savingsPercent)
+                        .animate()
+                        .fade(delay: 100.ms)
+                        .slideY(
+                          begin: 0.1,
+                          end: 0,
+                          duration: 400.ms,
+                          curve: Curves.easeOutCubic,
+                        ),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader(
+                      'Daily Actions',
+                      'Manage',
+                    ).animate().fade(delay: 200.ms),
+                    const SizedBox(height: 16),
+                    ...List.generate(actions.length, (index) {
+                      final action = actions[index] as Map<String, dynamic>;
+                      return _buildActionTile(action, index)
+                          .animate()
+                          .fade(delay: (250 + (index * 50)).ms)
+                          .slideX(begin: 0.1, end: 0, duration: 400.ms);
+                    }),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader(
+                      'Previous Plans',
+                      'View All',
+                    ).animate().fade(delay: 350.ms),
+                    const SizedBox(height: 16),
+                    _buildPreviousPlanTile(
+                      icon: Icons.local_fire_department,
+                      title: 'Winter Heating',
+                      subtitle: 'Ended Mar 30 • ',
+                      highlight: '92% Adherence',
+                      highlightColor: Colors.green,
+                    ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 12),
+                    _buildPreviousPlanTile(
+                      icon: Icons.bolt,
+                      title: 'Spring Baseline',
+                      subtitle: 'Ended May 30 • ',
+                      highlight: '78% Adherence',
+                      highlightColor: Colors.orange,
+                    ).animate().fade(delay: 450.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(
+                      height: 100,
+                    ), // padding for invisible bottom nav
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              _buildMetricsRow(savingsRupees, savingsPercent)
-                  .animate()
-                  .fade(delay: 100.ms)
-                  .slideY(
-                    begin: 0.1,
-                    end: 0,
-                    duration: 400.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
-              const SizedBox(height: 32),
-              _buildSectionHeader(
-                'Daily Actions',
-                'Manage',
-              ).animate().fade(delay: 200.ms),
-              const SizedBox(height: 16),
-              ...List.generate(actions.length, (index) {
-                final action = actions[index] as Map<String, dynamic>;
-                return _buildActionTile(action, index)
-                    .animate()
-                    .fade(delay: (250 + (index * 50)).ms)
-                    .slideX(begin: 0.1, end: 0, duration: 400.ms);
-              }),
-              const SizedBox(height: 32),
-              _buildSectionHeader(
-                'Previous Plans',
-                'View All',
-              ).animate().fade(delay: 350.ms),
-              const SizedBox(height: 16),
-              _buildPreviousPlanTile(
-                icon: Icons.local_fire_department,
-                title: 'Winter Heating',
-                subtitle: 'Ended Mar 30 • ',
-                highlight: '92% Adherence',
-                highlightColor: Colors.green,
-              ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
-              const SizedBox(height: 12),
-              _buildPreviousPlanTile(
-                icon: Icons.bolt,
-                title: 'Spring Baseline',
-                subtitle: 'Ended May 30 • ',
-                highlight: '78% Adherence',
-                highlightColor: Colors.orange,
-              ).animate().fade(delay: 450.ms).slideY(begin: 0.1, end: 0),
-              const SizedBox(height: 100), // padding for invisible bottom nav
-            ],
-          ),
-        ),
-      ),
+            ),
     );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  height: 24,
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...List.generate(
+                  3,
+                  (index) => Container(
+                    height: 80,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate(onPlay: (controller) => controller.repeat())
+        .shimmer(duration: 1200.ms, color: Colors.white54);
   }
 
   Widget _buildPrimaryCard(Map<String, dynamic> plan) {

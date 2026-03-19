@@ -46,12 +46,17 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                   ),
                   Row(
                     children: [
-                      Text(
-                        "Full Report",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
+                      InkWell(
+                        onTap: () {
+                          // TODO: navigate to full report screen
+                        },
+                        child: Text(
+                          "Full Report",
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryBlue,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -186,7 +191,7 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Your ${breakdownData[0]['name']} usage is 12% higher than AI models predict for local weather conditions. Try shifting its operational hours.",
+                              "Your ${breakdownData[0]['name']} usage is higher than AI models predict for local weather conditions. Try shifting its operational hours.",
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -195,12 +200,17 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              "Check Upgrade Options?",
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryBlue,
+                            InkWell(
+                              onTap: () {
+                                // TODO: navigate to upgrade options screen
+                              },
+                              child: Text(
+                                "Check Upgrade Options?",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue,
+                                ),
                               ),
                             ),
                           ],

@@ -18,7 +18,15 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.wattwise_app",
-            "certificate_hash": "fba8698098ad65506661c88dd4fce7928eb98f72"
+            "certificate_hash": "10c02b8cf5749027457b2542b4ed8d28b91a2fad"
+          }
+        },
+        {
+          "client_id": "3925576112-9dbv64sg70q8d47mk5ckd7s97gneinbi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.wattwise_app",
+            "certificate_hash": "a7008643189db2ed4756875d0c5a4f9dff697e7f"
           }
         },
         {

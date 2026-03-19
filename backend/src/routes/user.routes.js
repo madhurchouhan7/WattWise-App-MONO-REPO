@@ -19,4 +19,7 @@ router.put('/me', userController.updateMe);
 // PUT  /api/v1/users/me/appliances — update user's selected appliances
 router.put('/me/appliances', userController.updateAppliances);
 
+// POST /api/v1/users/me/bills — add a new bill
+router.post('/me/bills', userController.addBill);
+
 module.exports = router;

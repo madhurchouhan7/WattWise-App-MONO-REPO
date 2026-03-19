@@ -82,9 +82,9 @@ class WelcomeScreen extends StatelessWidget {
                     CtaButton(
                       text: 'Get Started',
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => SignInPage()),
+                          MaterialPageRoute(builder: (context) => const SignInPage()),
                         );
                       },
                     ),

@@ -62,7 +62,7 @@ class UserRepository {
         data: {
           'household': {
             'peopleCount': peopleCount,
-            'familyType': familyType,
+            'familyType': familyType, 
             'houseType': houseType,
           },
         },

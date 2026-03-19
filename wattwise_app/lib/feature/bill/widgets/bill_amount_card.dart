@@ -31,6 +31,18 @@ class BillAmountCard extends ConsumerWidget {
 
     final dueDate = savedBill?['dueDate'] ?? 'Unknown';
 
+    final rawSubsidy = savedBill?['subsidyAmount'];
+    String? subsidyStr;
+    if (rawSubsidy != null && rawSubsidy.toString() != '0.00' && rawSubsidy.toString().isNotEmpty) {
+      if (rawSubsidy is int) {
+        subsidyStr = rawSubsidy.toString();
+      } else if (rawSubsidy is double) {
+        subsidyStr = rawSubsidy.toStringAsFixed(2);
+      } else {
+        subsidyStr = rawSubsidy.toString();
+      }
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -97,6 +109,38 @@ class BillAmountCard extends ConsumerWidget {
                   ],
                 ),
               ),
+              if (subsidyStr != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7), // Light green
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.volunteer_activism,
+                        size: 16,
+                        color: Color(0xFF10B981),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Govt. Subsidy Saved ₹$subsidyStr!",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               _buildDivider(),
               Padding(

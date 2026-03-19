@@ -50,6 +50,8 @@ class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
 
       num unitsConsumed = 0;
       num totalAmount = 0;
+      num grossAmount = 0;
+      num subsidyAmount = 0;
 
       if (savedBill != null) {
         if (savedBill['units'] != null) {
@@ -58,14 +60,24 @@ class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
         if (savedBill['amountExact'] != null) {
           totalAmount = num.tryParse(savedBill['amountExact'].toString()) ?? 0;
         }
+        if (savedBill['grossAmount'] != null) {
+          grossAmount = num.tryParse(savedBill['grossAmount'].toString()) ?? totalAmount;
+        } else {
+          grossAmount = totalAmount;
+        }
+        if (savedBill['subsidyAmount'] != null) {
+          subsidyAmount = num.tryParse(savedBill['subsidyAmount'].toString()) ?? 0;
+        }
       }
 
       final billInfo = {
         "month": savedBill?['billerId'] ?? "Recent Bill",
         "unitsConsumed": unitsConsumed.toInt(),
         "totalAmount": totalAmount.toInt(),
+        "grossAmount": grossAmount.toInt(),
+        "subsidyAmount": subsidyAmount.toInt(),
         "pricePerUnit": unitsConsumed > 0
-            ? (totalAmount / unitsConsumed)
+            ? (grossAmount / unitsConsumed)
             : 7.11,
       };
 

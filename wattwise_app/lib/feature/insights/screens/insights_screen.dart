@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wattwise_app/feature/bill/screen/add_bill_screen.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,6 +66,11 @@ class _EmptyView extends StatelessWidget {
           child: NoInsightsEmptyState(
             onAddBill: () {
               // TODO: navigate to add bill screen
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>  AddBillScreen(),
+                ),
+              );
             },
           ),
         ),

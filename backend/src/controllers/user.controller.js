@@ -8,7 +8,7 @@ const ApiError = require('../utils/ApiError');
 // ─── GET /api/v1/users/me ─────────────────────────────────────────────────────
 exports.getMe = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
         if (!user) throw new ApiError(404, 'User not found.');
         return sendSuccess(res, 200, 'User profile fetched.', typeof user.toPublicJSON === 'function' ? user.toPublicJSON() : user.toJSON());
     } catch (error) {
@@ -43,7 +43,7 @@ exports.updateMe = async (req, res, next) => {
         if (activePlan !== undefined) updates.activePlan = activePlan;
 
         const user = await User.findByIdAndUpdate(
-            req.user.id,
+            req.user._id,
             { $set: updates },
             { returnDocument: 'after', runValidators: true }
         );
@@ -67,7 +67,7 @@ exports.updateAppliances = async (req, res, next) => {
         }
 
         const user = await User.findByIdAndUpdate(
-            req.user.id,
+            req.user._id,
             { $set: { appliances, onboardingCompleted: true } },
             { returnDocument: 'after', runValidators: true }
         );
@@ -75,6 +75,26 @@ exports.updateAppliances = async (req, res, next) => {
         if (!user) throw new ApiError(404, 'User not found.');
 
         return sendSuccess(res, 200, 'Appliances updated.', typeof user.toPublicJSON === 'function' ? user.toPublicJSON() : user.toJSON());
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ─── POST /api/v1/users/me/bills ──────────────────────────────────────────
+exports.addBill = async (req, res, next) => {
+    try {
+        const billData = req.body;
+        billData.createdAt = new Date(); // Attach timestamp for timeline sorting
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { $push: { bills: { $each: [billData], $position: 0 } } },
+            { returnDocument: 'after', runValidators: true }
+        );
+
+        if (!user) throw new ApiError(404, 'User not found.');
+
+        return sendSuccess(res, 201, 'Bill securely stored in database.', billData);
     } catch (error) {
         next(error);
     }
