@@ -8,6 +8,9 @@ import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:wattwise_app/feature/plans/screens/design_plan_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
+import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_sheet.dart';
+
 class ActivePlanScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> activePlan;
 
@@ -33,6 +36,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
+    final streak = ref.watch(streakProvider);
     final plan = widget.activePlan;
 
     // Fallback UI mapping
@@ -186,7 +190,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                       curve: Curves.easeOutCubic,
                     ),
                     const SizedBox(height: 24),
-                    _buildMetricsRow(savingsRupees, savingsPercent)
+                    _buildMetricsRow(savingsRupees, savingsPercent, streak)
                         .animate()
                         .fade(delay: 100.ms)
                         .slideY(
@@ -440,7 +444,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () => showQuickCheckInBottomSheet(context),
               icon: const Icon(
                 Icons.check_circle_outline,
                 color: AppColors.primaryBlue,
@@ -467,7 +471,11 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
     );
   }
 
-  Widget _buildMetricsRow(String savingsRupees, String savingsPercent) {
+  Widget _buildMetricsRow(
+    String savingsRupees,
+    String savingsPercent,
+    int streak,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -525,7 +533,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: '14',
+                        text: streak.toString(),
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -553,7 +561,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                 ),
                 const SizedBox(height: 16),
                 LinearProgressIndicator(
-                  value: 14 / 30,
+                  value: streak / 30,
                   backgroundColor: Colors.grey.shade100,
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
                   borderRadius: BorderRadius.circular(10),

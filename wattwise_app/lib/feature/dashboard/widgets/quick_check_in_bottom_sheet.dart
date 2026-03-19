@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 
 void showQuickCheckInBottomSheet(BuildContext context) {
   showModalBottomSheet(
@@ -10,15 +12,16 @@ void showQuickCheckInBottomSheet(BuildContext context) {
   );
 }
 
-class QuickCheckInBottomSheet extends StatefulWidget {
+class QuickCheckInBottomSheet extends ConsumerStatefulWidget {
   const QuickCheckInBottomSheet({super.key});
 
   @override
-  State<QuickCheckInBottomSheet> createState() =>
+  ConsumerState<QuickCheckInBottomSheet> createState() =>
       _QuickCheckInBottomSheetState();
 }
 
-class _QuickCheckInBottomSheetState extends State<QuickCheckInBottomSheet> {
+class _QuickCheckInBottomSheetState
+    extends ConsumerState<QuickCheckInBottomSheet> {
   String selectedMood = 'Good';
   List<String> selectedTags = ['Guests'];
   final List<String> tags = [
@@ -31,6 +34,8 @@ class _QuickCheckInBottomSheetState extends State<QuickCheckInBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final streak = ref.watch(streakProvider);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -84,7 +89,7 @@ class _QuickCheckInBottomSheetState extends State<QuickCheckInBottomSheet> {
                           children: [
                             const Text("🔥 ", style: TextStyle(fontSize: 18)),
                             Text(
-                              "5 day streak!",
+                              "$streak day streak!",
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -95,7 +100,9 @@ class _QuickCheckInBottomSheetState extends State<QuickCheckInBottomSheet> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Keep it up! You're doing great.",
+                          streak > 0
+                              ? "Keep it up! You're doing great."
+                              : "Start your efficiency streak today!",
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -206,6 +213,9 @@ class _QuickCheckInBottomSheetState extends State<QuickCheckInBottomSheet> {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Trigger check-in (logic handles optimistic state)
+                        ref.read(streakNotifierProvider.notifier).checkIn();
+                        // Close immediately for snappy feel
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(

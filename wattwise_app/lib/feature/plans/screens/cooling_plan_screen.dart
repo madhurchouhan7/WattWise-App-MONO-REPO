@@ -1,24 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 import 'package:wattwise_app/feature/plans/widgets/cooling_feedback_banner.dart';
 import 'package:wattwise_app/feature/plans/widgets/cooling_plan_header.dart';
 import 'package:wattwise_app/feature/plans/widgets/cooling_plan_stats_card.dart';
 import 'package:wattwise_app/feature/plans/widgets/performance_map_widget.dart';
 import 'package:wattwise_app/feature/plans/widgets/action_accordion_item.dart';
 
-class CoolingPlanScreen extends StatelessWidget {
+class CoolingPlanScreen extends ConsumerWidget {
   const CoolingPlanScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateProvider);
+    final streak = ref.watch(streakProvider);
+    final user = userAsync.valueOrNull;
+    final activePlan = user?.activePlan;
+
+    // Extract dynamic actions
+    final List<dynamic> actions = activePlan?['keyActions'] ?? [];
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(
-          0xFFEFF6FF,
-        ), // soft blue background of banner
+        backgroundColor: const Color(0xFFEFF6FF),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -43,10 +52,7 @@ class CoolingPlanScreen extends StatelessWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 24.0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -82,41 +88,29 @@ class CoolingPlanScreen extends StatelessWidget {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFFFFF7ED,
-                                ), // Light orange bg
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: const Color(0xFFFFEDD5),
-                                  width: 1.5,
+                            if (streak > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF7ED),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFFFFEDD5), width: 1.5),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text("🔥 "),
+                                    Text(
+                                      "$streak-day streak!",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFFEA580C),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    "🔥 ",
-                                    style: GoogleFonts.poppins(fontSize: 12),
-                                  ),
-                                  Text(
-                                    "5-day streak!",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(
-                                        0xFFEA580C,
-                                      ), // Orange text
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         )
                         .animate()
@@ -125,33 +119,27 @@ class CoolingPlanScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    const ActionAccordionItem(
-                          icon: Icons.ac_unit_rounded,
-                          title: "Set AC to 26°C",
-                          subtitle: "Maintains efficient cooling load.",
-                          initialExpanded: true,
-                        )
-                        .animate()
-                        .fade(delay: 450.ms)
-                        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-
-                    const ActionAccordionItem(
-                          icon: Icons.blinds_closed_rounded,
-                          title: "Close blinds during day",
-                          initialExpanded: false,
-                        )
-                        .animate()
-                        .fade(delay: 550.ms)
-                        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-
-                    const ActionAccordionItem(
-                          icon: Icons.local_laundry_service_outlined,
-                          title: "Run washing machine full load",
-                          initialExpanded: false,
-                        )
-                        .animate()
-                        .fade(delay: 650.ms)
-                        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+                    if (actions.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            "Generating your optimized actions...",
+                            style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                          ),
+                        ),
+                      )
+                    else
+                      ...actions.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final action = entry.value;
+                        return ActionAccordionItem(
+                          icon: _getIconForAppliance(action['appliance'] ?? ''),
+                          title: action['appliance'] ?? "Strategy",
+                          subtitle: action['action'] ?? "Optimize usage",
+                          initialExpanded: idx == 0,
+                        ).animate().fade(delay: (450 + idx * 100).ms).slideY(begin: 0.1, end: 0);
+                      }),
 
                     const SizedBox(height: 48),
                   ],
@@ -162,5 +150,15 @@ class CoolingPlanScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getIconForAppliance(String appliance) {
+    final lower = appliance.toLowerCase();
+    if (lower.contains('ac') || lower.contains('air')) return Icons.ac_unit_rounded;
+    if (lower.contains('light')) return Icons.lightbulb_outline_rounded;
+    if (lower.contains('wash')) return Icons.local_laundry_service_outlined;
+    if (lower.contains('fridge') || lower.contains('refrigerator')) return Icons.kitchen_rounded;
+    if (lower.contains('blind') || lower.contains('curtain')) return Icons.blinds_closed_rounded;
+    return Icons.auto_awesome;
   }
 }

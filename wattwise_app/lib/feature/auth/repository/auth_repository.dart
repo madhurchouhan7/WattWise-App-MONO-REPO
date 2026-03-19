@@ -32,12 +32,20 @@ class AuthRepository {
         false;
 
     Map<String, dynamic>? activePlan;
+    int streak = 0;
+    DateTime? lastCheckIn;
+
     try {
       // Fetch backend user state safely
       final response = await ApiClient.instance.get('/users/me');
       if (response.statusCode == 200 && response.data['data'] != null) {
-        activePlan =
-            response.data['data']['activePlan'] as Map<String, dynamic>?;
+        final userData = response.data['data'];
+        activePlan = userData['activePlan'] as Map<String, dynamic>?;
+        streak = (userData['streak'] as num?)?.toInt() ?? 0;
+        final lastCheckInStr = userData['lastCheckIn'] as String?;
+        if (lastCheckInStr != null) {
+          lastCheckIn = DateTime.tryParse(lastCheckInStr);
+        }
       }
     } catch (e) {
       // Failsafe catch if network fails or unregistered flow skips Node
@@ -49,6 +57,8 @@ class AuthRepository {
       displayName: firebaseUser.displayName,
       photoUrl: firebaseUser.photoURL,
       activePlan: activePlan,
+      streak: streak,
+      lastCheckIn: lastCheckIn,
       isOnboardingComplete: isOnboardingComplete,
     );
   }

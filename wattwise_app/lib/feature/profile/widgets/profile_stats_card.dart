@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
+
 class ProfileStatsCard extends ConsumerWidget {
   const ProfileStatsCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final savedBill = ref.watch(savedBillProvider);
+    final streak = ref.watch(streakProvider);
     final hasBills = savedBill != null;
 
     final String billsCount = hasBills ? "1" : "0";
@@ -44,7 +47,7 @@ class ProfileStatsCard extends ConsumerWidget {
               _buildDivider(),
               _buildStatColumn(savings, "Saved"),
               _buildDivider(),
-              _buildStatColumn(hasBills ? "1" : "0", "Streak"),
+              _buildStatColumn(streak.toString(), "Streak"),
             ],
           ),
         );

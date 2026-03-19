@@ -41,8 +41,8 @@ class UserRepository {
             'state': state,
             'city': city,
             'discom': discom,
-            'lat': ?lat,
-            'lng': ?lng,
+            'lat': lat,
+            'lng': lng,
           },
         },
       );
@@ -62,7 +62,7 @@ class UserRepository {
         data: {
           'household': {
             'peopleCount': peopleCount,
-            'familyType': familyType, 
+            'familyType': familyType,
             'houseType': houseType,
           },
         },
@@ -93,6 +93,20 @@ class UserRepository {
       await _apiClient.put('/users/me', data: {'activePlan': planData});
     } catch (e) {
       throw Exception('Failed to activate plan: $e');
+    }
+  }
+
+  Future<void> updateStreak(int streak, DateTime lastCheckIn) async {
+    try {
+      await _apiClient.put(
+        '/users/me',
+        data: {
+          'streak': streak,
+          'lastCheckIn': lastCheckIn.toIso8601String(),
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to update streak: $e');
     }
   }
 }

@@ -11,6 +11,7 @@ import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_she
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/profile/screens/profile_screen.dart';
+import 'package:wattwise_app/feature/insights/widgets/streak_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -122,10 +123,13 @@ class _DataView extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             _buildStatCards(ref),
+
             const SizedBox(height: 28),
             _buildSectionTitle('Active Plan', showIndicator: true),
             const SizedBox(height: 16),
             _buildActivePlanCard(context, user),
+            const SizedBox(height: 28),
+            const StreakCard(),
             const SizedBox(height: 28),
             _buildSectionTitle('Action Items'),
             const SizedBox(height: 16),
@@ -159,10 +163,12 @@ class _DataView extends ConsumerWidget {
       currentBillStr = '--';
     }
     final hasBill = savedBill != null;
-    
+
     final rawSubsidy = savedBill?['subsidyAmount'];
     String? subsidyStr;
-    if (rawSubsidy != null && rawSubsidy.toString() != '0.00' && rawSubsidy.toString().isNotEmpty) {
+    if (rawSubsidy != null &&
+        rawSubsidy.toString() != '0.00' &&
+        rawSubsidy.toString().isNotEmpty) {
       if (rawSubsidy is int) {
         subsidyStr = rawSubsidy.toString();
       } else if (rawSubsidy is double) {
@@ -202,8 +208,12 @@ class _DataView extends ConsumerWidget {
             ),
             iconBg: const Color(0xFFECFDF5),
             label: subsidyStr != null ? 'Subsidy Saved' : 'Last Paid',
-            value: subsidyStr != null ? '₹$subsidyStr' : (hasBill ? '₹--' : '--'),
-            subLabel: subsidyStr != null ? 'Govt Subsidy Applied!' : (hasBill ? 'Checking history...' : 'No local history'),
+            value: subsidyStr != null
+                ? '₹$subsidyStr'
+                : (hasBill ? '₹--' : '--'),
+            subLabel: subsidyStr != null
+                ? 'Govt Subsidy Applied!'
+                : (hasBill ? 'Checking history...' : 'No local history'),
           ),
         ),
       ],
@@ -718,16 +728,27 @@ class _DataView extends ConsumerWidget {
                         color: isGrey
                             ? const Color(0xFFF1F5F9)
                             : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(item['imageBase64'] != null ? 8 : 32),
-                        image: item['imageBase64'] != null && item['imageBase64'].toString().isNotEmpty
+                        borderRadius: BorderRadius.circular(
+                          item['imageBase64'] != null ? 8 : 32,
+                        ),
+                        image:
+                            item['imageBase64'] != null &&
+                                item['imageBase64'].toString().isNotEmpty
                             ? DecorationImage(
-                                image: MemoryImage(base64Decode(item['imageBase64'])),
+                                image: MemoryImage(
+                                  base64Decode(item['imageBase64']),
+                                ),
                                 fit: BoxFit.cover,
                               )
                             : null,
                       ),
-                      child: item['imageBase64'] != null && item['imageBase64'].toString().isNotEmpty
-                          ? const SizedBox(width: 24, height: 24) // Empty space to respect image size
+                      child:
+                          item['imageBase64'] != null &&
+                              item['imageBase64'].toString().isNotEmpty
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                            ) // Empty space to respect image size
                           : Icon(
                               isGrey
                                   ? Icons.build_outlined

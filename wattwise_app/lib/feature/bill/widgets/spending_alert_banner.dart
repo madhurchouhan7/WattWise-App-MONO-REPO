@@ -1,12 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
-class SpendingAlertBanner extends StatelessWidget {
+class SpendingAlertBanner extends ConsumerWidget {
   const SpendingAlertBanner({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedBill = ref.watch(savedBillProvider);
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.valueOrNull;
+
+    if (savedBill == null) return const SizedBox.shrink();
+
+    final currentAmount = double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
+    
+    // We compare with the AI Plan's estimated current cost if available,
+    // or simulate a slight increase for visual feedback if no history exists.
+    final baseAmount = (user?.activePlan?['estimatedCurrentMonthlyCost'] as num?)?.toDouble() ?? (currentAmount * 0.9);
+    
+    final diff = currentAmount - baseAmount;
+    final percent = baseAmount > 0 ? (diff / baseAmount * 100).round() : 0;
+    
+    // Only show if spending is actually higher
+    if (diff <= 0) return const SizedBox.shrink();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -46,7 +67,7 @@ class SpendingAlertBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      "Higher than June 2023",
+                      "Higher than estimated baseline",
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: AppColors.alertRed.withAlpha(180),
@@ -67,7 +88,7 @@ class SpendingAlertBanner extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        "12%",
+                        "$percent%",
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -78,7 +99,7 @@ class SpendingAlertBanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "+₹370",
+                    "+₹${diff.toInt()}",
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

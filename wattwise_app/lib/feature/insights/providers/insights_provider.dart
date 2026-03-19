@@ -1,35 +1,70 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 
 // Dynamically sets current month context
 final selectedMonthProvider = Provider<String>((ref) {
   final now = DateTime.now();
   final months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    'Jan','Feb','Mar','Apr','May','Jun',
+    'Jul','Aug','Sep','Oct','Nov','Dec'
   ];
   return '${months[now.month - 1]} ${now.year}';
+});
+
+// Provides the total energy consumed from the latest saved bill
+final totalConsumptionProvider = Provider<double>((ref) {
+  final savedBill = ref.watch(savedBillProvider);
+  if (savedBill != null) {
+    // Attempt to get unitsConsumed (might be from OCR or biller data)
+    final units = double.tryParse(savedBill['unitsConsumed']?.toString() ?? '');
+    if (units != null) return units;
+
+    // Fallback: estimate based on amount (e.g. ₹8 per unit)
+    final amount = double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
+    if (amount > 0) return (amount / 8).roundToDouble();
+  }
+  return 452.0; // Baseline mock if no bill exists
+});
+
+// Provides the total cost from the latest saved bill
+final totalCostProvider = Provider<double>((ref) {
+  final savedBill = ref.watch(savedBillProvider);
+  if (savedBill != null) {
+    return double.tryParse(savedBill['amountExact']?.toString() ?? '3850') ?? 3850.0;
+  }
+  return 3850.0;
 });
 
 // Provides dynamic Efficiency Score from the AI Plan schema
 final efficiencyScoreProvider = Provider<int>((ref) {
   final userAsync = ref.watch(authStateProvider);
-  final activePlan = userAsync.valueOrNull?.activePlan;
+  final isOptimistic = ref.watch(optimisticCheckInProvider);
+  final user = userAsync.valueOrNull;
+  final activePlan = user?.activePlan;
 
+  int baseScore = 82;
   if (activePlan != null && activePlan['efficiencyScore'] != null) {
-    return (activePlan['efficiencyScore'] as num).toInt();
+    baseScore = (activePlan['efficiencyScore'] as num).toInt();
   }
-  return 82; // Fallback
+
+  // Boost score slightly if user checked in today
+  bool checkedInToday = isOptimistic;
+  if (!checkedInToday && user?.lastCheckIn != null) {
+    final now = DateTime.now();
+    final last = user!.lastCheckIn!;
+    if (now.year == last.year && now.month == last.month && now.day == last.day) {
+      checkedInToday = true;
+    }
+  }
+
+  if (checkedInToday) {
+    baseScore = (baseScore + 5).clamp(0, 100);
+  }
+
+  return baseScore;
 });
 
 // Dynamic appliance breakdown based on what the AI prioritized
@@ -40,52 +75,102 @@ final applianceBreakdownProvider = Provider<List<Map<String, dynamic>>>((ref) {
   if (activePlan != null && activePlan['keyActions'] != null) {
     final actions = activePlan['keyActions'] as List<dynamic>;
     if (actions.isNotEmpty) {
+      // Map actions to detailed items if we have them
       return [
         {
           'name': actions.isNotEmpty
-              ? actions[0]['appliance']
-                    ?.toString()
-                    .split(" ")[0]
-                    .replaceAll(RegExp(r'[^a-zA-Z]'), '')
-              : 'AC',
+              ? actions[0]['appliance']?.toString() ?? 'Air Conditioner'
+              : 'Air Conditioner',
           'percentage': 45,
           'colorHex': 0xFF2563EB,
+          'icon': Icons.ac_unit_rounded,
         },
         {
           'name': actions.length > 1
-              ? actions[1]['appliance']
-                    ?.toString()
-                    .split(" ")[0]
-                    .replaceAll(RegExp(r'[^a-zA-Z]'), '')
-              : 'Fridge',
-          'percentage': 30,
-          'colorHex': 0xFF93C5FD,
+              ? actions[1]['appliance']?.toString() ?? 'Refrigerator'
+              : 'Refrigerator',
+          'percentage': 20,
+          'colorHex': 0xFF60A5FA,
+          'icon': Icons.kitchen_rounded,
         },
-        {'name': 'Other', 'percentage': 25, 'colorHex': 0xFFE2E8F0},
+        {
+          'name': 'Water Heater',
+          'percentage': 15,
+          'colorHex': 0xFF93C5FD,
+          'icon': Icons.hot_tub_rounded,
+        },
+        {
+          'name': 'Lighting',
+          'percentage': 10,
+          'colorHex': 0xFFBFDBFE,
+          'icon': Icons.lightbulb_outline_rounded,
+        },
+        {
+          'name': 'Others',
+          'percentage': 10,
+          'colorHex': 0xFFE2E8F0,
+          'icon': Icons.more_horiz_rounded,
+        },
       ];
     }
   }
 
   return [
-    {'name': 'AC', 'percentage': 40, 'colorHex': 0xFF2563EB},
-    {'name': 'Fridge', 'percentage': 20, 'colorHex': 0xFF93C5FD},
-    {'name': 'Other', 'percentage': 40, 'colorHex': 0xFFE2E8F0},
+    {'name': 'Air Conditioner', 'percentage': 45, 'colorHex': 0xFF2563EB, 'icon': Icons.ac_unit_rounded},
+    {'name': 'Refrigerator', 'percentage': 20, 'colorHex': 0xFF60A5FA, 'icon': Icons.kitchen_rounded},
+    {'name': 'Water Heater', 'percentage': 15, 'colorHex': 0xFF93C5FD, 'icon': Icons.hot_tub_rounded},
+    {'name': 'Lighting', 'percentage': 10, 'colorHex': 0xFFBFDBFE, 'icon': Icons.lightbulb_outline_rounded},
+    {'name': 'Others', 'percentage': 10, 'colorHex': 0xFFE2E8F0, 'icon': Icons.more_horiz_rounded},
   ];
 });
 
+// Provides detailed appliance data for the Full Report
+final detailedApplianceProvider = Provider<List<Map<String, dynamic>>>((ref) {
+  final breakdown = ref.watch(applianceBreakdownProvider);
+  final totalUnits = ref.watch(totalConsumptionProvider);
+  final totalCost = ref.watch(totalCostProvider);
+
+  return breakdown.map((item) {
+    final percent = (item['percentage'] as int) / 100;
+    return {
+      ...item,
+      'kwh': (totalUnits * percent).toStringAsFixed(1),
+      'cost': (totalCost * percent).toInt(),
+      'status': item['percentage'] > 30 ? 'High Usage' : 'Normal',
+      'subtitle': item['name'].toString().contains('Air')
+          ? 'Primary bedroom & Living'
+          : 'Household appliance',
+    };
+  }).toList();
+});
+
 // Dynamic daily intensity (heatmap data)
-// 0: low/none, 1: light, 2: medium, 3: high (HI)
 final dailyIntensityProvider = Provider<List<int>>((ref) {
   final score = ref.watch(efficiencyScoreProvider);
+  final user = ref.watch(authStateProvider).valueOrNull;
+  final isOptimistic = ref.watch(optimisticCheckInProvider);
 
+  final List<int> pattern;
   if (score > 85) {
-    // Highly efficient pattern
-    return [0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0];
+    pattern = [0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0];
   } else if (score < 60) {
-    // Inefficient pattern
-    return [2, 3, 2, 3, 3, 2, 1, 3, 3, 2, 2, 3, 2, 2];
+    pattern = [2, 3, 2, 3, 3, 2, 1, 3, 3, 2, 2, 3, 2, 2];
+  } else {
+    pattern = [0, 1, 1, 2, 3, 1, 0, 0, 0, 2, 1, 1, 3, 1];
   }
 
-  // Moderate
-  return [0, 1, 1, 2, 3, 1, 0, 0, 0, 2, 1, 1, 3, 1];
+  bool checkedInToday = isOptimistic;
+  if (!checkedInToday && user?.lastCheckIn != null) {
+    final now = DateTime.now();
+    final last = user!.lastCheckIn!;
+    if (now.year == last.year && now.month == last.month && now.day == last.day) {
+      checkedInToday = true;
+    }
+  }
+
+  if (checkedInToday) {
+    pattern[pattern.length - 1] = pattern[pattern.length - 1].clamp(1, 3);
+  }
+
+  return pattern;
 });
