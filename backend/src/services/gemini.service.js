@@ -44,7 +44,7 @@ const generateEfficiencyPlan = async (userData) => {
 
   // Build the prompt
   let prompt = `You are an expert energy efficiency advisor for Indian households.
-Analyze the following electricity usage data and generate a personalized efficiency plan.
+Analyze the following electricity usage data and Generate only money-saving actions that can reduce the bill. Every action must be tied to a named appliance, usage pattern, or tariff behavior, and must include an estimated monthly saving.
 
 USER CONTEXT:
 - Goal: ${userGoal}
@@ -52,6 +52,28 @@ USER CONTEXT:
 - Location: ${userLocation}
 - Live Weather: ${weatherContext}
 - WEATHER INSTRUCTION: Extensively adjust your device recommendations, baseline temperatures, and action items structurally around the live weather context so your advice is logically applicable right now.
+
+RESTRICTIONS:
+- Do NOT give generic advice like "turn off devices when not in use" unless you also tie it to a specific appliance and estimate savings.
+- Do NOT include tips that cannot reduce the bill directly.
+- Every action must include:
+  1) appliance name
+  2) exact change to make
+  3) estimated monthly rupee saving
+  4) why it saves money
+  5) confidence level
+- Prefer actions with savings >= ₹50/month.
+- Prefer actions that can be measured from the bill or appliance data.
+- If a device is unknown, do not invent advice for it.
+
+ACTION GENERATION RULES:
+- AC: suggest setpoint changes, cleaning filters, reducing runtime, using sleep mode, sealing leakage, fan-assisted cooling.
+- Geyser: suggest timer use, shorter heating windows, lower thermostat setting, insulation, solar/efficient replacement if age is high.
+- Lighting: suggest LED replacement only if current lights are incandescent/CFL, with approximate savings.
+- Fridge: suggest gasket check, defrosting, correct temperature, door-opening reduction, replacement only if old/inefficient.
+- Fan: suggest replacing old fans with efficient BLDC fans if usage is high.
+- Always prefer the top 3–5 actions with highest estimated rupee savings.
+- Do not suggest actions that save less than ₹20/month unless they are part of a larger pattern.
 
 APPLIANCES:
 `;
@@ -124,6 +146,10 @@ Base calculations on standard Indian electricity rates and BEE star ratings.
               type: SchemaType.STRING,
               description: "e.g. ₹120/month",
             },
+            confidence: {
+              type: SchemaType.STRING,
+              description: "high|medium|low",
+            },
           },
           required: [
             "priority",
@@ -131,6 +157,8 @@ Base calculations on standard Indian electricity rates and BEE star ratings.
             "action",
             "impact",
             "estimatedSaving",
+            "confidence",
+
           ],
         },
       },

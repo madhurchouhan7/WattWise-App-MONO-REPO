@@ -702,14 +702,16 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                       : () async {
                           final ocrData = ref.read(ocrProvider).valueOrNull;
 
-                           final billData = {
+                          final billData = {
                             'amountExact': _amountController.text.isNotEmpty
                                 ? _amountController.text
                                 : '0.00',
-                            'grossAmount': _grossAmountController.text.isNotEmpty
+                            'grossAmount':
+                                _grossAmountController.text.isNotEmpty
                                 ? _grossAmountController.text
                                 : '0.00',
-                            'subsidyAmount': _subsidyAmountController.text.isNotEmpty
+                            'subsidyAmount':
+                                _subsidyAmountController.text.isNotEmpty
                                 ? _subsidyAmountController.text
                                 : '0.00',
                             'billNumber':
@@ -728,7 +730,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                           // Upload to MongoDB database via Backend API call
                           try {
                             await ApiClient.instance.post(
-                              '/users/me/bills',
+                              '/bills',
                               data: billData,
                             );
                             if (context.mounted) {

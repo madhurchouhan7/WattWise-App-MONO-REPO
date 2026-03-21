@@ -3,13 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
+import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
+
 
 // Dynamically sets current month context
 final selectedMonthProvider = Provider<String>((ref) {
   final now = DateTime.now();
   final months = [
-    'Jan','Feb','Mar','Apr','May','Jun',
-    'Jul','Aug','Sep','Oct','Nov','Dec'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${months[now.month - 1]} ${now.year}';
 });
@@ -23,7 +35,8 @@ final totalConsumptionProvider = Provider<double>((ref) {
     if (units != null) return units;
 
     // Fallback: estimate based on amount (e.g. ₹8 per unit)
-    final amount = double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
+    final amount =
+        double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
     if (amount > 0) return (amount / 8).roundToDouble();
   }
   return 452.0; // Baseline mock if no bill exists
@@ -33,7 +46,8 @@ final totalConsumptionProvider = Provider<double>((ref) {
 final totalCostProvider = Provider<double>((ref) {
   final savedBill = ref.watch(savedBillProvider);
   if (savedBill != null) {
-    return double.tryParse(savedBill['amountExact']?.toString() ?? '3850') ?? 3850.0;
+    return double.tryParse(savedBill['amountExact']?.toString() ?? '3850') ??
+        3850.0;
   }
   return 3850.0;
 });
@@ -55,7 +69,9 @@ final efficiencyScoreProvider = Provider<int>((ref) {
   if (!checkedInToday && user?.lastCheckIn != null) {
     final now = DateTime.now();
     final last = user!.lastCheckIn!;
-    if (now.year == last.year && now.month == last.month && now.day == last.day) {
+    if (now.year == last.year &&
+        now.month == last.month &&
+        now.day == last.day) {
       checkedInToday = true;
     }
   }
@@ -79,8 +95,8 @@ final applianceBreakdownProvider = Provider<List<Map<String, dynamic>>>((ref) {
       return [
         {
           'name': actions.isNotEmpty
-              ? actions[0]['appliance']?.toString() ?? 'Air Conditioner'
-              : 'Air Conditioner',
+              ? actions[0]['appliance']?.toString() ?? 'Air'
+              : 'Air',
           'percentage': 45,
           'colorHex': 0xFF2563EB,
           'icon': Icons.ac_unit_rounded,
@@ -116,11 +132,36 @@ final applianceBreakdownProvider = Provider<List<Map<String, dynamic>>>((ref) {
   }
 
   return [
-    {'name': 'Air Conditioner', 'percentage': 45, 'colorHex': 0xFF2563EB, 'icon': Icons.ac_unit_rounded},
-    {'name': 'Refrigerator', 'percentage': 20, 'colorHex': 0xFF60A5FA, 'icon': Icons.kitchen_rounded},
-    {'name': 'Water Heater', 'percentage': 15, 'colorHex': 0xFF93C5FD, 'icon': Icons.hot_tub_rounded},
-    {'name': 'Lighting', 'percentage': 10, 'colorHex': 0xFFBFDBFE, 'icon': Icons.lightbulb_outline_rounded},
-    {'name': 'Others', 'percentage': 10, 'colorHex': 0xFFE2E8F0, 'icon': Icons.more_horiz_rounded},
+    {
+      'name': 'Air',
+      'percentage': 45,
+      'colorHex': 0xFF2563EB,
+      'icon': Icons.ac_unit_rounded,
+    },
+    {
+      'name': 'Refrigerator',
+      'percentage': 20,
+      'colorHex': 0xFF60A5FA,
+      'icon': Icons.kitchen_rounded,
+    },
+    {
+      'name': 'Water Heater',
+      'percentage': 15,
+      'colorHex': 0xFF93C5FD,
+      'icon': Icons.hot_tub_rounded,
+    },
+    {
+      'name': 'Lighting',
+      'percentage': 10,
+      'colorHex': 0xFFBFDBFE,
+      'icon': Icons.lightbulb_outline_rounded,
+    },
+    {
+      'name': 'Others',
+      'percentage': 10,
+      'colorHex': 0xFFE2E8F0,
+      'icon': Icons.more_horiz_rounded,
+    },
   ];
 });
 
@@ -144,33 +185,24 @@ final detailedApplianceProvider = Provider<List<Map<String, dynamic>>>((ref) {
   }).toList();
 });
 
-// Dynamic daily intensity (heatmap data)
+// Dynamic daily intensity — reads from Hive heatmap cache, returns a
+// sorted list of intensity values for the current month (one per day so far).
+// Backward-compatible consumer for anything watching dailyIntensityProvider.
 final dailyIntensityProvider = Provider<List<int>>((ref) {
-  final score = ref.watch(efficiencyScoreProvider);
-  final user = ref.watch(authStateProvider).valueOrNull;
-  final isOptimistic = ref.watch(optimisticCheckInProvider);
+  // Reading from heatmapProvider (Hive-backed, instant)
+  final heatmapData = ref.watch(heatmapProvider);
 
-  final List<int> pattern;
-  if (score > 85) {
-    pattern = [0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0];
-  } else if (score < 60) {
-    pattern = [2, 3, 2, 3, 3, 2, 1, 3, 3, 2, 2, 3, 2, 2];
-  } else {
-    pattern = [0, 1, 1, 2, 3, 1, 0, 0, 0, 2, 1, 1, 3, 1];
-  }
+  final now = DateTime.now();
+  final year = now.year;
+  final month = now.month;
+  final daysInMonth = DateUtils.getDaysInMonth(year, month);
 
-  bool checkedInToday = isOptimistic;
-  if (!checkedInToday && user?.lastCheckIn != null) {
-    final now = DateTime.now();
-    final last = user!.lastCheckIn!;
-    if (now.year == last.year && now.month == last.month && now.day == last.day) {
-      checkedInToday = true;
-    }
-  }
-
-  if (checkedInToday) {
-    pattern[pattern.length - 1] = pattern[pattern.length - 1].clamp(1, 3);
-  }
-
-  return pattern;
+  // Build intensity list, one entry per day from day 1 to daysInMonth
+  return List<int>.generate(daysInMonth, (i) {
+    final day = i + 1;
+    final dateKey =
+        '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+    return heatmapData[dateKey] ?? 0;
+  });
 });
+

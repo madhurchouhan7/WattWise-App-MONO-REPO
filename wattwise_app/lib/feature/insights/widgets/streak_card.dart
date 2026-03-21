@@ -9,7 +9,26 @@ class StreakCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final streak = ref.watch(streakProvider);
+    final streakState = ref.watch(streakStateProvider);
+    final weekdays = ref.watch(streakWeekdaysProvider);
+
+    final streak = streakState.streak;
+    final checkedInToday = streakState.checkedInToday;
+    final isStreakBroken = streakState.isStreakBroken;
+
+    final now = DateTime.now();
+    const weekdayNames = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final todayLabel =
+        '${weekdayNames[now.weekday - 1]}, ${now.day} ${monthNames[now.month - 1]}';
+    final todayIndex = now.weekday - 1; // 0=Mon … 6=Sun
+
+    final List<String> dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
     return Container(
       width: double.infinity,
@@ -20,7 +39,7 @@ class StreakCard extends ConsumerWidget {
         border: Border.all(color: Colors.orange.shade100, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.shade50.withOpacity(0.5),
+            color: Colors.orange.shade50.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -29,19 +48,21 @@ class StreakCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Header Row ──────────────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Consistency",
+                    "CONSISTENCY",
                     style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                       color: Colors.orange.shade700,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.4,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -53,24 +74,51 @@ class StreakCard extends ConsumerWidget {
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  // Today's date
+                  Text(
+                    todayLabel,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // Streak badge
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(12),
+                  color: streak > 0
+                      ? Colors.orange.shade50
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: streak > 0
+                        ? Colors.orange.shade200
+                        : Colors.grey.shade300,
+                    width: 1,
+                  ),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text("🔥", style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 4),
                     Text(
-                      "$streak Days",
+                      streak > 0 ? "🔥" : "💤",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      streak > 0 ? "$streak Days" : "No Streak",
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange.shade800,
+                        color: streak > 0
+                            ? Colors.orange.shade800
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -78,67 +126,132 @@ class StreakCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+
+          // ── Broken streak warning ─────────────────────────────────────────
+          if (isStreakBroken) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red.shade100),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      color: Colors.red.shade400, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Streak broken! Check in today to start again.",
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 20),
+
+          // ── Weekday Dots ──────────────────────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
-              final days = ["M", "T", "W", "T", "F", "S", "S"];
-              // Simple logic: if streak is X, highlight last X days roughly
-              // Since we don't have historical data, let's just highlight the "current" day and previous ones if streak > 0
-              final today = DateTime.now().weekday - 1; // 0-6 (Mon-Sun)
-              final isCurrent = index == today;
-              final isAchieved = streak > 0 && (index <= today && index > today - streak);
+              final isToday = index == todayIndex;
+              final isAchieved = weekdays[index];
+              // Today's dot: show pending (outline) if not yet checked in
+              final isTodayPending = isToday && !checkedInToday;
 
               return Column(
                 children: [
                   Text(
-                    days[index],
+                    dayLabels[index],
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isCurrent ? AppColors.primaryBlue : AppColors.textSecondary,
+                      fontWeight:
+                          isToday ? FontWeight.w700 : FontWeight.w500,
+                      color: isToday
+                          ? AppColors.primaryBlue
+                          : AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeInOut,
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: isAchieved 
-                          ? Colors.orange.shade400 
-                          : (isCurrent ? Colors.orange.shade50 : Colors.grey.shade100),
+                      color: isAchieved
+                          ? Colors.orange.shade400
+                          : isTodayPending
+                              ? Colors.orange.shade50
+                              : Colors.grey.shade100,
                       shape: BoxShape.circle,
-                      border: isCurrent ? Border.all(color: Colors.orange.shade400, width: 2) : null,
+                      border: isTodayPending || isToday
+                          ? Border.all(
+                              color: isAchieved
+                                  ? Colors.orange.shade500
+                                  : Colors.orange.shade300,
+                              width: 2,
+                            )
+                          : null,
                     ),
                     child: Center(
-                      child: isAchieved 
-                          ? const Icon(Icons.check, color: Colors.white, size: 16)
-                          : (isCurrent ? const Text("⚡", style: TextStyle(fontSize: 12)) : null),
+                      child: isAchieved
+                          ? const Icon(Icons.check,
+                              color: Colors.white, size: 16)
+                          : isTodayPending
+                              ? const Text(
+                                  "⚡",
+                                  style: TextStyle(fontSize: 12),
+                                )
+                              : null,
                     ),
                   ),
                 ],
               );
             }),
           ),
+
           const SizedBox(height: 20),
-          Container(
+
+          // ── Bottom info strip ─────────────────────────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: checkedInToday
+                  ? Colors.green.shade50
+                  : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
+              border: checkedInToday
+                  ? Border.all(color: Colors.green.shade100)
+                  : null,
             ),
             child: Row(
               children: [
-                Icon(Icons.stars_rounded, color: Colors.orange.shade400),
+                Icon(
+                  checkedInToday
+                      ? Icons.check_circle_rounded
+                      : Icons.stars_rounded,
+                  color: checkedInToday
+                      ? Colors.green.shade500
+                      : Colors.orange.shade400,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    streak > 0 
-                      ? "You've saved roughly ₹${streak * 12} with your consistency!"
-                      : "Check in daily to build your streak and see savings!",
+                    _buildInfoMessage(streak, checkedInToday, isStreakBroken),
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: checkedInToday
+                          ? Colors.green.shade700
+                          : AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -149,5 +262,19 @@ class StreakCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _buildInfoMessage(
+      int streak, bool checkedInToday, bool isStreakBroken) {
+    if (checkedInToday) {
+      return "✅ Checked in today! Great consistency — keep it up!";
+    }
+    if (isStreakBroken) {
+      return "Your streak was broken. Check in today to start a new one!";
+    }
+    if (streak > 0) {
+      return "You've saved roughly ₹${streak * 12} with your consistency!";
+    }
+    return "Check in daily to build your streak and see savings!";
   }
 }

@@ -7,12 +7,17 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+const { v4: uuidv4 } = require('uuid');
 
 const { initFirebase } = require('../config/firebase');
 const connectDB = require('../config/db');
-const errorHandler = require('./middleware/errorHandler');
+const { errorHandler, asyncHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { sanitizeInput, preventNoSQLInjection, contentSecurityPolicy } = require('./middleware/security.middleware');
+const { rateLimiters, rateLimitStatus } = require('./middleware/rateLimit.middleware');
+const { versionMiddleware } = require('./middleware/apiVersioning');
+const { requestLogger, errorLogger, activityLogger, performanceLogger, securityLogger } = require('./middleware/logging.middleware');
 const apiRoutes = require('./routes/index');
+const healthRoutes = require('./routes/health.routes');
 
 // ─── Initialise Firebase Admin SDK ────────────────────────────────────────────
 initFirebase();
@@ -22,8 +27,28 @@ connectDB();
 
 const app = express();
 
+// ─── Request ID Middleware ───────────────────────────────────────────────────
+app.use((req, res, next) => {
+    req.id = uuidv4();
+    res.setHeader('X-Request-ID', req.id);
+    next();
+});
+
+// ─── Logging Middleware ─────────────────────────────────────────────────────
+app.use(requestLogger());
+app.use(activityLogger());
+app.use(performanceLogger());
+app.use(securityLogger());
+app.use(errorLogger());
+
+// ─── API Versioning ─────────────────────────────────────────────────────
+app.use(versionMiddleware());
+
 // ─── Security Middleware ───────────────────────────────────────────────────────
 app.use(helmet());
+app.use(contentSecurityPolicy);
+app.use(sanitizeInput);
+app.use(preventNoSQLInjection);
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -44,14 +69,13 @@ app.use(
 );
 
 // ─── Rate Limiting ─────────────────────────────────────────────────────────────
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200,                  // limit each IP to 200 requests per window
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, message: 'Too many requests, please try again later.' },
-});
-app.use('/api', limiter);
+app.use('/api', rateLimiters.general);
+app.use(rateLimitStatus);
+
+// Apply stricter rate limiting to sensitive endpoints
+app.use('/api/v1/auth', rateLimiters.auth);
+app.use('/api/v1/ai', rateLimiters.ai);
+app.use('/api/v1/bbps', rateLimiters.billFetch);
 
 // ─── Body Parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '5mb' }));
@@ -62,31 +86,50 @@ if (process.env.NODE_ENV !== 'test') {
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
-    res.status(200).json({
-        success: true,
+// ─── Health Check Routes ─────────────────────────────────────────────────────
+app.use('/health', healthRoutes);
+
+// ─── Root Endpoint ───────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+    res.json({
         message: 'WattWise API is running 🚀',
         environment: process.env.NODE_ENV,
         timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || '1.0.0',
+        health: '/health',
+        api: '/api/v1',
+        documentation: 'https://docs.wattwise.com'
     });
 });
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// ─── API Routes ───────────────────────────────────────────────────────
 app.use('/api/v1', apiRoutes);
 
-// ─── 404 Handler ──────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-    res.status(404).json({ success: false, message: 'Route not found.' });
-});
+// ─── 404 Handler ──────────────────────────────────────────────────────
+app.use(notFoundHandler);
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
+// ─── Graceful Shutdown ─────────────────────────────────────────────────────
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    // Close database connections, cache, etc.
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    // Close database connections, cache, etc.
+    process.exit(0);
+});
+
+// ─── Start Server ─────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀  WattWise API running on port ${PORT} [${process.env.NODE_ENV}]`);
+    console.log(`📊 Health checks available at http://localhost:${PORT}/health`);
+    console.log(`📚 API documentation at http://localhost:${PORT}/api/v1`);
 });
 
 module.exports = app; // for testing

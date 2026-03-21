@@ -64,9 +64,17 @@ class _EmptyView extends StatelessWidget {
         Expanded(
           child: NoInsightsEmptyState(
             onAddBill: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => AddBillScreen(),
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  child: AddBillScreen(),
                 ),
               );
             },

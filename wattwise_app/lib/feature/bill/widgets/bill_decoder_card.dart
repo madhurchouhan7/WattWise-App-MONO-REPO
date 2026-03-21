@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
 
-class BillDecoderCard extends StatelessWidget {
+class BillDecoderCard extends ConsumerWidget {
   const BillDecoderCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalUnits = ref.watch(totalConsumptionProvider);
+    final int dailyUnits = (totalUnits / 30).round();
+    
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -54,7 +59,7 @@ class BillDecoderCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: "You used "),
                     TextSpan(
-                      text: "14 units/day",
+                      text: "$dailyUnits units/day",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,

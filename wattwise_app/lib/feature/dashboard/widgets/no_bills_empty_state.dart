@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/core/widgets/primary_button.dart';
 
 /// Shown on the Home dashboard when the user has not yet added any electricity bills.
 ///
@@ -58,34 +59,11 @@ class NoBillsEmptyState extends StatelessWidget {
         // ── Add Bill CTA ──────────────────────────────────────────
         Padding(
           padding: EdgeInsets.symmetric(horizontal: width * 0.06),
-          child: SizedBox(
-            width: double.infinity,
+          child: PrimaryButton(
+            label: 'Add Your First Bill',
+            icon: Icons.add_chart_rounded,
+            onPressed: onAddBill,
             height: 58,
-            child: ElevatedButton.icon(
-              onPressed: onAddBill,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-              ),
-              icon: const Icon(
-                Icons.add_chart_rounded,
-                size: 22,
-                color: Colors.white,
-              ),
-              label: Text(
-                'Add Your First Bill',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
           ),
         ),
 

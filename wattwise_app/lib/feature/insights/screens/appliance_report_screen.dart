@@ -139,7 +139,7 @@ class ApplianceReportScreen extends ConsumerWidget {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisExtent: 30,
+                          mainAxisExtent: 35,
                           crossAxisSpacing: 16,
                         ),
                     itemCount: breakdownData.length,
@@ -159,6 +159,7 @@ class ApplianceReportScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               item['name'] as String,
+                              textAlign: TextAlign.start,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,

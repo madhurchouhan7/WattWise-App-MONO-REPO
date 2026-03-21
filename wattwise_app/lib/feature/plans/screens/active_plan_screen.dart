@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
+import 'package:wattwise_app/feature/notifications/screens/notification_list_screen.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:wattwise_app/feature/plans/screens/design_plan_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
 
 import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_sheet.dart';
@@ -21,22 +24,83 @@ class ActivePlanScreen extends ConsumerStatefulWidget {
 }
 
 class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
-  // Mock Toggle states for daily actions
+  // Toggle states: false = not completed today
   List<bool> actionToggles = [];
   bool _isDeleting = false;
+
+  // SharedPreferences key prefix for toggle persistence
+  static const _kTogglePrefix = 'daily_action_toggle_';
+  static const _kLastResetDate = 'daily_action_last_reset_date';
 
   @override
   void initState() {
     super.initState();
-    // Initialize toggles as true since it's freshly generated
     final actions = widget.activePlan['keyActions'] as List<dynamic>? ?? [];
-    actionToggles = List.generate(actions.length, (index) => true);
+    // Initialise with falsy defaults until prefs are loaded
+    actionToggles = List.filled(actions.length, false);
+    // Load persisted state + handle daily reset
+    _loadToggles();
+  }
+
+  // ── Persistence helpers ──────────────────────────────────────────────────────
+
+  /// Returns today's date as "YYYY-MM-DD" (local time, not UTC, so the reset
+  /// aligns with the user's midnight rather than server midnight).
+  String get _todayKey {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Loads saved toggle states and resets them if it's a new day.
+  Future<void> _loadToggles() async {
+    final prefs = await SharedPreferences.getInstance();
+    final actions = widget.activePlan['keyActions'] as List<dynamic>? ?? [];
+    final savedDate = prefs.getString(_kLastResetDate) ?? '';
+    final today = _todayKey;
+
+    if (savedDate != today) {
+      // ── New day: reset ALL toggles to false ──────────────────────────────────
+      final newToggles = List.filled(actions.length, false);
+      await _saveToggles(newToggles, prefs);
+      await prefs.setString(_kLastResetDate, today);
+      if (mounted) setState(() => actionToggles = newToggles);
+    } else {
+      // ── Same day: restore previous state ────────────────────────────────────
+      final restored = List<bool>.generate(
+        actions.length,
+        (i) => prefs.getBool('$_kTogglePrefix$i') ?? false,
+      );
+      if (mounted) setState(() => actionToggles = restored);
+    }
+
+    // Sync heatmap intensity with restored state (background only)
+    await _recordHeatmap();
+  }
+
+  /// Persists the toggle list to SharedPreferences.
+  Future<void> _saveToggles(List<bool> toggles, [SharedPreferences? p]) async {
+    final prefs = p ?? await SharedPreferences.getInstance();
+    for (int i = 0; i < toggles.length; i++) {
+      await prefs.setBool('$_kTogglePrefix$i', toggles[i]);
+    }
+  }
+
+  /// Computes the current intensity and sends it to the heatmap notifier.
+  Future<void> _recordHeatmap() async {
+    final completed = actionToggles.where((v) => v).length;
+    final total = actionToggles.length;
+    // Fire-and-forget; errors are caught inside the notifier
+    ref
+        .read(heatmapNotifierProvider.notifier)
+        .recordIntensity(completedCount: completed, totalCount: total);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
-    final streak = ref.watch(streakProvider);
+    final streakState = ref.watch(streakStateProvider);
+    final streak = streakState.streak;
+    final checkedInToday = streakState.checkedInToday;
     final plan = widget.activePlan;
 
     // Fallback UI mapping
@@ -152,26 +216,41 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
             },
             icon: const Icon(Icons.delete_outline, color: Colors.red),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.primaryBlue,
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationListScreen(),
+                ),
+              );
+            },
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFF334155),
+                size: 22,
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: user?.photoUrl != null
-                  ? NetworkImage(user!.photoUrl!)
-                  : null,
-              child: user?.photoUrl == null
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+          //   child: CircleAvatar(
+          //     radius: 18,
+          //     backgroundColor: Colors.grey.shade200,
+          //     backgroundImage: user?.photoUrl != null
+          //         ? NetworkImage(user!.photoUrl!)
+          //         : null,
+          //     child: user?.photoUrl == null
+          //         ? const Icon(Icons.person, color: Colors.grey)
+          //         : null,
+          //   ),
+          // ),
         ],
       ),
       body: _isDeleting
@@ -190,7 +269,12 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                       curve: Curves.easeOutCubic,
                     ),
                     const SizedBox(height: 24),
-                    _buildMetricsRow(savingsRupees, savingsPercent, streak)
+                    _buildMetricsRow(
+                          savingsRupees,
+                          savingsPercent,
+                          streak,
+                          checkedInToday,
+                        )
                         .animate()
                         .fade(delay: 100.ms)
                         .slideY(
@@ -475,6 +559,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
     String savingsRupees,
     String savingsPercent,
     int streak,
+    bool checkedInToday,
   ) {
     return Row(
       children: [
@@ -514,15 +599,19 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade50,
+                        color: checkedInToday
+                            ? Colors.green.shade50
+                            : Colors.orange.shade50,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'ON TRACK',
+                        checkedInToday ? '✅ TODAY' : 'ON TRACK',
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
+                          color: checkedInToday
+                              ? Colors.green.shade700
+                              : Colors.orange.shade700,
                         ),
                       ),
                     ),
@@ -553,19 +642,24 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Days Followed',
+                  streak == 1 ? '1 Day Streak' : '$streak Days Streak',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 16),
-                LinearProgressIndicator(
-                  value: streak / 30,
-                  backgroundColor: Colors.grey.shade100,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-                  borderRadius: BorderRadius.circular(10),
-                  minHeight: 6,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  child: LinearProgressIndicator(
+                    value: (streak / 30).clamp(0.0, 1.0),
+                    backgroundColor: Colors.grey.shade100,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      checkedInToday ? Colors.green : Colors.orange.shade400,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    minHeight: 6,
+                  ),
                 ),
               ],
             ),
@@ -739,14 +833,31 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
               ],
             ),
           ),
-          Switch(
-            value: actionToggles[index],
-            activeThumbColor: AppColors.primaryBlue,
-            onChanged: (val) {
-              setState(() {
-                actionToggles[index] = val;
-              });
-            },
+          // Styled switch with active tick
+          SizedBox(
+            width: 50,
+            height: 30,
+            child: Switch(
+              value: actionToggles[index],
+              activeThumbColor: Colors.white,
+              activeTrackColor: AppColors.primaryBlue,
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.grey.shade300,
+              trackOutlineColor: WidgetStateProperty.resolveWith<Color>(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primaryBlue
+                    : Colors.grey.shade300,
+              ),
+              onChanged: (val) {
+                setState(() {
+                  actionToggles[index] = val;
+                });
+                // Persist to SharedPreferences
+                _saveToggles(actionToggles);
+                // Update heatmap intensity (optimistic + background API call)
+                _recordHeatmap();
+              },
+            ),
           ),
         ],
       ),

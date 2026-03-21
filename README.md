@@ -378,7 +378,7 @@ The router watches `sessionOnboardingCompleteProvider` — once `true`, the app 
 - [ ] Real-time electricity tariff rates by DISCOM
 - [ ] Push notification reminders (budget alerts)
 - [ ] Multi-home / multi-meter support
-- [ ] Bill OCR — auto-extract units from a photo
+- [x] Bill OCR — auto-extract units from a photo
 - [ ] Export reports as PDF
 - [ ] Apple Sign-In
 - [ ] Dark mode

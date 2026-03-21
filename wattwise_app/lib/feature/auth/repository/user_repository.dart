@@ -5,6 +5,33 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository(apiClient: ApiClient.instance);
 });
 
+class StreakCheckInResult {
+  final int streak;
+  final DateTime lastCheckIn;
+  final int longestStreak;
+  final bool alreadyCheckedIn;
+  final String message;
+
+  const StreakCheckInResult({
+    required this.streak,
+    required this.lastCheckIn,
+    required this.longestStreak,
+    required this.alreadyCheckedIn,
+    required this.message,
+  });
+
+  factory StreakCheckInResult.fromJson(Map<String, dynamic> json) {
+    return StreakCheckInResult(
+      streak: (json['streak'] as num?)?.toInt() ?? 0,
+      lastCheckIn:
+          DateTime.parse(json['lastCheckIn'] as String).toLocal(),
+      longestStreak: (json['longestStreak'] as num?)?.toInt() ?? 0,
+      alreadyCheckedIn: json['alreadyCheckedIn'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
+    );
+  }
+}
+
 class UserRepository {
   final ApiClient _apiClient;
 
@@ -96,6 +123,32 @@ class UserRepository {
     }
   }
 
+  // ── Streak API ──────────────────────────────────────────────────────────────
+
+  /// Calls POST /users/me/streak — the server handles all the streak logic.
+  /// Returns the fresh streak state from MongoDB.
+  Future<StreakCheckInResult> checkInStreak() async {
+    try {
+      final response = await _apiClient.post('/users/me/streak', data: {});
+      final data = response.data['data'] as Map<String, dynamic>;
+      return StreakCheckInResult.fromJson(data);
+    } catch (e) {
+      throw Exception('Failed to record check-in: $e');
+    }
+  }
+
+  /// Calls GET /users/me/streak — fetches latest streak without modifying it.
+  Future<StreakCheckInResult> fetchStreak() async {
+    try {
+      final response = await _apiClient.get('/users/me/streak');
+      final data = response.data['data'] as Map<String, dynamic>;
+      return StreakCheckInResult.fromJson(data);
+    } catch (e) {
+      throw Exception('Failed to fetch streak: $e');
+    }
+  }
+
+  /// Legacy: direct streak update (kept for backwards compat with any other callers).
   Future<void> updateStreak(int streak, DateTime lastCheckIn) async {
     try {
       await _apiClient.put(
@@ -109,4 +162,45 @@ class UserRepository {
       throw Exception('Failed to update streak: $e');
     }
   }
+
+  // ── Heatmap API ──────────────────────────────────────────────────────────────
+
+  /// POST /users/me/heatmap — writes today's intensity for the current day.
+  /// Returns { dateKey: "YYYY-MM-DD", intensity: 0|1|2|3 }.
+  Future<Map<String, dynamic>> recordHeatmap({
+    required int completedCount,
+    required int totalCount,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/users/me/heatmap',
+        data: {
+          'completedCount': completedCount,
+          'totalCount': totalCount,
+        },
+      );
+      return response.data['data'] as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Failed to record heatmap: $e');
+    }
+  }
+
+  /// GET /users/me/heatmap?year=YYYY&month=M — fetches the monthly heatmap.
+  /// Returns Map<"YYYY-MM-DD", int>.
+  Future<Map<String, int>> fetchMonthlyHeatmap({
+    required int year,
+    required int month,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/users/me/heatmap',
+        queryParams: {'year': year, 'month': month},
+      );
+      final data = response.data['data'] as Map<String, dynamic>? ?? {};
+      return data.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (e) {
+      throw Exception('Failed to fetch heatmap: $e');
+    }
+  }
 }
+

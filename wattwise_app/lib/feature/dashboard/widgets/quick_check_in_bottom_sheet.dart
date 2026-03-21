@@ -24,6 +24,8 @@ class _QuickCheckInBottomSheetState
     extends ConsumerState<QuickCheckInBottomSheet> {
   String selectedMood = 'Good';
   List<String> selectedTags = ['Guests'];
+  bool _isSubmitting = false;
+
   final List<String> tags = [
     'Guests',
     'Too hot',
@@ -34,7 +36,9 @@ class _QuickCheckInBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final streak = ref.watch(streakProvider);
+    final streakState = ref.watch(streakStateProvider);
+    final streak = streakState.streak;
+    final alreadyCheckedIn = streakState.checkedInToday;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -71,15 +75,18 @@ class _QuickCheckInBottomSheetState
                   const SizedBox(height: 24),
 
                   // Streak Banner
-                  Container(
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF9EE), // Very light orange
+                      color: alreadyCheckedIn
+                          ? const Color(0xFFECFDF5) // green tint
+                          : const Color(0xFFFFF9EE), // orange tint
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(
-                          0xFFFFEDD5,
-                        ), // Slightly darker border
+                        color: alreadyCheckedIn
+                            ? const Color(0xFFBBF7D0)
+                            : const Color(0xFFFFEDD5),
                       ),
                     ),
                     child: Column(
@@ -87,26 +94,37 @@ class _QuickCheckInBottomSheetState
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text("🔥 ", style: TextStyle(fontSize: 18)),
                             Text(
-                              "$streak day streak!",
+                              alreadyCheckedIn ? "✅ " : "🔥 ",
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                            Text(
+                              alreadyCheckedIn
+                                  ? "Already checked in today!"
+                                  : "$streak day streak!",
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFFEA580C),
+                                color: alreadyCheckedIn
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFFEA580C),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          streak > 0
+                          alreadyCheckedIn
+                              ? "Come back tomorrow to keep your streak!"
+                              : streak > 0
                               ? "Keep it up! You're doing great."
                               : "Start your efficiency streak today!",
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFFF97316),
+                            color: alreadyCheckedIn
+                                ? const Color(0xFF22C55E)
+                                : const Color(0xFFF97316),
                           ),
                         ),
                       ],
@@ -116,7 +134,9 @@ class _QuickCheckInBottomSheetState
 
                   // Title
                   Text(
-                    "How did you do today?",
+                    alreadyCheckedIn
+                        ? "You're all set for today!"
+                        : "How did you do today?",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 22,
@@ -126,7 +146,9 @@ class _QuickCheckInBottomSheetState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Log your energy adherence for brighter insights.",
+                    alreadyCheckedIn
+                        ? "Your check-in was logged. See you tomorrow!"
+                        : "Log your energy adherence for brighter insights.",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 14,
@@ -135,118 +157,127 @@ class _QuickCheckInBottomSheetState
                   ),
                   const SizedBox(height: 32),
 
-                  // Mood Selection
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: _buildMoodCard('Good', '😊')),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildMoodCard('Okay', '😐')),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildMoodCard('Bad', '😓')),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Tags Label
-                  Text(
-                    "QUICK TAGS",
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF94A3B8),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Tags Wrap
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: tags.map((tag) => _buildTag(tag)).toList(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Note input
-                  Container(
-                    height: 120,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Stack(
+                  if (!alreadyCheckedIn) ...[
+                    // Mood Selection
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextField(
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            hintText: "Optional: Add a note...",
-                            hintStyle: GoogleFonts.inter(
-                              color: const Color(0xFF94A3B8),
-                              fontSize: 14,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF0F172A),
-                            fontSize: 14,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Icon(
-                            Icons.edit,
-                            size: 14,
-                            color: const Color(0xFFCBD5E1),
-                          ),
-                        ),
+                        Expanded(child: _buildMoodCard('Good', '😊')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildMoodCard('Okay', '😐')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildMoodCard('Bad', '😓')),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-                  // Submit Button
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Trigger check-in (logic handles optimistic state)
-                        ref.read(streakNotifierProvider.notifier).checkIn();
-                        // Close immediately for snappy feel
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E60F2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        "Submit Check-in",
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    // Tags Label
+                    Text(
+                      "QUICK TAGS",
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF94A3B8),
+                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
-                  // Skip Button
+                    // Tags Wrap
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: tags.map((tag) => _buildTag(tag)).toList(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Note input
+                    Container(
+                      height: 120,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Stack(
+                        children: [
+                          TextField(
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              hintText: "Optional: Add a note...",
+                              hintStyle: GoogleFonts.inter(
+                                color: const Color(0xFF94A3B8),
+                                fontSize: 14,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF0F172A),
+                              fontSize: 14,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Icon(
+                              Icons.edit,
+                              size: 14,
+                              color: const Color(0xFFCBD5E1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Submit Button
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _handleSubmit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E60F2),
+                          disabledBackgroundColor: const Color(
+                            0xFF1E60F2,
+                          ).withValues(alpha: 0.6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                "Submit Check-in",
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Close / Skip Button
                   TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF64748B),
                     ),
                     child: Text(
-                      "Skip for now",
+                      alreadyCheckedIn ? "Close" : "Skip for now",
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -260,6 +291,45 @@ class _QuickCheckInBottomSheetState
         );
       },
     );
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final checked = await ref.read(streakNotifierProvider.notifier).checkIn();
+
+    if (!mounted) return;
+
+    // Close the sheet first for a snappy feel
+    Navigator.pop(context);
+
+    if (checked) {
+      // Show success toast on the parent screen
+      final scaffoldCtx = context;
+      if (scaffoldCtx.mounted) {
+        ScaffoldMessenger.of(scaffoldCtx).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Text("🔥", style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 8),
+                Text(
+                  "Check-in recorded! Streak updated.",
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1E60F2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildMoodCard(String label, String emoji) {
@@ -305,8 +375,8 @@ class _QuickCheckInBottomSheetState
             ),
             if (isSelected)
               Positioned(
-                top: -16, // approximate from exact design padding
-                right: -10, // approximate
+                top: -16,
+                right: -10,
                 child: Container(
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,

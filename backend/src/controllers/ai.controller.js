@@ -1,5 +1,7 @@
 // src/controllers/ai.controller.js
 const { generateEfficiencyPlan } = require('../services/gemini.service');
+const { sendSuccess } = require('../utils/ApiResponse');
+const ApiError = require('../utils/ApiError');
 
 /**
  * @desc    Generate AI Efficiency Plan via Gemini
@@ -11,19 +13,13 @@ const getEfficiencyPlan = async (req, res, next) => {
         const userData = req.body;
 
         if (!userData || Object.keys(userData).length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No user data provided. Send appliances, bill, and context.',
-            });
+            throw new ApiError(400, 'No user data provided. Send appliances, bill, and context.');
         }
 
         // Call Gemini Service
         const plan = await generateEfficiencyPlan(userData);
 
-        res.status(200).json({
-            success: true,
-            data: plan,
-        });
+        return sendSuccess(res, 200, 'Plan generated.', plan);
     } catch (error) {
         console.error('AI Plan Generation Error:', error.message);
         next(error);

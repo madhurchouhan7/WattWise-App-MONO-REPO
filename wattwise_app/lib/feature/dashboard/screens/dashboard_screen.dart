@@ -12,6 +12,9 @@ import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/profile/screens/profile_screen.dart';
 import 'package:wattwise_app/feature/insights/widgets/streak_card.dart';
+import 'package:wattwise_app/feature/bill/screen/add_bill_screen.dart';
+import 'package:wattwise_app/feature/notifications/screens/notification_list_screen.dart';
+import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -45,18 +48,28 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 // ─── Empty State (no bills added) ─────────────────────────────────────────────
-class _EmptyView extends StatelessWidget {
+class _EmptyView extends ConsumerWidget {
   final String displayName;
   final UserModel? user;
   const _EmptyView({required this.displayName, this.user});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.sizeOf(context).width;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(authRepositoryProvider).refreshUserData();
+        ref.invalidate(authStateProvider);
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
         // ── App bar ──────────────────────────────────────────
         Padding(
           padding: EdgeInsets.symmetric(
@@ -67,7 +80,11 @@ class _EmptyView extends StatelessWidget {
             user: user,
             displayName: displayName,
             onNotificationTap: () {
-              // TODO: navigate to notifications
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationListScreen(),
+                ),
+              );
             },
           ),
         ),
@@ -79,14 +96,29 @@ class _EmptyView extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: width * 0.04),
               child: NoBillsEmptyState(
                 onAddBill: () {
-                  // TODO: navigate to add bill screen
-                  // Navigator.push(context, MaterialPageRoute(...))
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                      child: AddBillScreen(),
+                    ),
+                  );
                 },
               ),
             ),
           ),
         ),
-      ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -100,8 +132,19 @@ class _DataView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(authRepositoryProvider).refreshUserData();
+          ref.invalidate(authStateProvider);
+          final now = DateTime.now();
+          await ref.read(heatmapNotifierProvider.notifier).refreshFromServer(
+                year: now.year,
+                month: now.month,
+          );
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -109,10 +152,14 @@ class _DataView extends ConsumerWidget {
               displayName: displayName,
               user: user,
               onNotificationTap: () {
-                // TODO: Navigate to notifications
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationListScreen(),
+                ),
+              );
               },
               onProfileTap: () {
-                // TODO: Navigate to profile
+                
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -127,7 +174,7 @@ class _DataView extends ConsumerWidget {
             const SizedBox(height: 28),
             _buildSectionTitle('Active Plan', showIndicator: true),
             const SizedBox(height: 16),
-            _buildActivePlanCard(context, user),
+            _buildActivePlanCard(context, ref, user),
             const SizedBox(height: 28),
             const StreakCard(),
             const SizedBox(height: 28),
@@ -141,6 +188,7 @@ class _DataView extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
         ),
+      ),
       ),
     );
   }
@@ -263,7 +311,7 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivePlanCard(BuildContext context, UserModel? user) {
+  Widget _buildActivePlanCard(BuildContext context, WidgetRef ref, UserModel? user) {
     if (user?.activePlan == null) {
       return Container(
         width: double.infinity,
@@ -307,24 +355,26 @@ class _DataView extends ConsumerWidget {
     }
 
     final p = user!.activePlan!;
-    final planName = 'AI Efficiency Plan';
+    final planName = p['planName']?.toString() ?? 'AI Efficiency Plan';
     final estSavingsObj = p['estimatedSavingsIfFollowed'];
     final pct = estSavingsObj?['percentage'] ?? 0;
     final tierDesc = 'Targeting $pct% savings';
 
+    final savedBill = ref.watch(savedBillProvider);
+    final currentSpend = double.tryParse(savedBill?['amountExact']?.toString() ?? '0') ?? 0;
+
     var usageTarget = 'Optimizing...';
-    double fillRatio = 0.6; // fallback 60%
+    double fillRatio = 0.0; 
 
     if (p['estimatedCurrentMonthlyCost'] != null &&
         estSavingsObj?['rupees'] != null) {
       final targetRupees =
           (p['estimatedCurrentMonthlyCost'] - estSavingsObj['rupees'])
               .toDouble();
+      
       if (targetRupees > 0) {
-        usageTarget = '₹${targetRupees.toInt()} Target';
-        if (p['estimatedCurrentMonthlyCost'] > 0) {
-          fillRatio = targetRupees / p['estimatedCurrentMonthlyCost'];
-        }
+        usageTarget = '₹${currentSpend.toInt()} / ₹${targetRupees.toInt()} Limit';
+        fillRatio = currentSpend / targetRupees;
       }
     }
 

@@ -5,6 +5,7 @@ import 'package:wattwise_app/core/colors.dart';
 import 'dart:math';
 import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
 import 'package:wattwise_app/feature/insights/screens/appliance_report_screen.dart';
+import 'package:wattwise_app/feature/insights/screens/upgrade_screen.dart';
 
 class ApplianceBreakdownCard extends ConsumerWidget {
   const ApplianceBreakdownCard({super.key});
@@ -114,6 +115,7 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                               breakdownData.isNotEmpty
                                   ? breakdownData[0]['name'] as String
                                   : '--',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -218,7 +220,11 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                             const SizedBox(height: 6),
                             InkWell(
                               onTap: () {
-                                // TODO: navigate to upgrade options screen
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const UpgradeScreen(),
+                                  ),
+                                );
                               },
                               child: Text(
                                 "Check Upgrade Options?",

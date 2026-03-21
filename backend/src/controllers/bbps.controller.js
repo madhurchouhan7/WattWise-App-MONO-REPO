@@ -1,5 +1,8 @@
 // src/controllers/bbps.controller.js
 const axios = require('axios');
+const { z } = require('zod');
+const { sendSuccess } = require('../utils/ApiResponse');
+const ApiError = require('../utils/ApiError');
 
 /**
  * @desc    Fetch Electricity Bill via Setu
@@ -7,27 +10,31 @@ const axios = require('axios');
  * @access  Private
  */
 exports.fetchBill = async (req, res) => {
-    const { billerId, consumerNumber } = req.body;
+    const BodySchema = z.object({
+        billerId: z.string().trim().min(1, 'billerId is required'),
+        consumerNumber: z.string().trim().min(1, 'consumerNumber is required'),
+    });
 
-    if (!billerId || !consumerNumber) {
-        return res.status(400).json({
-            success: false,
-            message: 'Please provide both billerId and consumerNumber.'
-        });
+    const parsed = BodySchema.safeParse(req.body);
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map((i) => i.message).join(', '));
     }
+
+    const { billerId, consumerNumber } = parsed.data;
 
     // MOCK RESPONSE FOR TESTING UI (Since sandbox.setu.co is unreachable / offline)
     if (billerId === 'TEST_BILLER_ID') {
-        return res.status(200).json({
-            success: true,
-            data: {
-                billerName: "Mock Electricity Board",
-                amountExact: 1250.50,
-                billNumber: "INV-2026-00" + Math.floor(Math.random() * 100),
-                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                consumerNumber: consumerNumber,
-                status: "UNPAID"
-            }
+        return sendSuccess(res, 200, 'Bill fetched.', {
+            source: 'bbps',
+            billerId,
+            billerName: 'Mock Electricity Board',
+            amountExact: 1250.5,
+            billNumber: `INV-2026-00${Math.floor(Math.random() * 100)}`,
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split('T')[0],
+            consumerNumber,
+            status: 'UNPAID',
         });
     }
 
@@ -51,16 +58,15 @@ exports.fetchBill = async (req, res) => {
         });
 
         // 2. Send the fetched bill data back securely to the Flutter App
-        res.status(200).json({
-            success: true,
-            data: setuResponse.data
+        return sendSuccess(res, 200, 'Bill fetched.', {
+            source: 'bbps',
+            billerId,
+            consumerNumber,
+            ...setuResponse.data,
         });
 
     } catch (error) {
         console.error("Setu API Error:", error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch bill from BBPS"
-        });
+        throw new ApiError(502, 'Failed to fetch bill from BBPS');
     }
 };
