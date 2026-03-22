@@ -1,7 +1,7 @@
 # STATE.md
 
-> **Current Position**: `PHASE_2_COMPLETE`
-> **Active Phase**: Phase 3 (The Strategist)
+> **Current Position**: `PHASE_3_COMPLETE`
+> **Active Phase**: Phase 4 (The Copywriter)
 
 ## Memory Snapshot
 - Project initialized as a Multi-Agent LangGraph migration.
