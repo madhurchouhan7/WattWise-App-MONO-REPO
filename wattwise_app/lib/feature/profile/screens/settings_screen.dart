@@ -265,7 +265,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
-              if (trailing != null) trailing,
+              ?trailing,
             ],
           ),
         ),
@@ -314,7 +314,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         scale: 0.8,
         child: CupertinoSwitch(
           value: value,
-          activeColor: AppColors.primaryBlue,
+          activeTrackColor: AppColors.primaryBlue,
           onChanged: onChanged,
         ),
       ),

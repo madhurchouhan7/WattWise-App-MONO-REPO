@@ -22,21 +22,6 @@ const authMiddleware = async (req, res, next) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            if (process.env.NODE_ENV === 'development') {
-                console.log('⚠️ Bypassing Firebase auth in development due to missing emulator network token.');
-                // Fetch the first user in the DB to pretend they are logged in, or create a mock one.
-                let mockUser = await User.findOne({});
-                if (!mockUser) {
-                    mockUser = await User.create({
-                        firebaseUid: 'mock_dev_uid_123',
-                        email: 'test@developer.com',
-                        name: 'Local Dev User',
-                    });
-                }
-                req.user = mockUser;
-                req.firebaseUser = { uid: mockUser.firebaseUid, email: mockUser.email };
-                return next();
-            }
             throw new ApiError(401, 'No token provided. Please sign in first.');
         }
 
@@ -50,10 +35,10 @@ const authMiddleware = async (req, res, next) => {
 
         req.firebaseUser = decodedToken; // { uid, email, name, picture, ... }
 
-        // ── 2. Sync / fetch the local MongoDB user ────────────────────────────────
-        // Find by Firebase UID. If the user doesn't have a Mongo record yet
-        // (first request after sign-up), create one automatically.
-        let user = await User.findOne({ firebaseUid: decodedToken.uid });
+        // findOne directly uses Mongoose, bypassing UserRepository exclusions.
+        // We MUST exclude the large payload fields (-bills -activePlan)
+        // because this runs on EVERY authorized request and will otherwise memory-crash Node.
+        let user = await User.findOne({ firebaseUid: decodedToken.uid }).select('-bills -activePlan -deviceTokens');
 
         if (!user) {
             user = await User.create({
@@ -68,23 +53,6 @@ const authMiddleware = async (req, res, next) => {
         req.user = user; // full Mongoose document
         next();
     } catch (error) {
-
-        // Specially bypass error in development if the emulator internet is acting up
-        if (process.env.NODE_ENV === 'development') {
-            console.log('⚠️ Bypassing Firebase auth error in development mode. Falling back to test user.');
-            let mockUser = await User.findOne({});
-            if (!mockUser) {
-                mockUser = await User.create({
-                    firebaseUid: 'mock_dev_uid_123',
-                    email: 'test@developer.com',
-                    name: 'Local Dev User',
-                });
-            }
-            req.user = mockUser;
-            req.firebaseUser = { uid: mockUser.firebaseUid, email: mockUser.email };
-            return next();
-        }
-
         // Firebase throws typed errors; pass through our ApiErrors
         if (error instanceof ApiError) return next(error);
 
@@ -94,6 +62,7 @@ const authMiddleware = async (req, res, next) => {
             return next(new ApiError(401, 'Token expired or revoked. Please sign in again.'));
         }
 
+        console.error("Firebase Auth Error:", error);
         return next(new ApiError(401, 'Authentication failed. Invalid token.'));
     }
 };

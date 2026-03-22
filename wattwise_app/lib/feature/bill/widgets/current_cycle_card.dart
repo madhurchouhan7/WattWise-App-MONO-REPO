@@ -14,7 +14,7 @@ class CurrentCycleCard extends ConsumerWidget {
 
     // Extract real values or default to dummy representations
     final rawAmount = savedBill?['amountExact'];
-    String amount = '84.50';
+    String amount = '00.00';
     if (rawAmount != null) {
       if (rawAmount is int) {
         amount = rawAmount.toString();
@@ -27,11 +27,11 @@ class CurrentCycleCard extends ConsumerWidget {
 
     final String usage =
         savedBill?['units']?.toString() == '0' || savedBill?['units'] == null
-        ? '450'
+        ? '00'
         : savedBill!['units'].toString();
     // Assuming remaining days calculation if dueDate exists, but mock as 12 if N/A or null
     final String dueDate = savedBill?['dueDate']?.toString() ?? '';
-    String remainingDays = '12';
+    String remainingDays = '00';
     if (dueDate.isNotEmpty && dueDate != 'N/A') {
       try {
         final parsedDate = DateTime.parse(dueDate);

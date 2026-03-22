@@ -5,8 +5,6 @@ import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/widgets/cta_button.dart';
 import 'package:wattwise_app/feature/auth/widgets/sign_in_with_google.dart';
-import 'package:wattwise_app/feature/on_boarding/screens/on_boarding_screen.dart';
-import 'package:wattwise_app/feature/root/screens/root_screen.dart';
 import 'package:wattwise_app/utils/svg_assets.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
@@ -40,14 +38,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   void _navigateAfterAuth(UserModel user) {
     if (!mounted) return;
-    final destination = user.isOnboardingComplete
-        ? const RootScreen()
-        : const OnBoardingScreen();
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => destination),
-      (route) => false,
-    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   // ─── Auth actions ───────────────────────────────────────────────────────────

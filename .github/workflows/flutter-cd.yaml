@@ -1,0 +1,51 @@
+name: Flutter CD (Publish Release)
+
+# 1. THE TRIGGER: This pipeline ONLY runs when you push a tag starting with "v" (e.g., v1.0.0)
+on:
+  push:
+    branches: 
+      - "main"
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    name: Build and Publish APK
+    runs-on: ubuntu-latest
+
+    # 2. THE PERMISSIONS: GitHub needs explicit permission to write to your Releases page
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.x"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: wattwise_app
+
+      # Notice we skip linting and testing here!
+      # Why? Because your CI pipeline already proved the code works before you merged it to main.
+
+      - name: Build release APK
+        run: flutter build apk --release
+        working-directory: wattwise_app
+
+      # 3. THE DEPLOYMENT: This action takes the APK and pins it to the Releases page
+      - name: Create GitHub Release and Upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          # Uses the tag you pushed (e.g., v1.0.0) as the release title
+          name: Release ${{ github.ref_name }}
+          # Points directly to the APK we just built
+          files: wattwise_app/build/app/outputs/flutter-apk/app-release.apk
+          # Automatically writes release notes based on your commit history!
+          generate_release_notes: true

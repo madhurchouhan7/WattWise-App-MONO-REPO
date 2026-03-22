@@ -24,6 +24,15 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
 
     return aiPlanState.when(
       data: (plan) {
+        // Prevent flickering when authState is loading (e.g. after invalidation)
+        final authState = ref.watch(authStateProvider);
+        if (authState.isLoading && authUser == null) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: _buildLoadingShimmer(),
+          );
+        }
+
         // 1. If user has an already active AI Plan persisting in the backend, show Dashboard
         if (authUser?.activePlan != null) {
           return ActivePlanScreen(activePlan: authUser!.activePlan!);
@@ -31,7 +40,6 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
 
         // 2. If plan hasn't been generated yet, show the design flow
         if (plan == null) {
-          // 1. If plan hasn't been generated yet, show the design flow
           return const DesignPlanScreen();
         }
 

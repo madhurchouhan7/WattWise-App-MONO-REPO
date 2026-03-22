@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/services/auth_service.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
+import 'package:wattwise_app/feature/dashboard/services/streak_local_service.dart';
 
 /// Key used in SharedPreferences to persist onboarding status.
 const String _kOnboardingCompleteKey = 'onboarding_complete';
@@ -16,31 +18,163 @@ class AuthRepository {
   // ─── Streams ──────────────────────────────────────────────────────────────
 
   /// Emits a [UserModel] when signed in, or null when signed out.
-  Stream<UserModel?> get authStateChanges {
-    return _authService.authStateChanges.asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
-      return _mapFirebaseUser(firebaseUser);
-    });
+  Stream<UserModel?> get authStateChanges async* {
+    await for (final firebaseUser in _authService.authStateChanges) {
+      if (firebaseUser == null) {
+        yield null;
+        continue;
+      }
+
+      // 1. Yield cached user immediately for instant offline-first UI
+      final cachedUser = await _getCachedUser(firebaseUser);
+      if (cachedUser != null) {
+        yield cachedUser;
+      }
+
+      // 2. Fetch fresh user from network, update cache, and yield
+      try {
+        final freshUser = await _fetchAndCacheUser(firebaseUser);
+        yield freshUser;
+      } catch (e) {
+        // If network fails, and we didn't have a cache, yield a basic user
+        if (cachedUser == null) {
+          yield UserModel(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName,
+            photoUrl: firebaseUser.photoURL,
+            isOnboardingComplete: await isOnboardingComplete(firebaseUser.uid),
+          );
+        }
+      }
+    }
+  }
+
+  /// Triggers a refresh of the user data by forcefully fetching it and returning it.
+  /// This is used for pull-to-refresh without listening to auth state changes.
+  Future<UserModel?> refreshUserData() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) return null;
+    return await _fetchAndCacheUser(firebaseUser);
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────
 
-  Future<UserModel> _mapFirebaseUser(User firebaseUser) async {
+  Future<UserModel?> _getCachedUser(User firebaseUser) async {
     final prefs = await SharedPreferences.getInstance();
-    final isOnboardingComplete =
+    final profileStr = prefs.getString('user_profile_${firebaseUser.uid}');
+    final planStr = prefs.getString('active_plan_${firebaseUser.uid}');
+
+    if (profileStr == null) return null; // No cache
+
+    try {
+      final userData = jsonDecode(profileStr);
+      Map<String, dynamic>? activePlan;
+      if (planStr != null) {
+        activePlan = jsonDecode(planStr) as Map<String, dynamic>?;
+      }
+
+      final streak = (userData['streak'] as num?)?.toInt() ?? 0;
+      final lastCheckInStr = userData['lastCheckIn'] as String?;
+      DateTime? lastCheckIn;
+      if (lastCheckInStr != null) {
+        lastCheckIn = DateTime.tryParse(lastCheckInStr);
+      }
+
+      final isOnboarding =
+          prefs.getBool('${_kOnboardingCompleteKey}_${firebaseUser.uid}') ??
+          false;
+
+      return UserModel(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        displayName: firebaseUser.displayName,
+        photoUrl: firebaseUser.photoURL,
+        activePlan: activePlan,
+        streak: streak,
+        lastCheckIn: lastCheckIn,
+        isOnboardingComplete: isOnboarding,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<UserModel> _fetchAndCacheUser(User firebaseUser) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isOnboardingComplete =
         prefs.getBool('${_kOnboardingCompleteKey}_${firebaseUser.uid}') ??
         false;
 
     Map<String, dynamic>? activePlan;
-    try {
-      // Fetch backend user state safely
-      final response = await ApiClient.instance.get('/users/me');
-      if (response.statusCode == 200 && response.data['data'] != null) {
-        activePlan =
-            response.data['data']['activePlan'] as Map<String, dynamic>?;
+    int streak = 0;
+    DateTime? lastCheckIn;
+
+    // GET /users/me — profile summary
+    final response = await ApiClient.instance.get('/users/me');
+    if (response.statusCode == 200 && response.data['data'] != null) {
+      final userData = response.data['data'];
+      streak = (userData['streak'] as num?)?.toInt() ?? 0;
+      final lastCheckInStr = userData['lastCheckIn'] as String?;
+      if (lastCheckInStr != null) {
+        lastCheckIn = DateTime.tryParse(lastCheckInStr);
       }
-    } catch (e) {
-      // Failsafe catch if network fails or unregistered flow skips Node
+
+      // Backend is the source of truth for onboarding state
+      final backendOnboarding = userData['onboardingCompleted'] as bool?;
+      if (backendOnboarding != null) {
+        isOnboardingComplete = backendOnboarding;
+        await prefs.setBool(
+          '${_kOnboardingCompleteKey}_${firebaseUser.uid}',
+          backendOnboarding,
+        );
+      }
+
+      // Update local profile cache
+      await prefs.setString(
+        'user_profile_${firebaseUser.uid}',
+        jsonEncode(userData),
+      );
+
+      // Seed Hive streak cache
+      final localService = StreakLocalService.instance;
+      final cached = localService.read();
+      if (cached == null || !cached.isFresh) {
+        await localService.write(
+          streak: streak,
+          lastCheckIn: lastCheckIn,
+          longestStreak: (userData['longestStreak'] as num?)?.toInt() ?? 0,
+        );
+      }
+
+      // Fetch activePlan separately
+      try {
+        final planRes = await ApiClient.instance.get('/users/me/active-plan');
+        if (planRes.statusCode == 200 && planRes.data['data'] != null) {
+          activePlan = planRes.data['data'] as Map<String, dynamic>?;
+          // Cache active plan
+          await prefs.setString(
+            'active_plan_${firebaseUser.uid}',
+            jsonEncode(activePlan),
+          );
+        } else {
+          // Clear plan cache if none on server
+          await prefs.remove('active_plan_${firebaseUser.uid}');
+        }
+      } catch (_) {
+        // Fallback to cache if plan fetch fails
+        final cachedPlanStr = prefs.getString(
+          'active_plan_${firebaseUser.uid}',
+        );
+        if (cachedPlanStr != null) {
+          try {
+            activePlan = jsonDecode(cachedPlanStr) as Map<String, dynamic>?;
+          } catch (_) {}
+        }
+      }
+    } else {
+      // If profile fetch unsuccessful, throw to let the outer fallback handle it
+      throw Exception('Failed to fetch user profile');
     }
 
     return UserModel(
@@ -49,6 +183,8 @@ class AuthRepository {
       displayName: firebaseUser.displayName,
       photoUrl: firebaseUser.photoURL,
       activePlan: activePlan,
+      streak: streak,
+      lastCheckIn: lastCheckIn,
       isOnboardingComplete: isOnboardingComplete,
     );
   }
@@ -63,7 +199,7 @@ class AuthRepository {
       email: email,
       password: password,
     );
-    return _mapFirebaseUser(credential.user!);
+    return _fetchAndCacheUser(credential.user!);
   }
 
   Future<UserModel> signUpWithEmailAndPassword({
@@ -76,13 +212,13 @@ class AuthRepository {
       password: password,
       displayName: displayName,
     );
-    return _mapFirebaseUser(credential.user!);
+    return _fetchAndCacheUser(credential.user!);
   }
 
   Future<UserModel?> signInWithGoogle() async {
     final credential = await _authService.signInWithGoogle();
     if (credential == null) return null;
-    return _mapFirebaseUser(credential.user!);
+    return _fetchAndCacheUser(credential.user!);
   }
 
   Future<void> sendPasswordResetEmail({required String email}) async {
@@ -90,6 +226,13 @@ class AuthRepository {
   }
 
   Future<void> signOut() async {
+    // Optional: Clear user cache on signout
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_profile_${user.uid}');
+      await prefs.remove('active_plan_${user.uid}');
+    }
     await _authService.signOut();
   }
 
@@ -99,6 +242,16 @@ class AuthRepository {
   Future<void> markOnboardingComplete(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('${_kOnboardingCompleteKey}_$uid', true);
+
+    // Best-effort: persist to backend so onboarding doesn't reappear on new installs
+    try {
+      await ApiClient.instance.put(
+        '/users/me',
+        data: {'onboardingCompleted': true},
+      );
+    } catch (_) {
+      // If backend is down, the local flag still unblocks navigation.
+    }
   }
 
   /// Check if the current user has completed onboarding.

@@ -1,0 +1,194 @@
+// src/middleware/validation.middleware.js
+// Centralized input validation middleware using Zod schemas
+
+const { z } = require('zod');
+const ApiError = require('../utils/ApiError');
+
+// Common validation schemas
+const commonSchemas = {
+    objectId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId format'),
+    email: z.string().email('Invalid email format'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+    currency: z.enum(['INR', 'USD', 'EUR', 'GBP', 'AED']),
+    nonNegativeNumber: z.number().min(0, 'Value must be non-negative'),
+    positiveNumber: z.number().min(1, 'Value must be positive'),
+};
+
+// Specific validation schemas
+const schemas = {
+    // User validation
+    updateProfile: z.object({
+        name: commonSchemas.name.optional(),
+        monthlyBudget: commonSchemas.nonNegativeNumber.optional(),
+        currency: commonSchemas.currency.optional(),
+        avatarUrl: z.string().url('Invalid URL format').optional(),
+    }),
+
+    updateAddress: z.object({
+        state: z.string().min(1, 'State is required').optional(),
+        city: z.string().min(1, 'City is required').optional(),
+        discom: z.string().min(1, 'DISCOM is required').optional(),
+        lat: z.number().min(-90).max(90).optional(),
+        lng: z.number().min(-180).max(180).optional(),
+    }),
+
+    updateHousehold: z.object({
+        peopleCount: commonSchemas.positiveNumber.optional(),
+        familyType: z.enum(['Just Me', 'Small', 'Large', 'Joint']).optional(),
+        houseType: z.enum(['Apartment', 'Bungalow', 'Independent']).optional(),
+    }),
+
+    // Appliance validation
+    updateAppliances: z.object({
+        appliances: z.array(z.object({
+            applianceId: z.string().min(1, 'Appliance ID is required'),
+            title: z.string().min(1, 'Appliance name is required'),
+            category: z.string().min(1, 'Category is required'),
+            usageHours: z.number().min(0).max(24),
+            usageLevel: z.enum(['Low', 'Medium', 'High']),
+            count: commonSchemas.positiveNumber,
+            selectedDropdowns: z.record(z.string()),
+            svgPath: z.string().optional(),
+        })).min(1, 'At least one appliance is required'),
+    }),
+
+    // Bill validation
+    addBill: z.object({
+        source: z.enum(['ocr', 'bbps', 'manual']).default('manual'),
+        billerId: z.string().trim().min(1).optional(),
+        billNumber: z.string().trim().min(1).optional(),
+        consumerNumber: z.string().trim().min(1).optional(),
+        status: z.string().trim().min(1).optional(),
+        amount: commonSchemas.nonNegativeNumber.optional(),
+        units: commonSchemas.nonNegativeNumber.optional(),
+        subsidy: commonSchemas.nonNegativeNumber.optional(),
+        grossAmount: commonSchemas.nonNegativeNumber.optional(),
+        amountExact: commonSchemas.nonNegativeNumber.optional(),
+        netPayable: commonSchemas.nonNegativeNumber.optional(),
+        subsidyAmount: commonSchemas.nonNegativeNumber.optional(),
+        dueDate: z.union([z.string().trim(), z.date()]).optional(),
+        periodStart: z.union([z.string().trim(), z.date()]).optional(),
+        periodEnd: z.union([z.string().trim(), z.date()]).optional(),
+        rawText: z.string().optional(),
+        imageBase64: z.string().optional(),
+    }),
+
+    // AI Plan validation
+    generatePlan: z.object({
+        user: z.object({
+            goal: z.string().optional(),
+            focusArea: z.string().optional(),
+            location: z.string().optional(),
+        }).optional(),
+        appliances: z.array(z.object({
+            name: z.string(),
+            wattage: z.number().optional(),
+            starRating: z.string().optional(),
+            usageHoursPerDay: z.number().optional(),
+            usageLevel: z.string().optional(),
+            count: z.number().optional(),
+        })).optional(),
+        bill: z.object({
+            month: z.string().optional(),
+            unitsConsumed: z.number().optional(),
+            totalAmount: z.number().optional(),
+        }).optional(),
+    }),
+
+    // BBPS validation
+    fetchBill: z.object({
+        billerId: z.string().min(1, 'Biller ID is required'),
+        consumerNumber: z.string().min(1, 'Consumer number is required'),
+    }),
+};
+
+/**
+ * Validation middleware factory
+ * @param {string} schemaName - Name of the schema to use
+ * @param {string} source - Source of data ('body', 'query', 'params')
+ * @returns {Function} Express middleware function
+ */
+const validate = (schemaName, source = 'body') => {
+    const schema = schemas[schemaName];
+    
+    if (!schema) {
+        throw new Error(`Validation schema '${schemaName}' not found`);
+    }
+
+    return (req, res, next) => {
+        try {
+            const data = req[source];
+            const result = schema.safeParse(data);
+            
+            if (!result.success) {
+                const errorMessages = result.error.issues.map(issue => 
+                    `${issue.path.join('.')}: ${issue.message}`
+                ).join(', ');
+                
+                throw new ApiError(400, `Validation failed: ${errorMessages}`);
+            }
+            
+            // Attach validated data back to request
+            req[source] = result.data;
+            next();
+        } catch (error) {
+            next(error);
+        }
+    };
+};
+
+/**
+ * Custom validation middleware for complex scenarios
+ */
+const customValidations = {
+    // Validate file uploads
+    validateFileUpload: (req, res, next) => {
+        if (!req.file && !req.body.imageBase64) {
+            return next(new ApiError(400, 'No file or image data provided'));
+        }
+        
+        if (req.file) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(req.file.mimetype)) {
+                return next(new ApiError(400, 'Invalid file type. Only JPEG, PNG, and WebP are allowed'));
+            }
+            
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (req.file.size > maxSize) {
+                return next(new ApiError(400, 'File too large. Maximum size is 5MB'));
+            }
+        }
+        
+        next();
+    },
+
+    // Validate pagination parameters
+    validatePagination: (req, res, next) => {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        
+        if (page < 1) {
+            return next(new ApiError(400, 'Page must be greater than 0'));
+        }
+        
+        if (limit < 1 || limit > 100) {
+            return next(new ApiError(400, 'Limit must be between 1 and 100'));
+        }
+        
+        req.pagination = {
+            page,
+            limit,
+            skip: (page - 1) * limit
+        };
+        
+        next();
+    },
+};
+
+module.exports = {
+    validate,
+    schemas,
+    commonSchemas,
+    customValidations,
+};
