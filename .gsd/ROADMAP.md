@@ -45,7 +45,7 @@
 - Integration test for Flutter-side parsing.
 
 ### Phase 5: Controller Integration & Deprecation
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Wire the new graph to the Express router and context helpers.
 **Requirements**: REQ-05, TECH-02
 - Update Express controller for MongoDB Tariff and OpenWeather API calls.
