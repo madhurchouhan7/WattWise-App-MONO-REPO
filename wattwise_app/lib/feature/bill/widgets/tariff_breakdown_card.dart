@@ -8,7 +8,8 @@ class TariffBreakdownCard extends ConsumerStatefulWidget {
   const TariffBreakdownCard({super.key});
 
   @override
-  ConsumerState<TariffBreakdownCard> createState() => _TariffBreakdownCardState();
+  ConsumerState<TariffBreakdownCard> createState() =>
+      _TariffBreakdownCardState();
 }
 
 class _TariffBreakdownCardState extends ConsumerState<TariffBreakdownCard> {
@@ -17,21 +18,21 @@ class _TariffBreakdownCardState extends ConsumerState<TariffBreakdownCard> {
   @override
   Widget build(BuildContext context) {
     final totalUnits = ref.watch(totalConsumptionProvider);
-    
+
     // Perform dynamic calculations for typical progressive utility slabs
     double unitsRemaining = totalUnits;
-    
+
     double slab1Units = unitsRemaining > 100 ? 100 : unitsRemaining;
     unitsRemaining -= slab1Units;
     double slab1Cost = slab1Units * 3.5;
-    
+
     double slab2Units = unitsRemaining > 200 ? 200 : unitsRemaining;
     unitsRemaining -= slab2Units;
     double slab2Cost = slab2Units * 5.0;
-    
+
     double slab3Units = unitsRemaining > 0 ? unitsRemaining : 0;
     double slab3Cost = slab3Units * 7.5;
-    
+
     const double fixedCharges = 200.00; // Simplified realistic fixed cost
 
     return LayoutBuilder(
@@ -104,17 +105,32 @@ class _TariffBreakdownCardState extends ConsumerState<TariffBreakdownCard> {
                       children: [
                         _buildHeaderRow(),
                         const SizedBox(height: 16),
-                        _buildRow("0-100 units", "\u20B93.5/u", "\u20B9${slab1Cost.toStringAsFixed(2)}"),
+                        _buildRow(
+                          "0-100 units",
+                          "\u20B93.5/u",
+                          "\u20B9${slab1Cost.toStringAsFixed(2)}",
+                        ),
                         if (slab2Units > 0) ...[
                           const SizedBox(height: 16),
-                          _buildRow("101-300 units", "\u20B95.0/u", "\u20B9${slab2Cost.toStringAsFixed(2)}"),
+                          _buildRow(
+                            "101-300 units",
+                            "\u20B95.0/u",
+                            "\u20B9${slab2Cost.toStringAsFixed(2)}",
+                          ),
                         ],
                         if (slab3Units > 0) ...[
                           const SizedBox(height: 16),
-                          _buildRow("301+ units", "\u20B97.5/u", "\u20B9${slab3Cost.toStringAsFixed(2)}"),
+                          _buildRow(
+                            "301+ units",
+                            "\u20B97.5/u",
+                            "\u20B9${slab3Cost.toStringAsFixed(2)}",
+                          ),
                         ],
                         const SizedBox(height: 16),
-                        _buildFooterRow("Fixed Charges", "\u20B9${fixedCharges.toStringAsFixed(2)}"),
+                        _buildFooterRow(
+                          "Fixed Charges",
+                          "\u20B9${fixedCharges.toStringAsFixed(2)}",
+                        ),
                       ],
                     ),
                   ),

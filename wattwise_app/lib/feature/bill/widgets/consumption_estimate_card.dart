@@ -21,8 +21,11 @@ class _ConsumptionEstimateCardState
     final totalUnits = ref.watch(totalConsumptionProvider);
 
     // AI Prediction Mock logic based on real usage
-    final estimatedTotal = (totalUnits * 1.15).round(); // Usually 15% more if linear trajectory
-    final dailyLimit = ((estimatedTotal - totalUnits) / 7).clamp(0, 100).round(); // 7 days remaining approx
+    final estimatedTotal = (totalUnits * 1.15)
+        .round(); // Usually 15% more if linear trajectory
+    final dailyLimit = ((estimatedTotal - totalUnits) / 7)
+        .clamp(0, 100)
+        .round(); // 7 days remaining approx
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -161,7 +164,8 @@ class _ConsumptionEstimateCardState
                               ),
                               children: [
                                 const TextSpan(
-                                    text: "Tip: Keep daily usage under "),
+                                  text: "Tip: Keep daily usage under ",
+                                ),
                                 TextSpan(
                                   text: "$dailyLimit units ",
                                   style: GoogleFonts.poppins(
@@ -169,7 +173,8 @@ class _ConsumptionEstimateCardState
                                   ),
                                 ),
                                 const TextSpan(
-                                  text: "for the rest of the cycle to stay within your budget.",
+                                  text:
+                                      "for the rest of the cycle to stay within your budget.",
                                 ),
                               ],
                             ),

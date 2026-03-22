@@ -23,12 +23,13 @@ class AppNotification {
       title: map['title'] as String? ?? '',
       body: map['body'] as String? ?? '',
       type: map['type'] as String? ?? 'generic',
-      data: (map['data'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{},
+      data:
+          (map['data'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{},
       read: map['read'] as bool? ?? false,
-      sentAt: DateTime.tryParse(map['sentAt'] as String? ?? '') ??
+      sentAt:
+          DateTime.tryParse(map['sentAt'] as String? ?? '') ??
           DateTime.tryParse(map['createdAt'] as String? ?? '') ??
           DateTime.now(),
     );
   }
 }
-

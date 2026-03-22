@@ -15,9 +15,7 @@ class NotificationListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Notifications',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
@@ -25,15 +23,11 @@ class NotificationListScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: state.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
             child: Text(
               'Failed to load notifications',
-              style: GoogleFonts.poppins(
-                color: AppColors.textSecondary,
-              ),
+              style: GoogleFonts.poppins(color: AppColors.textSecondary),
             ),
           ),
           data: (notifications) {
@@ -41,26 +35,35 @@ class NotificationListScreen extends ConsumerWidget {
               return Center(
                 child: Text(
                   'You have no notifications yet.',
-                  style: GoogleFonts.poppins(
-                    color: AppColors.textSecondary,
-                  ),
+                  style: GoogleFonts.poppins(color: AppColors.textSecondary),
                 ),
               );
             }
 
             return RefreshIndicator(
-              onRefresh: () => ref.read(notificationListProvider.notifier).refresh(),
+              onRefresh: () =>
+                  ref.read(notificationListProvider.notifier).refresh(),
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: notifications.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final n = notifications[index];
                   return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 8,
+                    ),
                     leading: Icon(
-                      n.read ? Icons.notifications_none_rounded : Icons.notifications_active_rounded,
-                      color: n.read ? AppColors.textSecondary : AppColors.primaryBlue,
+                      n.read
+                          ? Icons.notifications_none_rounded
+                          : Icons.notifications_active_rounded,
+                      color: n.read
+                          ? AppColors.textSecondary
+                          : AppColors.primaryBlue,
                     ),
                     title: Text(
                       n.title,
@@ -75,7 +78,9 @@ class NotificationListScreen extends ConsumerWidget {
                       ),
                     ),
                     onTap: () {
-                      ref.read(notificationListProvider.notifier).markAsRead(n.id);
+                      ref
+                          .read(notificationListProvider.notifier)
+                          .markAsRead(n.id);
                       // Optional: navigate based on type/data (deep linking)
                     },
                     trailing: n.read
@@ -98,4 +103,3 @@ class NotificationListScreen extends ConsumerWidget {
     );
   }
 }
-

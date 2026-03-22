@@ -258,6 +258,6 @@ class StreakNotifier extends StateNotifier<AsyncValue<void>> {
 
 final streakNotifierProvider =
     StateNotifierProvider<StreakNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.read(userRepositoryProvider);
-  return StreakNotifier(repo, ref);
-});
+      final repo = ref.read(userRepositoryProvider);
+      return StreakNotifier(repo, ref);
+    });

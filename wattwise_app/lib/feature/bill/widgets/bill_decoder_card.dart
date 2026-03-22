@@ -11,7 +11,7 @@ class BillDecoderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final totalUnits = ref.watch(totalConsumptionProvider);
     final int dailyUnits = (totalUnits / 30).round();
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(

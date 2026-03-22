@@ -52,7 +52,10 @@ class CoolingPlanScreen extends ConsumerWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -90,11 +93,17 @@ class CoolingPlanScreen extends ConsumerWidget {
                             ),
                             if (streak > 0)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFFF7ED),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFFFFEDD5), width: 1.5),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFEDD5),
+                                    width: 1.5,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -125,7 +134,9 @@ class CoolingPlanScreen extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             "Generating your optimized actions...",
-                            style: GoogleFonts.poppins(color: AppColors.textSecondary),
+                            style: GoogleFonts.poppins(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       )
@@ -134,11 +145,16 @@ class CoolingPlanScreen extends ConsumerWidget {
                         final idx = entry.key;
                         final action = entry.value;
                         return ActionAccordionItem(
-                          icon: _getIconForAppliance(action['appliance'] ?? ''),
-                          title: action['appliance'] ?? "Strategy",
-                          subtitle: action['action'] ?? "Optimize usage",
-                          initialExpanded: idx == 0,
-                        ).animate().fade(delay: (450 + idx * 100).ms).slideY(begin: 0.1, end: 0);
+                              icon: _getIconForAppliance(
+                                action['appliance'] ?? '',
+                              ),
+                              title: action['appliance'] ?? "Strategy",
+                              subtitle: action['action'] ?? "Optimize usage",
+                              initialExpanded: idx == 0,
+                            )
+                            .animate()
+                            .fade(delay: (450 + idx * 100).ms)
+                            .slideY(begin: 0.1, end: 0);
                       }),
 
                     const SizedBox(height: 48),
@@ -154,11 +170,14 @@ class CoolingPlanScreen extends ConsumerWidget {
 
   IconData _getIconForAppliance(String appliance) {
     final lower = appliance.toLowerCase();
-    if (lower.contains('ac') || lower.contains('air')) return Icons.ac_unit_rounded;
+    if (lower.contains('ac') || lower.contains('air'))
+      return Icons.ac_unit_rounded;
     if (lower.contains('light')) return Icons.lightbulb_outline_rounded;
     if (lower.contains('wash')) return Icons.local_laundry_service_outlined;
-    if (lower.contains('fridge') || lower.contains('refrigerator')) return Icons.kitchen_rounded;
-    if (lower.contains('blind') || lower.contains('curtain')) return Icons.blinds_closed_rounded;
+    if (lower.contains('fridge') || lower.contains('refrigerator'))
+      return Icons.kitchen_rounded;
+    if (lower.contains('blind') || lower.contains('curtain'))
+      return Icons.blinds_closed_rounded;
     return Icons.auto_awesome;
   }
 }

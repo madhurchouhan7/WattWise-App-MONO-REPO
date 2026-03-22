@@ -5,7 +5,6 @@ import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
 
-
 // Dynamically sets current month context
 final selectedMonthProvider = Provider<String>((ref) {
   final now = DateTime.now();
@@ -205,4 +204,3 @@ final dailyIntensityProvider = Provider<List<int>>((ref) {
     return heatmapData[dateKey] ?? 0;
   });
 });
-

@@ -85,7 +85,7 @@ class HeatmapLocalService {
   /// Merges into the existing cache; keeps all other days intact.
   Future<void> writeOptimistic({
     required String dateKey, // "YYYY-MM-DD"
-    required int intensity,  // 0|1|2|3
+    required int intensity, // 0|1|2|3
   }) async {
     final existing = read();
     existing[dateKey] = intensity;

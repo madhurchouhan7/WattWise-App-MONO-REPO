@@ -117,7 +117,7 @@ const rateLimiters = {
     // AI/ML operations rate limiting
     ai: createRateLimiter({
         windowMs: 60 * 60 * 1000, // 1 hour
-        max: 20, // 20 AI requests per hour
+        max: 200, // 200 AI requests per hour
         message: 'Too many AI requests. Please try again later.',
     }),
 

@@ -11,12 +11,12 @@ class PerformanceMapWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final streak = ref.watch(streakProvider);
     final days = ["M", "T", "W", "T", "F", "S", "S"];
-    
+
     // Status colors based on streak: green for fulfilled days, amber/grey for missed
     // We mock the status for the past 7 days based on current streak count
     final statusColors = List.generate(7, (index) {
       if (index == 6) return Colors.white; // Today
-      
+
       final reverseIndex = 5 - index; // 0 is yesterday, 5 is 6 days ago
       if (reverseIndex < streak) {
         return const Color(0xFF34D399); // Emerald (Success)
@@ -71,8 +71,12 @@ class PerformanceMapWidget extends ConsumerWidget {
                           days[index],
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                            color: isToday ? AppColors.primaryBlue : AppColors.textSecondary.withAlpha(150),
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isToday
+                                ? AppColors.primaryBlue
+                                : AppColors.textSecondary.withAlpha(150),
                           ),
                         ),
                         if (isToday)
@@ -97,7 +101,9 @@ class PerformanceMapWidget extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: statusColors[index],
                         borderRadius: BorderRadius.circular(8),
-                        border: isToday ? Border.all(color: AppColors.primaryBlue, width: 2) : null,
+                        border: isToday
+                            ? Border.all(color: AppColors.primaryBlue, width: 2)
+                            : null,
                       ),
                       alignment: Alignment.center,
                       child: isToday

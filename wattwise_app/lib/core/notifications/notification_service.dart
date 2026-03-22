@@ -54,7 +54,8 @@ class NotificationService {
 
   Future<void> _sendTokenToBackend(String token) async {
     try {
-      if (FirebaseAuth.instance.currentUser == null) return; // Only send if logged in
+      if (FirebaseAuth.instance.currentUser == null)
+        return; // Only send if logged in
 
       final platform = Platform.isAndroid
           ? 'android'

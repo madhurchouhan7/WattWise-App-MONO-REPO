@@ -73,8 +73,9 @@ class StreakLocalService {
 
     return StreakData(
       streak: streakRaw as int,
-      lastCheckIn:
-          lastCheckInStr != null ? DateTime.tryParse(lastCheckInStr) : null,
+      lastCheckIn: lastCheckInStr != null
+          ? DateTime.tryParse(lastCheckInStr)
+          : null,
       longestStreak: longestStreakRaw,
       updatedAt: updatedAtMs != null
           ? DateTime.fromMillisecondsSinceEpoch(updatedAtMs)
@@ -106,8 +107,9 @@ class StreakLocalService {
     required DateTime lastCheckIn,
   }) async {
     final existing = read();
-    final longestStreak =
-        existing != null ? existing.longestStreak.clamp(streak, 9999) : streak;
+    final longestStreak = existing != null
+        ? existing.longestStreak.clamp(streak, 9999)
+        : streak;
     await write(
       streak: streak,
       lastCheckIn: lastCheckIn,

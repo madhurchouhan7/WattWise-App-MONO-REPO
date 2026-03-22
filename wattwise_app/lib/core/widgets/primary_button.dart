@@ -25,11 +25,7 @@ class PrimaryButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
-          Icon(
-            icon,
-            size: 20,
-            color: Colors.white,
-          ),
+          Icon(icon, size: 20, color: Colors.white),
           const SizedBox(width: 8),
         ],
         Text(
@@ -49,9 +45,7 @@ class PrimaryButton extends StatelessWidget {
         backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       child: buttonChild,
     );
@@ -65,4 +59,3 @@ class PrimaryButton extends StatelessWidget {
     return expanded ? sized : Center(child: sized);
   }
 }
-

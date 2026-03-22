@@ -21,7 +21,10 @@ class CoolingPlanStatsCard extends ConsumerWidget {
     final dayInCycle = now.day; // Simplistic: use day of month
     final totalDays = 30;
 
-    final estSavings = (activePlan?['estimatedSavingsIfFollowed']?['rupees'] as num?)?.toInt() ?? 1200;
+    final estSavings =
+        (activePlan?['estimatedSavingsIfFollowed']?['rupees'] as num?)
+            ?.toInt() ??
+        1200;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -101,7 +104,9 @@ class CoolingPlanStatsCard extends ConsumerWidget {
                                 builder: (context, boxConstraints) {
                                   return Container(
                                     height: 6,
-                                    width: boxConstraints.maxWidth * (dayInCycle / totalDays).clamp(0, 1),
+                                    width:
+                                        boxConstraints.maxWidth *
+                                        (dayInCycle / totalDays).clamp(0, 1),
                                     decoration: BoxDecoration(
                                       color: AppColors.primaryBlue,
                                       borderRadius: BorderRadius.circular(4),
@@ -123,7 +128,10 @@ class CoolingPlanStatsCard extends ConsumerWidget {
                           alignment: Alignment.center,
                           children: [
                             CustomPaint(
-                              size: const Size(double.infinity, double.infinity),
+                              size: const Size(
+                                double.infinity,
+                                double.infinity,
+                              ),
                               painter: DashedCircularProgressPainter(
                                 progress: score / 100,
                                 color: AppColors.primaryBlue,
@@ -167,7 +175,10 @@ class CoolingPlanStatsCard extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 24),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 20.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -193,9 +204,14 @@ class CoolingPlanStatsCard extends ConsumerWidget {
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: score > 70 ? const Color(0xFFDCFCE7) : const Color(0xFFFEF2F2),
+                        color: score > 70
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -203,7 +219,9 @@ class CoolingPlanStatsCard extends ConsumerWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: score > 70 ? const Color(0xFF16A34A) : AppColors.alertRed,
+                          color: score > 70
+                              ? const Color(0xFF16A34A)
+                              : AppColors.alertRed,
                         ),
                       ),
                     ),

@@ -8,11 +8,13 @@ import 'package:wattwise_app/feature/notifications/models/notification_model.dar
 final _storageKey = 'cached_notifications';
 
 final notificationListProvider =
-    StateNotifierProvider<NotificationListNotifier, AsyncValue<List<AppNotification>>>(
-  (ref) => NotificationListNotifier(),
-);
+    StateNotifierProvider<
+      NotificationListNotifier,
+      AsyncValue<List<AppNotification>>
+    >((ref) => NotificationListNotifier());
 
-class NotificationListNotifier extends StateNotifier<AsyncValue<List<AppNotification>>> {
+class NotificationListNotifier
+    extends StateNotifier<AsyncValue<List<AppNotification>>> {
   NotificationListNotifier() : super(const AsyncValue.loading()) {
     _loadCached();
     refresh();
@@ -47,10 +49,7 @@ class NotificationListNotifier extends StateNotifier<AsyncValue<List<AppNotifica
       state = AsyncValue.data(list);
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        _storageKey,
-        jsonEncode(data),
-      );
+      await prefs.setString(_storageKey, jsonEncode(data));
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -83,4 +82,3 @@ class NotificationListNotifier extends StateNotifier<AsyncValue<List<AppNotifica
     }
   }
 }
-

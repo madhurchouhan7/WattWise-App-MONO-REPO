@@ -33,7 +33,9 @@ class BillAmountCard extends ConsumerWidget {
 
     final rawSubsidy = savedBill?['subsidyAmount'];
     String? subsidyStr;
-    if (rawSubsidy != null && rawSubsidy.toString() != '0.00' && rawSubsidy.toString().isNotEmpty) {
+    if (rawSubsidy != null &&
+        rawSubsidy.toString() != '0.00' &&
+        rawSubsidy.toString().isNotEmpty) {
       if (rawSubsidy is int) {
         subsidyStr = rawSubsidy.toString();
       } else if (rawSubsidy is double) {

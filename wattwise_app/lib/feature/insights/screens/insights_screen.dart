@@ -22,7 +22,9 @@ class InsightsScreen extends ConsumerWidget {
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(child: hasBills ? const _DataView() : const _EmptyView()),
+        body: SafeArea(
+          child: hasBills ? const _DataView() : const _EmptyView(),
+        ),
       ),
     );
   }

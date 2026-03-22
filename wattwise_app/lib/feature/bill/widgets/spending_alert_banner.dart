@@ -16,15 +16,19 @@ class SpendingAlertBanner extends ConsumerWidget {
 
     if (savedBill == null) return const SizedBox.shrink();
 
-    final currentAmount = double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
-    
+    final currentAmount =
+        double.tryParse(savedBill['amountExact']?.toString() ?? '0') ?? 0;
+
     // We compare with the AI Plan's estimated current cost if available,
     // or simulate a slight increase for visual feedback if no history exists.
-    final baseAmount = (user?.activePlan?['estimatedCurrentMonthlyCost'] as num?)?.toDouble() ?? (currentAmount * 0.9);
-    
+    final baseAmount =
+        (user?.activePlan?['estimatedCurrentMonthlyCost'] as num?)
+            ?.toDouble() ??
+        (currentAmount * 0.9);
+
     final diff = currentAmount - baseAmount;
     final percent = baseAmount > 0 ? (diff / baseAmount * 100).round() : 0;
-    
+
     // Only show if spending is actually higher
     if (diff <= 0) return const SizedBox.shrink();
 

@@ -70,50 +70,50 @@ class _EmptyView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-        // ── App bar ──────────────────────────────────────────
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.06,
-            vertical: width * 0.04,
-          ),
-          child: DashboardAppBar(
-            user: user,
-            displayName: displayName,
-            onNotificationTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const NotificationListScreen(),
+                // ── App bar ──────────────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.06,
+                    vertical: width * 0.04,
+                  ),
+                  child: DashboardAppBar(
+                    user: user,
+                    displayName: displayName,
+                    onNotificationTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationListScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              );
-            },
-          ),
-        ),
 
-        // ── Empty state centred in remaining space ────────────
-        Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: width * 0.04),
-              child: NoBillsEmptyState(
-                onAddBill: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(24),
-                        topRight: Radius.circular(24),
+                // ── Empty state centred in remaining space ────────────
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(vertical: width * 0.04),
+                      child: NoBillsEmptyState(
+                        onAddBill: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
+                              ),
+                              child: AddBillScreen(),
+                            ),
+                          );
+                        },
                       ),
-                      child: AddBillScreen(),
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -137,58 +137,56 @@ class _DataView extends ConsumerWidget {
           await ref.read(authRepositoryProvider).refreshUserData();
           ref.invalidate(authStateProvider);
           final now = DateTime.now();
-          await ref.read(heatmapNotifierProvider.notifier).refreshFromServer(
-                year: now.year,
-                month: now.month,
-          );
+          await ref
+              .read(heatmapNotifierProvider.notifier)
+              .refreshFromServer(year: now.year, month: now.month);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DashboardAppBar(
-              displayName: displayName,
-              user: user,
-              onNotificationTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const NotificationListScreen(),
-                ),
-              );
-              },
-              onProfileTap: () {
-                
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            _buildStatCards(ref),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DashboardAppBar(
+                displayName: displayName,
+                user: user,
+                onNotificationTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationListScreen(),
+                    ),
+                  );
+                },
+                onProfileTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+              _buildStatCards(ref),
 
-            const SizedBox(height: 28),
-            _buildSectionTitle('Active Plan', showIndicator: true),
-            const SizedBox(height: 16),
-            _buildActivePlanCard(context, ref, user),
-            const SizedBox(height: 28),
-            const StreakCard(),
-            const SizedBox(height: 28),
-            _buildSectionTitle('Action Items'),
-            const SizedBox(height: 16),
-            _buildActionItems(user),
-            const SizedBox(height: 28),
-            _buildSectionTitleWithAction('Recent Activity', 'View All'),
-            const SizedBox(height: 16),
-            _buildRecentActivity(ref),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 28),
+              _buildSectionTitle('Active Plan', showIndicator: true),
+              const SizedBox(height: 16),
+              _buildActivePlanCard(context, ref, user),
+              const SizedBox(height: 28),
+              const StreakCard(),
+              const SizedBox(height: 28),
+              _buildSectionTitle('Action Items'),
+              const SizedBox(height: 16),
+              _buildActionItems(user),
+              const SizedBox(height: 28),
+              _buildSectionTitleWithAction('Recent Activity', 'View All'),
+              const SizedBox(height: 16),
+              _buildRecentActivity(ref),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -311,7 +309,11 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivePlanCard(BuildContext context, WidgetRef ref, UserModel? user) {
+  Widget _buildActivePlanCard(
+    BuildContext context,
+    WidgetRef ref,
+    UserModel? user,
+  ) {
     if (user?.activePlan == null) {
       return Container(
         width: double.infinity,
@@ -361,19 +363,21 @@ class _DataView extends ConsumerWidget {
     final tierDesc = 'Targeting $pct% savings';
 
     final savedBill = ref.watch(savedBillProvider);
-    final currentSpend = double.tryParse(savedBill?['amountExact']?.toString() ?? '0') ?? 0;
+    final currentSpend =
+        double.tryParse(savedBill?['amountExact']?.toString() ?? '0') ?? 0;
 
     var usageTarget = 'Optimizing...';
-    double fillRatio = 0.0; 
+    double fillRatio = 0.0;
 
     if (p['estimatedCurrentMonthlyCost'] != null &&
         estSavingsObj?['rupees'] != null) {
       final targetRupees =
           (p['estimatedCurrentMonthlyCost'] - estSavingsObj['rupees'])
               .toDouble();
-      
+
       if (targetRupees > 0) {
-        usageTarget = '₹${currentSpend.toInt()} / ₹${targetRupees.toInt()} Limit';
+        usageTarget =
+            '₹${currentSpend.toInt()} / ₹${targetRupees.toInt()} Limit';
         fillRatio = currentSpend / targetRupees;
       }
     }

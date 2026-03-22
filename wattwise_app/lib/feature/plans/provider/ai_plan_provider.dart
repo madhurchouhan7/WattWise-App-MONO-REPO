@@ -61,12 +61,14 @@ class AiPlanNotifier extends AsyncNotifier<EfficiencyPlanModel?> {
           totalAmount = num.tryParse(savedBill['amountExact'].toString()) ?? 0;
         }
         if (savedBill['grossAmount'] != null) {
-          grossAmount = num.tryParse(savedBill['grossAmount'].toString()) ?? totalAmount;
+          grossAmount =
+              num.tryParse(savedBill['grossAmount'].toString()) ?? totalAmount;
         } else {
           grossAmount = totalAmount;
         }
         if (savedBill['subsidyAmount'] != null) {
-          subsidyAmount = num.tryParse(savedBill['subsidyAmount'].toString()) ?? 0;
+          subsidyAmount =
+              num.tryParse(savedBill['subsidyAmount'].toString()) ?? 0;
         }
       }
 

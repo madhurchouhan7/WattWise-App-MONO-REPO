@@ -11,7 +11,9 @@ final estimatedSavingsProvider = Provider<Map<String, dynamic>>((ref) {
 });
 
 // Provider for upgrade recommendations
-final upgradeRecommendationsProvider = Provider<List<Map<String, dynamic>>>((ref) {
+final upgradeRecommendationsProvider = Provider<List<Map<String, dynamic>>>((
+  ref,
+) {
   return [
     {
       'id': '1',
@@ -41,21 +43,26 @@ final upgradeRecommendationsProvider = Provider<List<Map<String, dynamic>>>((ref
 });
 
 // Provider for performance comparison data
-final performanceComparisonProvider = Provider<List<Map<String, dynamic>>>((ref) {
+final performanceComparisonProvider = Provider<List<Map<String, dynamic>>>((
+  ref,
+) {
   return [
     {
       'title': 'Modern inverter compressors',
-      'description': 'adjust cooling speed dynamically, reducing startup surge by 50% compared to your current units.',
+      'description':
+          'adjust cooling speed dynamically, reducing startup surge by 50% compared to your current units.',
       'icon': Icons.speed_rounded,
     },
     {
       'title': 'Transitioning to R32 refrigerants',
-      'description': 'reduces GWP (Global Warming Potential) by 3x compared to older R22 models found in your AC.',
+      'description':
+          'reduces GWP (Global Warming Potential) by 3x compared to older R22 models found in your AC.',
       'icon': Icons.eco_rounded,
     },
     {
       'title': 'Smart connectivity',
-      'description': 'allows scheduling peak-hour throttling, potentially saving an additional ₹2,300/year on TCO billing.',
+      'description':
+          'allows scheduling peak-hour throttling, potentially saving an additional ₹2,300/year on TCO billing.',
       'icon': Icons.schedule_rounded,
     },
   ];

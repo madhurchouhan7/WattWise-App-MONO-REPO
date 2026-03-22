@@ -18,11 +18,27 @@ class StreakCard extends ConsumerWidget {
 
     final now = DateTime.now();
     const weekdayNames = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
     const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final todayLabel =
         '${weekdayNames[now.weekday - 1]}, ${now.day} ${monthNames[now.month - 1]}';
@@ -90,7 +106,10 @@ class StreakCard extends ConsumerWidget {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeOut,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: streak > 0
                       ? Colors.orange.shade50
@@ -139,8 +158,11 @@ class StreakCard extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded,
-                      color: Colors.red.shade400, size: 16),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red.shade400,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     "Streak broken! Check in today to start again.",
@@ -172,8 +194,7 @@ class StreakCard extends ConsumerWidget {
                     dayLabels[index],
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      fontWeight:
-                          isToday ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                       color: isToday
                           ? AppColors.primaryBlue
                           : AppColors.textSecondary,
@@ -189,8 +210,8 @@ class StreakCard extends ConsumerWidget {
                       color: isAchieved
                           ? Colors.orange.shade400
                           : isTodayPending
-                              ? Colors.orange.shade50
-                              : Colors.grey.shade100,
+                          ? Colors.orange.shade50
+                          : Colors.grey.shade100,
                       shape: BoxShape.circle,
                       border: isTodayPending || isToday
                           ? Border.all(
@@ -203,14 +224,14 @@ class StreakCard extends ConsumerWidget {
                     ),
                     child: Center(
                       child: isAchieved
-                          ? const Icon(Icons.check,
-                              color: Colors.white, size: 16)
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
                           : isTodayPending
-                              ? const Text(
-                                  "⚡",
-                                  style: TextStyle(fontSize: 12),
-                                )
-                              : null,
+                          ? const Text("⚡", style: TextStyle(fontSize: 12))
+                          : null,
                     ),
                   ),
                 ],
@@ -265,7 +286,10 @@ class StreakCard extends ConsumerWidget {
   }
 
   String _buildInfoMessage(
-      int streak, bool checkedInToday, bool isStreakBroken) {
+    int streak,
+    bool checkedInToday,
+    bool isStreakBroken,
+  ) {
     if (checkedInToday) {
       return "✅ Checked in today! Great consistency — keep it up!";
     }

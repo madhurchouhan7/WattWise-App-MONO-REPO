@@ -136,7 +136,11 @@ class OcrNotifier extends StateNotifier<AsyncValue<Map<String, String>?>> {
 
     final numberRe = RegExp(r'-?([\d,]+\.\d+|[\d,]+)');
 
-    String? findValueSpaces(List<RegExp> keywords, {bool allowNegative = true, bool preferNegative = false}) {
+    String? findValueSpaces(
+      List<RegExp> keywords, {
+      bool allowNegative = true,
+      bool preferNegative = false,
+    }) {
       for (final kw in keywords) {
         for (final line in allLines) {
           if (!kw.hasMatch(line.text)) continue;
@@ -147,14 +151,16 @@ class OcrNotifier extends StateNotifier<AsyncValue<Map<String, String>?>> {
           final numMatch = RegExp(r'-?([\d,]+\.\d+|[\d,]+)').firstMatch(after);
           if (numMatch != null) {
             String v = numMatch.group(0)!.replaceAll(',', '');
-            if (preferNegative && !v.contains('-')) continue; // Skip if we specifically want a negative sign
-            if (!allowNegative && v.contains('-')) continue; // Skip if we explicitly want positive
+            if (preferNegative && !v.contains('-'))
+              continue; // Skip if we specifically want a negative sign
+            if (!allowNegative && v.contains('-'))
+              continue; // Skip if we explicitly want positive
             if (double.tryParse(v) != null) return v.replaceAll('-', '');
           }
 
           // 2. Spatial Row Search
           final vCenter = (line.boundingBox.top + line.boundingBox.bottom) / 2;
-          
+
           final sameRowLines = allLines.where((l) {
             if (l == line) return false;
             // DENSE TABLE TIGHTNESS: Use 12px margin instead of 18px
@@ -221,7 +227,10 @@ class OcrNotifier extends StateNotifier<AsyncValue<Map<String, String>?>> {
     // Fuzzy search for "Consumption" or "Units" using raw text context
     String? unitsVal;
     {
-      final rawLines = recognizedText.text.split('\n').map((l) => l.trim()).toList();
+      final rawLines = recognizedText.text
+          .split('\n')
+          .map((l) => l.trim())
+          .toList();
       // Extremely fuzzy to catch "Consumption", "Conumntion", "Consumption Detail"
       final consumptionKw = RegExp(
         r'(Final\s+Cons|Metered\s+Unit|Units?\s+Cons|Total\s+Units|Con[su].*tion|Unit)',
@@ -241,14 +250,17 @@ class OcrNotifier extends StateNotifier<AsyncValue<Map<String, String>?>> {
             }
           }
           if (unitsVal != null) break;
-          
+
           // 2. Look for any number on the same line after keyword
           final afterIdx = rawLines[i].toLowerCase().indexOf('unit');
-          final afterText = afterIdx != -1 ? rawLines[i].substring(afterIdx) : rawLines[i];
+          final afterText = afterIdx != -1
+              ? rawLines[i].substring(afterIdx)
+              : rawLines[i];
           final sm = simpleNumRe.firstMatch(afterText);
-          if (sm != null && i < 150) { // Safety check to keep it in main sections
-             unitsVal = sm.group(1);
-             break;
+          if (sm != null && i < 150) {
+            // Safety check to keep it in main sections
+            unitsVal = sm.group(1);
+            break;
           }
         }
       }
@@ -260,14 +272,16 @@ class OcrNotifier extends StateNotifier<AsyncValue<Map<String, String>?>> {
     if (!data.containsKey('dueDate') && fallbackData.containsKey('dueDate')) {
       data['dueDate'] = fallbackData['dueDate']!;
     }
-    if (!data.containsKey('consumerNumber') && fallbackData.containsKey('consumerNumber')) {
+    if (!data.containsKey('consumerNumber') &&
+        fallbackData.containsKey('consumerNumber')) {
       data['consumerNumber'] = fallbackData['consumerNumber']!;
     }
-    
+
     data['rawText'] = recognizedText.text;
     return data;
   }
-// ─────────────────────────────────────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Standard String Parser (Used for PDFs and as a fallback)
   // ─────────────────────────────────────────────────────────────────────────────
   Map<String, String> _parseBillText(String text) {

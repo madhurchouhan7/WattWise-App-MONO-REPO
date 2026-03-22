@@ -85,7 +85,8 @@ class HeatmapNotifier extends StateNotifier<AsyncValue<void>> {
       );
 
       // ── Step 4: Write confirmed data ───────────────────────────────────────
-      final confirmedIntensity = (result['intensity'] as num?)?.toInt() ?? intensity;
+      final confirmedIntensity =
+          (result['intensity'] as num?)?.toInt() ?? intensity;
       await HeatmapLocalService.instance.writeOptimistic(
         dateKey: dateKey,
         intensity: confirmedIntensity,
@@ -101,7 +102,10 @@ class HeatmapNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// Fetches the full month's heatmap from the server and merges into Hive.
   /// Call on app resume / screen open when the cache is stale.
-  Future<void> refreshFromServer({required int year, required int month}) async {
+  Future<void> refreshFromServer({
+    required int year,
+    required int month,
+  }) async {
     try {
       final serverData = await _repo.fetchMonthlyHeatmap(
         year: year,
@@ -130,6 +134,6 @@ class HeatmapNotifier extends StateNotifier<AsyncValue<void>> {
 
 final heatmapNotifierProvider =
     StateNotifierProvider<HeatmapNotifier, AsyncValue<void>>((ref) {
-  final repo = ref.read(userRepositoryProvider);
-  return HeatmapNotifier(repo, ref);
-});
+      final repo = ref.read(userRepositoryProvider);
+      return HeatmapNotifier(repo, ref);
+    });

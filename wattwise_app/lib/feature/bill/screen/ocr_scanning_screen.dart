@@ -104,7 +104,11 @@ class _OcrScanningScreenState extends ConsumerState<OcrScanningScreen>
                         color: Colors.white.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.close, color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -126,138 +130,178 @@ class _OcrScanningScreenState extends ConsumerState<OcrScanningScreen>
 
             // ── Central animated document scanner ────────────────────────
             Center(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Outer pulsing glow ring
-                  AnimatedBuilder(
-                    animation: _pulseController,
-                    builder: (_, __) => Container(
-                      width: 240 + (_pulseController.value * 24),
-                      height: 300 + (_pulseController.value * 24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFF1E60F2)
-                              .withOpacity(0.15 + _pulseController.value * 0.2),
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Document card
-                  Container(
-                    width: 220,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF131B35),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF1E60F2).withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1E60F2).withOpacity(0.2),
-                          blurRadius: 30,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Stack(
-                        children: [
-                          // Mock bill lines
-                          Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-
-                                // Title line
-                                Container(height: 10, width: 140, decoration: _lineDeco(0.9)),
-                                const SizedBox(height: 6),
-                                Container(height: 7, width: 100, decoration: _lineDeco(0.5)),
-                                const SizedBox(height: 24),
-
-                                // Amount
-                                Container(height: 18, width: 80, decoration: _lineDeco(0.8, hilite: true)),
-                                const SizedBox(height: 20),
-
-                                // Info rows
-                                ...List.generate(5, (i) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Row(
-                                    children: [
-                                      Container(height: 7, width: 60 + (i % 3) * 15.0, decoration: _lineDeco(0.4)),
-                                      const Spacer(),
-                                      Container(height: 7, width: 40.0 + (i % 2) * 20, decoration: _lineDeco(0.25)),
-                                    ],
-                                  ),
-                                )),
-                                const Spacer(),
-                                // Footer
-                                Container(height: 6, decoration: _lineDeco(0.15)),
-                                const SizedBox(height: 6),
-                                Container(height: 6, width: 120, decoration: _lineDeco(0.1)),
-                              ],
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Outer pulsing glow ring
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (_, __) => Container(
+                          width: 240 + (_pulseController.value * 24),
+                          height: 300 + (_pulseController.value * 24),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFF1E60F2).withOpacity(
+                                0.15 + _pulseController.value * 0.2,
+                              ),
+                              width: 1.5,
                             ),
                           ),
+                        ),
+                      ),
 
-                          // Animated neon scan line
-                          AnimatedBuilder(
-                            animation: _scanLineController,
-                            builder: (_, __) {
-                              final y = _scanLineController.value * 260;
-                              return Positioned(
-                                top: y,
-                                left: 0,
-                                right: 0,
+                      // Document card
+                      Container(
+                        width: 220,
+                        height: 280,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF131B35),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF1E60F2).withOpacity(0.5),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1E60F2).withOpacity(0.2),
+                              blurRadius: 30,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Stack(
+                            children: [
+                              // Mock bill lines
+                              Padding(
+                                padding: const EdgeInsets.all(20),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    const SizedBox(height: 4),
+
+                                    // Title line
                                     Container(
-                                      height: 2,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.transparent,
-                                            const Color(0xFF00CFFF).withOpacity(0.9),
-                                            Colors.transparent,
+                                      height: 10,
+                                      width: 140,
+                                      decoration: _lineDeco(0.9),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      height: 7,
+                                      width: 100,
+                                      decoration: _lineDeco(0.5),
+                                    ),
+                                    const SizedBox(height: 24),
+
+                                    // Amount
+                                    Container(
+                                      height: 18,
+                                      width: 80,
+                                      decoration: _lineDeco(0.8, hilite: true),
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    // Info rows
+                                    ...List.generate(
+                                      5,
+                                      (i) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 10,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              height: 7,
+                                              width: 60 + (i % 3) * 15.0,
+                                              decoration: _lineDeco(0.4),
+                                            ),
+                                            const Spacer(),
+                                            Container(
+                                              height: 7,
+                                              width: 40.0 + (i % 2) * 20,
+                                              decoration: _lineDeco(0.25),
+                                            ),
                                           ],
                                         ),
                                       ),
                                     ),
+                                    const Spacer(),
+                                    // Footer
                                     Container(
-                                      height: 30,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            const Color(0xFF00CFFF).withOpacity(0.12),
-                                            Colors.transparent,
-                                          ],
-                                        ),
-                                      ),
+                                      height: 6,
+                                      decoration: _lineDeco(0.15),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      height: 6,
+                                      width: 120,
+                                      decoration: _lineDeco(0.1),
                                     ),
                                   ],
                                 ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                              ),
 
-                  // Four corner bracket indicators
-                  ..._buildCornerBrackets(),
-                ],
-              ),
-            ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.92, 0.92)),
+                              // Animated neon scan line
+                              AnimatedBuilder(
+                                animation: _scanLineController,
+                                builder: (_, __) {
+                                  final y = _scanLineController.value * 260;
+                                  return Positioned(
+                                    top: y,
+                                    left: 0,
+                                    right: 0,
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          height: 2,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.transparent,
+                                                const Color(
+                                                  0xFF00CFFF,
+                                                ).withOpacity(0.9),
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                const Color(
+                                                  0xFF00CFFF,
+                                                ).withOpacity(0.12),
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Four corner bracket indicators
+                      ..._buildCornerBrackets(),
+                    ],
+                  ),
+                )
+                .animate()
+                .fade(duration: 400.ms)
+                .scale(begin: const Offset(0.92, 0.92)),
 
             const SizedBox(height: 48),
 
@@ -337,7 +381,8 @@ class _OcrScanningScreenState extends ConsumerState<OcrScanningScreen>
     );
   }
 
-  BoxDecoration _lineDeco(double opacity, {bool hilite = false}) => BoxDecoration(
+  BoxDecoration _lineDeco(double opacity, {bool hilite = false}) =>
+      BoxDecoration(
         color: hilite
             ? const Color(0xFF1E60F2).withOpacity(opacity)
             : Colors.white.withOpacity(opacity),
@@ -357,28 +402,51 @@ class _OcrScanningScreenState extends ConsumerState<OcrScanningScreen>
       required double left,
       required bool flipX,
       required bool flipY,
-    }) =>
-        Positioned(
-          top: top,
-          left: left,
-          child: Transform.scale(
-            scaleX: flipX ? -1 : 1,
-            scaleY: flipY ? -1 : 1,
-            child: SizedBox(
-              width: bracketLen,
-              height: bracketLen,
-              child: CustomPaint(
-                painter: _CornerPainter(color: color, thickness: bracketThk),
-              ),
-            ),
+    }) => Positioned(
+      top: top,
+      left: left,
+      child: Transform.scale(
+        scaleX: flipX ? -1 : 1,
+        scaleY: flipY ? -1 : 1,
+        child: SizedBox(
+          width: bracketLen,
+          height: bracketLen,
+          child: CustomPaint(
+            painter: _CornerPainter(color: color, thickness: bracketThk),
           ),
-        );
+        ),
+      ),
+    );
 
     return [
-      bracket(alignment: Alignment.topLeft, top: -height / 2, left: -size / 2, flipX: false, flipY: false),
-      bracket(alignment: Alignment.topRight, top: -height / 2, left: size / 2 - bracketLen, flipX: true, flipY: false),
-      bracket(alignment: Alignment.bottomLeft, top: height / 2 - bracketLen, left: -size / 2, flipX: false, flipY: true),
-      bracket(alignment: Alignment.bottomRight, top: height / 2 - bracketLen, left: size / 2 - bracketLen, flipX: true, flipY: true),
+      bracket(
+        alignment: Alignment.topLeft,
+        top: -height / 2,
+        left: -size / 2,
+        flipX: false,
+        flipY: false,
+      ),
+      bracket(
+        alignment: Alignment.topRight,
+        top: -height / 2,
+        left: size / 2 - bracketLen,
+        flipX: true,
+        flipY: false,
+      ),
+      bracket(
+        alignment: Alignment.bottomLeft,
+        top: height / 2 - bracketLen,
+        left: -size / 2,
+        flipX: false,
+        flipY: true,
+      ),
+      bracket(
+        alignment: Alignment.bottomRight,
+        top: height / 2 - bracketLen,
+        left: size / 2 - bracketLen,
+        flipX: true,
+        flipY: true,
+      ),
     ];
   }
 }

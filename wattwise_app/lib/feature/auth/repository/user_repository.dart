@@ -23,8 +23,7 @@ class StreakCheckInResult {
   factory StreakCheckInResult.fromJson(Map<String, dynamic> json) {
     return StreakCheckInResult(
       streak: (json['streak'] as num?)?.toInt() ?? 0,
-      lastCheckIn:
-          DateTime.parse(json['lastCheckIn'] as String).toLocal(),
+      lastCheckIn: DateTime.parse(json['lastCheckIn'] as String).toLocal(),
       longestStreak: (json['longestStreak'] as num?)?.toInt() ?? 0,
       alreadyCheckedIn: json['alreadyCheckedIn'] as bool? ?? false,
       message: json['message'] as String? ?? '',
@@ -153,10 +152,7 @@ class UserRepository {
     try {
       await _apiClient.put(
         '/users/me',
-        data: {
-          'streak': streak,
-          'lastCheckIn': lastCheckIn.toIso8601String(),
-        },
+        data: {'streak': streak, 'lastCheckIn': lastCheckIn.toIso8601String()},
       );
     } catch (e) {
       throw Exception('Failed to update streak: $e');
@@ -174,10 +170,7 @@ class UserRepository {
     try {
       final response = await _apiClient.post(
         '/users/me/heatmap',
-        data: {
-          'completedCount': completedCount,
-          'totalCount': totalCount,
-        },
+        data: {'completedCount': completedCount, 'totalCount': totalCount},
       );
       return response.data['data'] as Map<String, dynamic>;
     } catch (e) {
@@ -203,4 +196,3 @@ class UserRepository {
     }
   }
 }
-

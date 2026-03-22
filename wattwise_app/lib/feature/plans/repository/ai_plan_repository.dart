@@ -5,8 +5,9 @@ import 'package:wattwise_app/feature/on_boarding/model/appliance_model.dart';
 import 'package:wattwise_app/feature/on_boarding/model/on_boarding_state.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
 
-final aiPlanRepositoryProvider =
-    Provider((ref) => AiPlanRepository(ApiClient.instance));
+final aiPlanRepositoryProvider = Provider(
+  (ref) => AiPlanRepository(ApiClient.instance),
+);
 
 class AiPlanRepository {
   final ApiClient _client;
