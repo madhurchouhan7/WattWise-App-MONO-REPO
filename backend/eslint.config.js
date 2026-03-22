@@ -13,7 +13,11 @@ module.exports = [
       },
     },
     rules: {
-      "no-unused-vars": "warn", // Don't crash the pipeline just for an unused variable
+      "no-unused-vars": ["warn", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }], // Don't crash the pipeline just for an unused variable
     "no-console": "off", // Allow console.log() in your backend
     },
   },

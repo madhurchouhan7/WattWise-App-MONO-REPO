@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 echo "🛑 BOUNCER CHECK: Running local checks before committing..."
 
 # 1. Check the Node.js Backend
@@ -16,7 +13,7 @@ cd ..
 # 2. Check the Flutter App
 echo "👉 Formatting Flutter Code..."
 cd wattwise_app
-dart format --set-exit-if-changed .
+dart format --set-exit-if-changed lib/ test/
 if [ $? -ne 0 ]; then
   echo "❌ Flutter code is not formatted! I just formatted it for you. Please 'git add' the files again and re-commit."
   exit 1

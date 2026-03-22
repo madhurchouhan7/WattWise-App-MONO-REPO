@@ -2,9 +2,7 @@
 // Health check endpoints for monitoring and diagnostics
 
 const { sendSuccess } = require('../utils/ApiResponse');
-const { asyncHandler } = require('../middleware/errorHandler');
 const cacheService = require('../services/CacheService');
-const loggingMiddleware = require('../middleware/logging.middleware');
 
 class HealthController {
     constructor() {
@@ -113,7 +111,6 @@ class HealthController {
     async liveness(req, res) {
         // Simple check if the application is alive
         const uptime = Date.now() - this.startTime;
-        const isAlive = uptime < 0; // Check if uptime is reasonable
         
         const status = {
             alive: true,
@@ -259,11 +256,9 @@ class HealthController {
 
     async checkDisk() {
         try {
-            const fs = require('fs').promises;
-            const path = require('path');
-            
             // Check disk space for current directory
-            const stats = await fs.stat(process.cwd());
+            // Note: fs.stat(process.cwd()) was here but unused; 
+            // in production, you'd use a proper disk space library.
             
             // Simple disk check (in production, you'd use a proper disk space library)
             const mockDiskUsage = {

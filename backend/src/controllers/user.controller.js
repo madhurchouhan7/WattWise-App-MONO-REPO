@@ -4,14 +4,13 @@
 const { sendSuccess } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { validate } = require('../middleware/validation.middleware');
 const UserService = require('../services/UserService');
 const cacheService = require('../services/CacheService');
 
 const userService = new UserService();
 
 // ─── GET /api/v1/users/me ─────────────────────────────────────────────────────
-exports.getMe = asyncHandler(async (req, res, next) => {
+exports.getMe = asyncHandler(async (req, res, _next) => {
     const cacheKey = cacheService.generateUserKey(req.user._id, 'profile');
 
     // Try to get from cache first
@@ -28,7 +27,7 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PUT /api/v1/users/me ─────────────────────────────────────────────────────
-exports.updateMe = asyncHandler(async (req, res, next) => {
+exports.updateMe = asyncHandler(async (req, res, _next) => {
     const { name, monthlyBudget, currency, avatarUrl, household, planPreferences, activePlan, streak, lastCheckIn, address, onboardingCompleted } = req.body;
 
     // Update profile fields
@@ -69,7 +68,7 @@ exports.updateMe = asyncHandler(async (req, res, next) => {
 
 // ─── GET /api/v1/users/me/active-plan ──────────────────────────────────────────
 // Returns only activePlan — large payload served on-demand, not on every auth refresh.
-exports.getActivePlan = asyncHandler(async (req, res, next) => {
+exports.getActivePlan = asyncHandler(async (req, res, _next) => {
     const cacheKey = cacheService.generateUserKey(req.user._id, 'active-plan');
     let activePlan = await cacheService.get(cacheKey);
 
@@ -83,7 +82,7 @@ exports.getActivePlan = asyncHandler(async (req, res, next) => {
 
 // ─── POST /api/v1/users/me/streak ────────────────────────────────────────────
 // Records a daily check-in, increments streak, and returns the fresh state.
-exports.checkIn = asyncHandler(async (req, res, next) => {
+exports.checkIn = asyncHandler(async (req, res, _next) => {
     const result = await userService.recordCheckIn(req.user._id);
 
     // Invalidate profile cache so next GET /me returns fresh data
@@ -99,7 +98,7 @@ exports.checkIn = asyncHandler(async (req, res, next) => {
 
 // ─── GET /api/v1/users/me/streak ─────────────────────────────────────────────
 // Returns the current streak state without modifying it.
-exports.getStreak = asyncHandler(async (req, res, next) => {
+exports.getStreak = asyncHandler(async (req, res, _next) => {
     const cacheKey = cacheService.generateUserKey(req.user._id, 'streak');
     let streakData = await cacheService.get(cacheKey);
 
@@ -114,7 +113,7 @@ exports.getStreak = asyncHandler(async (req, res, next) => {
 // ─── POST /api/v1/users/me/heatmap ───────────────────────────────────────────
 // Records today's daily action completion intensity and saves to MongoDB.
 // Body: { completedCount: number, totalCount: number }
-exports.updateHeatmap = asyncHandler(async (req, res, next) => {
+exports.updateHeatmap = asyncHandler(async (req, res, _next) => {
     const { completedCount, totalCount } = req.body;
 
     if (typeof completedCount !== 'number' || typeof totalCount !== 'number') {
@@ -137,7 +136,7 @@ exports.updateHeatmap = asyncHandler(async (req, res, next) => {
 // ─── GET /api/v1/users/me/heatmap ────────────────────────────────────────────
 // Returns the heatmap for the requested year-month (default: current month).
 // Query params: year (number), month (1-12 number)
-exports.getHeatmap = asyncHandler(async (req, res, next) => {
+exports.getHeatmap = asyncHandler(async (req, res, _next) => {
     const now = new Date();
     const year = parseInt(req.query.year) || now.getUTCFullYear();
     const month = parseInt(req.query.month) || (now.getUTCMonth() + 1);
@@ -159,25 +158,19 @@ exports.getHeatmap = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PUT /api/v1/users/me/appliances ──────────────────────────────────────────
-exports.updateAppliances = asyncHandler(async (req, res, next) => {
-    const { appliances } = req.body;
-
-    if (!Array.isArray(appliances)) {
-        throw new ApiError(400, 'Appliances must be an array.');
-    }
-
+exports.updateAppliances = asyncHandler(async (_req, _res, _next) => {
     // This endpoint is now deprecated - use appliance controller instead
     throw new ApiError(301, 'This endpoint is deprecated. Use /api/v1/appliances/bulk instead.');
 });
 
 // ─── POST /api/v1/users/me/bills ──────────────────────────────────────────
-exports.addBill = asyncHandler(async (req, res, next) => {
+exports.addBill = asyncHandler(async (_req, _res, _next) => {
     // This endpoint is now deprecated - use bill controller instead
     throw new ApiError(301, 'This endpoint is deprecated. Use /api/v1/bills instead.');
 });
 
 // ─── PATCH /api/v1/users/me/household ─────────────────────────────────────────────
-exports.updateHousehold = asyncHandler(async (req, res, next) => {
+exports.updateHousehold = asyncHandler(async (req, res, _next) => {
     const updatedUser = await userService.updateHousehold(req.user._id, req.body);
 
     // Invalidate cache
@@ -187,7 +180,7 @@ exports.updateHousehold = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/users/me/preferences ─────────────────────────────────────────────
-exports.updatePreferences = asyncHandler(async (req, res, next) => {
+exports.updatePreferences = asyncHandler(async (req, res, _next) => {
     const updatedUser = await userService.updatePreferences(req.user._id, req.body);
 
     // Invalidate cache
@@ -197,25 +190,25 @@ exports.updatePreferences = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/me/device-token ─────────────────────────────────────────────
-exports.addDeviceToken = asyncHandler(async (req, res, next) => {
+exports.addDeviceToken = asyncHandler(async (req, res, _next) => {
     const { token, platform } = req.body;
 
-    const updatedUser = await userService.addDeviceToken(req.user._id, token, platform);
+    await userService.addDeviceToken(req.user._id, token, platform);
 
     sendSuccess(res, 200, 'Device token added.');
 });
 
 // ─── DELETE /api/v1/users/me/device-token ─────────────────────────────────────────────
-exports.removeDeviceToken = asyncHandler(async (req, res, next) => {
+exports.removeDeviceToken = asyncHandler(async (req, res, _next) => {
     const { token } = req.body;
 
-    const updatedUser = await userService.removeDeviceToken(req.user._id, token);
+    await userService.removeDeviceToken(req.user._id, token);
 
     sendSuccess(res, 200, 'Device token removed.');
 });
 
 // ─── POST /api/v1/users/me/complete-onboarding ─────────────────────────────────────────────
-exports.completeOnboarding = asyncHandler(async (req, res, next) => {
+exports.completeOnboarding = asyncHandler(async (req, res, _next) => {
     const updatedUser = await userService.completeOnboarding(req.user._id);
 
     // Invalidate cache
@@ -225,7 +218,7 @@ exports.completeOnboarding = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/users/me/stats ─────────────────────────────────────────────────────
-exports.getUserStats = asyncHandler(async (req, res, next) => {
+exports.getUserStats = asyncHandler(async (req, res, _next) => {
     const cacheKey = cacheService.generateUserKey(req.user._id, 'stats');
 
     // Try to get from cache first
@@ -242,7 +235,7 @@ exports.getUserStats = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/users/me/subscription ─────────────────────────────────────────────
-exports.updateSubscription = asyncHandler(async (req, res, next) => {
+exports.updateSubscription = asyncHandler(async (req, res, _next) => {
     const { tier, expiresAt } = req.body;
 
     const updatedUser = await userService.updateSubscription(req.user._id, tier, expiresAt);
@@ -254,7 +247,7 @@ exports.updateSubscription = asyncHandler(async (req, res, next) => {
 });
 
 // ─── DELETE /api/v1/users/me ─────────────────────────────────────────────────────
-exports.deleteAccount = asyncHandler(async (req, res, next) => {
+exports.deleteAccount = asyncHandler(async (req, res, _next) => {
     await userService.deleteAccount(req.user._id);
 
     // Clear all user-related cache
@@ -264,7 +257,7 @@ exports.deleteAccount = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/users/search ─────────────────────────────────────────────────────
-exports.searchUsers = asyncHandler(async (req, res, next) => {
+exports.searchUsers = asyncHandler(async (req, res, _next) => {
     const { q, page = 1, limit = 10 } = req.query;
 
     if (!q) {
@@ -279,7 +272,7 @@ exports.searchUsers = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/users/:id ─────────────────────────────────────────────────────
-exports.getUserById = asyncHandler(async (req, res, next) => {
+exports.getUserById = asyncHandler(async (req, res, _next) => {
     const user = await userService.getUserById(req.params.id, {
         select: 'name email subscriptionTier createdAt'
     });
@@ -292,14 +285,14 @@ exports.getUserById = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/export ─────────────────────────────────────────────────────
-exports.exportUserData = asyncHandler(async (req, res, next) => {
+exports.exportUserData = asyncHandler(async (req, res, _next) => {
     const exportData = await userService.exportUserData(req.user._id);
 
     sendSuccess(res, 200, 'User data exported.', exportData);
 });
 
 // ─── GET /api/v1/users/activity ─────────────────────────────────────────────────────
-exports.getUserActivity = asyncHandler(async (req, res, next) => {
+exports.getUserActivity = asyncHandler(async (req, res, _next) => {
     const { page = 1, limit = 20 } = req.query;
 
     const activities = await userService.getUserActivity(req.user._id, {
@@ -310,7 +303,7 @@ exports.getUserActivity = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/verify-email ─────────────────────────────────────────────────────
-exports.verifyEmail = asyncHandler(async (req, res, next) => {
+exports.verifyEmail = asyncHandler(async (req, res, _next) => {
     const { token } = req.body;
 
     const result = await userService.verifyEmail(token);
@@ -319,7 +312,7 @@ exports.verifyEmail = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/forgot-password ─────────────────────────────────────────────────────
-exports.forgotPassword = asyncHandler(async (req, res, next) => {
+exports.forgotPassword = asyncHandler(async (req, res, _next) => {
     const { email } = req.body;
 
     await userService.forgotPassword(email);
@@ -328,7 +321,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/reset-password ─────────────────────────────────────────────────────
-exports.resetPassword = asyncHandler(async (req, res, next) => {
+exports.resetPassword = asyncHandler(async (req, res, _next) => {
     const { token, newPassword } = req.body;
 
     const result = await userService.resetPassword(token, newPassword);
@@ -339,14 +332,14 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 // ─── Admin endpoints ─────────────────────────────────────────────────────
 
 // ─── GET /api/v1/users/admin/stats ─────────────────────────────────────────────────────
-exports.getAdminStats = asyncHandler(async (req, res, next) => {
+exports.getAdminStats = asyncHandler(async (req, res, _next) => {
     const stats = await userService.getAdminStats();
 
     sendSuccess(res, 200, 'Admin stats fetched.', stats);
 });
 
 // ─── GET /api/v1/users/admin/users ─────────────────────────────────────────────────────
-exports.getAllUsers = asyncHandler(async (req, res, next) => {
+exports.getAllUsers = asyncHandler(async (req, res, _next) => {
     const { page = 1, limit = 20, tier, status, search } = req.query;
 
     const filters = {};
@@ -363,7 +356,7 @@ exports.getAllUsers = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/users/admin/users/:id/status ─────────────────────────────────────────────
-exports.updateUserStatus = asyncHandler(async (req, res, next) => {
+exports.updateUserStatus = asyncHandler(async (req, res, _next) => {
     const { status } = req.body;
 
     const updatedUser = await userService.updateUserStatus(req.params.id, status);
@@ -375,7 +368,7 @@ exports.updateUserStatus = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/users/admin/users/:id/impersonate ─────────────────────────────────────────────
-exports.impersonateUser = asyncHandler(async (req, res, next) => {
+exports.impersonateUser = asyncHandler(async (req, res, _next) => {
     const user = await userService.impersonateUser(req.params.id);
 
     sendSuccess(res, 200, 'User impersonation started.', user);

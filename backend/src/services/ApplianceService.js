@@ -246,7 +246,7 @@ class ApplianceService extends BaseService {
 
     // ─── Analytics and Reporting ─────────────────────────────────────────────
 
-    async getConsumptionTrends(userId, period = 'monthly', months = 12) {
+    async getConsumptionTrends(userId, period = 'monthly', _months = 12) {
         // This would typically involve time-series analysis
         // For now, return basic consumption data
         const summary = await this.repository.getTotalConsumption(userId);

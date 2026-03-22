@@ -5,10 +5,9 @@ const Address = require('../models/Address.model');
 const { sendSuccess } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { validate } = require('../middleware/validation.middleware');
 
 // ─── POST /api/v1/addresses ─────────────────────────────────────────────────────
-exports.createAddress = asyncHandler(async (req, res, next) => {
+exports.createAddress = asyncHandler(async (req, res, _next) => {
     const { state, city, discom, lat, lng, isPrimary } = req.body;
     
     // Create new address
@@ -26,7 +25,7 @@ exports.createAddress = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/addresses ─────────────────────────────────────────────────────
-exports.getAddresses = asyncHandler(async (req, res, next) => {
+exports.getAddresses = asyncHandler(async (req, res, _next) => {
     const addresses = await Address.find({ 
         userId: req.user._id, 
         isActive: true 
@@ -36,7 +35,7 @@ exports.getAddresses = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/addresses/:id ─────────────────────────────────────────────────────
-exports.getAddress = asyncHandler(async (req, res, next) => {
+exports.getAddress = asyncHandler(async (req, res, _next) => {
     const address = await Address.findOne({ 
         _id: req.params.id, 
         userId: req.user._id, 
@@ -51,7 +50,7 @@ exports.getAddress = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/addresses/:id ─────────────────────────────────────────────────────
-exports.updateAddress = asyncHandler(async (req, res, next) => {
+exports.updateAddress = asyncHandler(async (req, res, _next) => {
     const { state, city, discom, lat, lng, isPrimary } = req.body;
     
     const address = await Address.findOneAndUpdate(
@@ -76,7 +75,7 @@ exports.updateAddress = asyncHandler(async (req, res, next) => {
 });
 
 // ─── DELETE /api/v1/addresses/:id ─────────────────────────────────────────────────────
-exports.deleteAddress = asyncHandler(async (req, res, next) => {
+exports.deleteAddress = asyncHandler(async (req, res, _next) => {
     const address = await Address.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, isActive: true },
         { isActive: false },
@@ -91,7 +90,7 @@ exports.deleteAddress = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/addresses/:id/primary ─────────────────────────────────────────────
-exports.setPrimaryAddress = asyncHandler(async (req, res, next) => {
+exports.setPrimaryAddress = asyncHandler(async (req, res, _next) => {
     // First, unset all primary addresses for this user
     await Address.updateMany(
         { userId: req.user._id, isPrimary: true },

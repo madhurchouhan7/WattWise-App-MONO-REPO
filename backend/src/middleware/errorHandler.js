@@ -7,13 +7,13 @@ const { z } = require('zod');
 /**
  * Enhanced error handler with better error categorization and logging
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   const isProduction = process.env.NODE_ENV === "production";
 
   // Determine error type and status code
-  let statusCode = 500;
-  let message = "Internal Server Error";
-  let errorCode = "INTERNAL_ERROR";
+  let statusCode;
+  let message;
+  let errorCode;
   let details = null;
 
   // Handle different error types
@@ -162,7 +162,7 @@ const notFoundHandler = (req, res, next) => {
 /**
  * Development error handler for better debugging
  */
-const developmentErrorHandler = (err, req, res, next) => {
+const developmentErrorHandler = (err, req, res, _next) => {
   const statusCode = err.statusCode || 500;
 
   console.error('[DEV ERROR]', {

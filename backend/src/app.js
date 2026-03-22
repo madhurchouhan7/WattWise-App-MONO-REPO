@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const { initFirebase } = require('../config/firebase');
 const connectDB = require('../config/db');
-const { errorHandler, asyncHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { sanitizeInput, preventNoSQLInjection, contentSecurityPolicy } = require('./middleware/security.middleware');
 const { rateLimiters, rateLimitStatus } = require('./middleware/rateLimit.middleware');
 const { versionMiddleware } = require('./middleware/apiVersioning');

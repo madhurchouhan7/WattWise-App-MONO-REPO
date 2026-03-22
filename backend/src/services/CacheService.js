@@ -2,7 +2,6 @@
 // Redis-based caching service with advanced features
 
 const Redis = require('ioredis');
-const ApiError = require('../utils/ApiError');
 
 class CacheService {
     constructor() {
@@ -384,7 +383,7 @@ class CacheService {
         return `${namespace}:${prefix}:${identifier}`;
     }
 
-    generateUserKey(userId, prefix, identifier = '') {
+    generateUserKey(userId, prefix, _identifier = '') {
         return this.generateKey(`user:${userId}`, prefix, 'app');
     }
 

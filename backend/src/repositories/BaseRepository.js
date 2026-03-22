@@ -13,7 +13,7 @@ class BaseRepository {
             const document = await this.model.create(data);
             return document;
         } catch (error) {
-            throw new Error(`Failed to create ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to create ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -31,7 +31,7 @@ class BaseRepository {
             
             return await query;
         } catch (error) {
-            throw new Error(`Failed to find ${this.model.modelName} by ID: ${error.message}`);
+            throw new Error(`Failed to find ${this.model.modelName} by ID: ${error.message}`, { cause: error });
         }
     }
 
@@ -53,7 +53,7 @@ class BaseRepository {
             
             return await query;
         } catch (error) {
-            throw new Error(`Failed to find ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to find ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -83,7 +83,7 @@ class BaseRepository {
             
             return await query;
         } catch (error) {
-            throw new Error(`Failed to find ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to find ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -109,7 +109,7 @@ class BaseRepository {
             
             return await query;
         } catch (error) {
-            throw new Error(`Failed to update ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to update ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -120,7 +120,7 @@ class BaseRepository {
                 ...options
             });
         } catch (error) {
-            throw new Error(`Failed to update ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to update ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -131,7 +131,7 @@ class BaseRepository {
                 ...options
             });
         } catch (error) {
-            throw new Error(`Failed to update ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to update ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -142,7 +142,7 @@ class BaseRepository {
             }
             return await this.model.findByIdAndDelete(id);
         } catch (error) {
-            throw new Error(`Failed to delete ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to delete ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -153,7 +153,7 @@ class BaseRepository {
             }
             return await this.model.deleteOne(filter);
         } catch (error) {
-            throw new Error(`Failed to delete ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to delete ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -164,7 +164,7 @@ class BaseRepository {
             }
             return await this.model.deleteMany(filter);
         } catch (error) {
-            throw new Error(`Failed to delete ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to delete ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -174,7 +174,7 @@ class BaseRepository {
         try {
             return await this.model.aggregate(pipeline);
         } catch (error) {
-            throw new Error(`Failed to aggregate ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to aggregate ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -182,7 +182,7 @@ class BaseRepository {
         try {
             return await this.model.countDocuments(filter);
         } catch (error) {
-            throw new Error(`Failed to count ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to count ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -190,7 +190,7 @@ class BaseRepository {
         try {
             return await this.model.distinct(field, filter);
         } catch (error) {
-            throw new Error(`Failed to get distinct ${field} values: ${error.message}`);
+            throw new Error(`Failed to get distinct ${field} values: ${error.message}`, { cause: error });
         }
     }
 
@@ -222,7 +222,7 @@ class BaseRepository {
                 }
             };
         } catch (error) {
-            throw new Error(`Failed to find ${this.model.modelName}s with pagination: ${error.message}`);
+            throw new Error(`Failed to find ${this.model.modelName}s with pagination: ${error.message}`, { cause: error });
         }
     }
 
@@ -232,7 +232,7 @@ class BaseRepository {
         try {
             return await this.model.insertMany(dataArray);
         } catch (error) {
-            throw new Error(`Failed to bulk create ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to bulk create ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -248,7 +248,7 @@ class BaseRepository {
 
             return await this.model.bulkWrite(bulkOps);
         } catch (error) {
-            throw new Error(`Failed to bulk update ${this.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to bulk update ${this.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -258,7 +258,7 @@ class BaseRepository {
         try {
             return await this.model.exists(filter);
         } catch (error) {
-            throw new Error(`Failed to check if ${this.model.modelName} exists: ${error.message}`);
+            throw new Error(`Failed to check if ${this.model.modelName} exists: ${error.message}`, { cause: error });
         }
     }
 
@@ -272,11 +272,11 @@ class BaseRepository {
             
             return document;
         } catch (error) {
-            throw new Error(`Failed to find or create ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to find or create ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
-    async updateOrCreate(filter, updateData, createData = {}) {
+    async updateOrCreate(filter, updateData, _createData = {}) {
         try {
             const document = await this.updateOne(filter, updateData, { upsert: true });
             
@@ -288,7 +288,7 @@ class BaseRepository {
             // Document was updated, fetch it
             return await this.findOne(filter);
         } catch (error) {
-            throw new Error(`Failed to update or create ${this.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to update or create ${this.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 }

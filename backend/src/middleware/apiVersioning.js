@@ -21,7 +21,7 @@ class ApiVersioning {
         }
 
         // Try to get version from URL path
-        const pathMatch = req.path.match(/^\/api\/([^\/]+)/);
+        const pathMatch = req.path.match(/^\/api\/([^/]+)/);
         if (pathMatch && apiVersioning.supportedVersions.includes(pathMatch[1])) {
             return pathMatch[1];
         }
@@ -125,7 +125,7 @@ class ApiVersioning {
         // V1 response format (legacy)
         if (data && typeof data === 'object') {
             // Remove V2 specific fields
-            const { meta, links, ...v1Data } = data;
+            const { meta: _meta, links: _links, ...v1Data } = data;
             return v1Data;
         }
         return data;

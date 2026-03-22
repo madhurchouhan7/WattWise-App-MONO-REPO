@@ -62,7 +62,7 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
                         percentage: 22
                      },
                      efficiencyScore: 78,
-                     keyActions: (state.strategies && state.strategies.length > 0 ? state.strategies : [{ actionSummary: "Follow this action", fullDescription: "Save money effortlessly", projectedSavings: 0 }]).map((s, i) => ({
+                     keyActions: (state.strategies && state.strategies.length > 0 ? state.strategies : [{ actionSummary: "Follow this action", fullDescription: "Save money effortlessly", projectedSavings: 0 }]).map((s, _i) => ({
                          priority: "high",
                          appliance: "Appliance",
                          action: s.actionSummary || "Follow this action",

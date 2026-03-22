@@ -13,7 +13,7 @@ class BaseService {
             const document = await this.repository.create(data);
             return document;
         } catch (error) {
-            throw new Error(`Failed to create ${this.repository.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to create ${this.repository.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -27,7 +27,7 @@ class BaseService {
             
             return document;
         } catch (error) {
-            throw new Error(`Failed to find ${this.repository.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to find ${this.repository.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -36,7 +36,7 @@ class BaseService {
             const document = await this.repository.findOne(filter, options);
             return document;
         } catch (error) {
-            throw new Error(`Failed to find ${this.repository.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to find ${this.repository.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -45,7 +45,7 @@ class BaseService {
             const documents = await this.repository.find(filter, options);
             return documents;
         } catch (error) {
-            throw new Error(`Failed to find ${this.repository.model.modelName}s: ${error.message}`);
+            throw new Error(`Failed to find ${this.repository.model.modelName}s: ${error.message}`, { cause: error });
         }
     }
 
@@ -59,7 +59,7 @@ class BaseService {
             
             return document;
         } catch (error) {
-            throw new Error(`Failed to update ${this.repository.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to update ${this.repository.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -73,7 +73,7 @@ class BaseService {
             
             return document;
         } catch (error) {
-            throw new Error(`Failed to delete ${this.repository.model.modelName}: ${error.message}`);
+            throw new Error(`Failed to delete ${this.repository.model.modelName}: ${error.message}`, { cause: error });
         }
     }
 
@@ -84,7 +84,7 @@ class BaseService {
             const result = await this.repository.findWithPagination(filter, pagination, options);
             return result;
         } catch (error) {
-            throw new Error(`Failed to find ${this.repository.model.modelName}s with pagination: ${error.message}`);
+            throw new Error(`Failed to find ${this.repository.model.modelName}s with pagination: ${error.message}`, { cause: error });
         }
     }
 

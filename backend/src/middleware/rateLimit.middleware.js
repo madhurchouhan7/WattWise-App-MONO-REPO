@@ -3,7 +3,6 @@
 
 const rateLimit = require('express-rate-limit');
 const Redis = require('ioredis');
-const ApiError = require('../utils/ApiError');
 
 // Import the ipKeyGenerator helper from express-rate-limit
 const { ipKeyGenerator } = require('express-rate-limit');
@@ -18,7 +17,7 @@ try {
         console.warn('Redis connection failed, falling back to memory store:', err.message);
         redisClient = null;
     });
-} catch (error) {
+} catch (_error) {
     console.warn('Redis not available, using memory store for rate limiting');
 }
 
@@ -201,7 +200,7 @@ const rateLimitStatus = (req, res, next) => {
     res.on('finish', () => {
         const rateLimit = res.get('X-RateLimit-Limit');
         const rateLimitRemaining = res.get('X-RateLimit-Remaining');
-        const rateLimitReset = res.get('X-RateLimit-Reset');
+        const _rateLimitReset = res.get('X-RateLimit-Reset');
 
         if (rateLimit) {
             console.log(`Rate limit status for ${req.ip}: ${rateLimitRemaining}/${rateLimit}`);

@@ -154,8 +154,8 @@ class UserService extends BaseService {
         let streak = user.streak || 0;
         let longestStreak = user.longestStreak || 0;
         const lastCheckIn = user.lastCheckIn;
-        let alreadyCheckedIn = false;
-        let message = 'Check-in recorded!';
+        let alreadyCheckedIn;
+        let message;
 
         if (lastCheckIn) {
             const lastDay = new Date(Date.UTC(
@@ -382,7 +382,7 @@ class UserService extends BaseService {
 
     // ─── Email Verification ─────────────────────────────────────────────────
 
-    async verifyEmail(token) {
+    async verifyEmail(_token) {
         // This would typically verify a token and update user status
         // For now, return a placeholder
         return {
@@ -393,7 +393,7 @@ class UserService extends BaseService {
 
     // ─── Password Management ─────────────────────────────────────────────────
 
-    async forgotPassword(email) {
+    async forgotPassword(_email) {
         // This would typically send a password reset email
         // For now, return a placeholder
         return {
@@ -401,7 +401,7 @@ class UserService extends BaseService {
         };
     }
 
-    async resetPassword(token, newPassword) {
+    async resetPassword(_token, _newPassword) {
         // This would typically verify token and update password
         // For now, return a placeholder
         return {

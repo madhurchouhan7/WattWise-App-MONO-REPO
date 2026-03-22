@@ -188,7 +188,7 @@ class LoggingMiddleware {
         };
 
         // Find matching activity
-        const activityKey = `${method}:${path.replace(/\/[^\/]+$/, '/:id')}`;
+        const activityKey = `${method}:${path.replace(/\/[^/]+$/, '/:id')}`;
         const activity = activityMap[activityKey];
 
         if (!activity) return null;

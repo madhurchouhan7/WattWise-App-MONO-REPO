@@ -5,10 +5,9 @@ const Bill = require('../models/Bill.model');
 const { sendSuccess } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { validate } = require('../middleware/validation.middleware');
 
 // ─── POST /api/v1/bills ─────────────────────────────────────────────────────
-exports.createBill = asyncHandler(async (req, res, next) => {
+exports.createBill = asyncHandler(async (req, res, _next) => {
     const billData = {
         ...req.body,
         userId: req.user._id,
@@ -36,7 +35,7 @@ exports.createBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/bills ─────────────────────────────────────────────────────
-exports.getBills = asyncHandler(async (req, res, next) => {
+exports.getBills = asyncHandler(async (req, res, _next) => {
     const { status, source, page = 1, limit = 10, startDate, endDate } = req.query;
     
     // Build filter
@@ -75,7 +74,7 @@ exports.getBills = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/bills/:id ─────────────────────────────────────────────────────
-exports.getBill = asyncHandler(async (req, res, next) => {
+exports.getBill = asyncHandler(async (req, res, _next) => {
     const bill = await Bill.findOne({ 
         _id: req.params.id, 
         userId: req.user._id, 
@@ -90,7 +89,7 @@ exports.getBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/bills/:id ─────────────────────────────────────────────────────
-exports.updateBill = asyncHandler(async (req, res, next) => {
+exports.updateBill = asyncHandler(async (req, res, _next) => {
     const updateData = { ...req.body };
     
     // Handle date conversions
@@ -121,7 +120,7 @@ exports.updateBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── DELETE /api/v1/bills/:id ─────────────────────────────────────────────────────
-exports.deleteBill = asyncHandler(async (req, res, next) => {
+exports.deleteBill = asyncHandler(async (req, res, _next) => {
     const bill = await Bill.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, isActive: true },
         { isActive: false },
@@ -136,7 +135,7 @@ exports.deleteBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/bills/latest ─────────────────────────────────────────────────────
-exports.getLatestBill = asyncHandler(async (req, res, next) => {
+exports.getLatestBill = asyncHandler(async (req, res, _next) => {
     const bill = await Bill.getLatestByUser(req.user._id);
     
     if (!bill) {
@@ -147,7 +146,7 @@ exports.getLatestBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/bills/stats ─────────────────────────────────────────────────────
-exports.getBillStats = asyncHandler(async (req, res, next) => {
+exports.getBillStats = asyncHandler(async (req, res, _next) => {
     const { months = 12 } = req.query;
     
     const stats = await Bill.getConsumptionStats(req.user._id, parseInt(months));
@@ -174,7 +173,7 @@ exports.getBillStats = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/bills/:id/verify ─────────────────────────────────────────────────────
-exports.verifyBill = asyncHandler(async (req, res, next) => {
+exports.verifyBill = asyncHandler(async (req, res, _next) => {
     const { isVerified, ocrConfidence } = req.body;
     
     const bill = await Bill.findOneAndUpdate(
@@ -196,7 +195,7 @@ exports.verifyBill = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/bills/:id/pay ─────────────────────────────────────────────────────
-exports.markBillAsPaid = asyncHandler(async (req, res, next) => {
+exports.markBillAsPaid = asyncHandler(async (req, res, _next) => {
     const { paymentMethod } = req.body;
     
     const bill = await Bill.findOneAndUpdate(

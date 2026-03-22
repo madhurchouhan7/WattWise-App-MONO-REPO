@@ -5,10 +5,9 @@ const Appliance = require('../models/Appliance.model');
 const { sendSuccess } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { validate } = require('../middleware/validation.middleware');
 
 // ─── POST /api/v1/appliances ─────────────────────────────────────────────────────
-exports.createAppliance = asyncHandler(async (req, res, next) => {
+exports.createAppliance = asyncHandler(async (req, res, _next) => {
     const applianceData = {
         ...req.body,
         userId: req.user._id,
@@ -20,7 +19,7 @@ exports.createAppliance = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/appliances ─────────────────────────────────────────────────────
-exports.getAppliances = asyncHandler(async (req, res, next) => {
+exports.getAppliances = asyncHandler(async (req, res, _next) => {
     const { category, usageLevel } = req.query;
 
     // Build filter
@@ -39,7 +38,7 @@ exports.getAppliances = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/appliances/:id ─────────────────────────────────────────────────────
-exports.getAppliance = asyncHandler(async (req, res, next) => {
+exports.getAppliance = asyncHandler(async (req, res, _next) => {
     const appliance = await Appliance.findOne({
         _id: req.params.id,
         userId: req.user._id,
@@ -54,7 +53,7 @@ exports.getAppliance = asyncHandler(async (req, res, next) => {
 });
 
 // ─── PATCH /api/v1/appliances/:id ─────────────────────────────────────────────────────
-exports.updateAppliance = asyncHandler(async (req, res, next) => {
+exports.updateAppliance = asyncHandler(async (req, res, _next) => {
     const appliance = await Appliance.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, isActive: true },
         {
@@ -72,7 +71,7 @@ exports.updateAppliance = asyncHandler(async (req, res, next) => {
 });
 
 // ─── DELETE /api/v1/appliances/:id ─────────────────────────────────────────────────────
-exports.deleteAppliance = asyncHandler(async (req, res, next) => {
+exports.deleteAppliance = asyncHandler(async (req, res, _next) => {
     const appliance = await Appliance.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, isActive: true },
         { isActive: false },
@@ -87,7 +86,7 @@ exports.deleteAppliance = asyncHandler(async (req, res, next) => {
 });
 
 // ─── POST /api/v1/appliances/bulk ─────────────────────────────────────────────────────
-exports.updateAppliancesBulk = asyncHandler(async (req, res, next) => {
+exports.updateAppliancesBulk = asyncHandler(async (req, res, _next) => {
     const { appliances } = req.body;
 
     if (!Array.isArray(appliances)) {
@@ -112,7 +111,7 @@ exports.updateAppliancesBulk = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/appliances/summary ─────────────────────────────────────────────────────
-exports.getApplianceSummary = asyncHandler(async (req, res, next) => {
+exports.getApplianceSummary = asyncHandler(async (req, res, _next) => {
     const summary = await Appliance.aggregate([
         { $match: { userId: req.user._id, isActive: true } },
         {
@@ -155,7 +154,7 @@ exports.getApplianceSummary = asyncHandler(async (req, res, next) => {
 });
 
 // ─── GET /api/v1/appliances/categories ─────────────────────────────────────────────────────
-exports.getApplianceCategories = asyncHandler(async (req, res, next) => {
+exports.getApplianceCategories = asyncHandler(async (req, res, _next) => {
     const categories = await Appliance.distinct('category', {
         userId: req.user._id,
         isActive: true

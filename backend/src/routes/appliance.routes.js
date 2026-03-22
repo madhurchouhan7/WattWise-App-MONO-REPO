@@ -5,7 +5,6 @@ const express = require('express');
 const router = express.Router();
 
 const authMiddleware = require('../middleware/authMiddleware');
-const { validate } = require('../middleware/validation.middleware');
 const { rateLimiters } = require('../middleware/rateLimit.middleware');
 const applianceController = require('../controllers/appliance.controller');
 
@@ -15,7 +14,7 @@ router.use(authMiddleware);
 // ─── Appliance Routes ─────────────────────────────────────────────────────
 
 // POST /api/v1/appliances - Create new appliance
-router.post('/', 
+router.post('/',
     rateLimiters.strict,
     applianceController.createAppliance
 );
@@ -30,7 +29,7 @@ router.get('/summary', applianceController.getApplianceSummary);
 router.get('/categories', applianceController.getApplianceCategories);
 
 // POST /api/v1/appliances/bulk - Bulk update appliances
-router.post('/bulk', 
+router.post('/bulk',
     rateLimiters.strict,
     applianceController.updateAppliancesBulk
 );
@@ -39,13 +38,13 @@ router.post('/bulk',
 router.get('/:id', applianceController.getAppliance);
 
 // PATCH /api/v1/appliances/:id - Update appliance
-router.patch('/:id', 
+router.patch('/:id',
     rateLimiters.strict,
     applianceController.updateAppliance
 );
 
 // DELETE /api/v1/appliances/:id - Delete appliance
-router.delete('/:id', 
+router.delete('/:id',
     rateLimiters.strict,
     applianceController.deleteAppliance
 );
