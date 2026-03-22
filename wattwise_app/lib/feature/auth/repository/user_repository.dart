@@ -117,10 +117,14 @@ class UserRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> saveActivePlan(Map<String, dynamic>? planData) async {
+  Future<Map<String, dynamic>?> saveActivePlan(
+    Map<String, dynamic>? planData,
+  ) async {
     try {
-      final response =
-          await _apiClient.put('/users/me', data: {'activePlan': planData});
+      final response = await _apiClient.put(
+        '/users/me',
+        data: {'activePlan': planData},
+      );
       final updatedUserData = response.data['data'] as Map<String, dynamic>?;
 
       // Update local cache immediately for synchronous UI transitions
