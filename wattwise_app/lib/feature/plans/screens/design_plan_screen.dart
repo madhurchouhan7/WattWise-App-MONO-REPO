@@ -78,7 +78,9 @@ class _DesignPlanScreenState extends ConsumerState<DesignPlanScreen> {
                       Icons.arrow_back,
                       color: AppColors.textPrimary,
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
                   Expanded(
                     child: Center(

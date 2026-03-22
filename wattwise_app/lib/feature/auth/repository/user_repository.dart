@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
@@ -117,6 +120,20 @@ class UserRepository {
   Future<void> saveActivePlan(Map<String, dynamic>? planData) async {
     try {
       await _apiClient.put('/users/me', data: {'activePlan': planData});
+
+      // Update local cache immediately for synchronous UI transitions
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        final prefs = await SharedPreferences.getInstance();
+        if (planData != null) {
+          await prefs.setString(
+            'active_plan_${firebaseUser.uid}',
+            jsonEncode(planData),
+          );
+        } else {
+          await prefs.remove('active_plan_${firebaseUser.uid}');
+        }
+      }
     } catch (e) {
       throw Exception('Failed to activate plan: $e');
     }

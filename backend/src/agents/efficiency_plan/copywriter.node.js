@@ -71,6 +71,7 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
                      })),
                      slabAlert: {
                         isInDangerZone: false,
+                        currentSlab: "Generic",
                         warning: ""
                      },
                      quickWins: ["Turn off lights", "Use natural ventilation"],
@@ -94,7 +95,7 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
                  keyActions: [
                      { priority: "high", appliance: "General Household", action: "Review energy consumption patterns", impact: "General awareness", estimatedSaving: "₹100/month" }
                  ],
-                 slabAlert: { isInDangerZone: false, warning: "" },
+                 slabAlert: { isInDangerZone: false, currentSlab: "Generic", warning: "" },
                  quickWins: ["Turn off lights", "Use natural ventilation"],
                  monthlyTip: "Keep your AC filters clean for peak performance."
              }

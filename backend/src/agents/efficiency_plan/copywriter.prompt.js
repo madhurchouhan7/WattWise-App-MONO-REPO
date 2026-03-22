@@ -38,6 +38,7 @@ OUTPUT SCHEMA:
   ],
   "slabAlert": {
     "isInDangerZone": false,
+    "currentSlab": "Unknown",
     "warning": ""
   },
   "quickWins": [

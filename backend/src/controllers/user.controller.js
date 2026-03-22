@@ -52,6 +52,7 @@ exports.updateMe = asyncHandler(async (req, res, _next) => {
     if (activePlan !== undefined) {
         await userService.updateActivePlan(req.user._id, activePlan);
         await cacheService.del(cacheService.generateUserKey(req.user._id, 'profile'));
+        await cacheService.del(cacheService.generateUserKey(req.user._id, 'active-plan'));
     }
 
     // Update streak directly if provided (legacy support)

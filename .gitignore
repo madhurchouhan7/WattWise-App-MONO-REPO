@@ -74,3 +74,13 @@ GSD-STYLE.md
 LICENSES
 VERSION
 model_capabilities.yaml
+.claude/
+.codex/
+.cursor/
+.opencode/
+
+.github/agents/
+.github/skills/
+.github/get-shit-done/
+.github/copilot-instructions.md
+.github/gsd-file-manifest.json
