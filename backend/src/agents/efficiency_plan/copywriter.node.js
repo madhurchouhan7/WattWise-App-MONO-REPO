@@ -7,7 +7,7 @@ const { getCopywriterPrompt } = require("./copywriter.prompt");
 
 // Initialize LangChain Gemini Client
 const llm = new ChatGoogleGenerativeAI({
-    modelName: "gemini-2.5-flash", 
+    model: "gemini-2.5-flash", 
     apiKey: process.env.GEMINI_API_KEY || "dummy", 
     temperature: 0.4, // Slight variance for empathetic tone
 });
