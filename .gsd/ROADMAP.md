@@ -52,3 +52,12 @@
 - Invoke the LangGraph `invoke` method.
 - Deprecate `gemini.service.js`.
 - Final end-to-end testing and deployment.
+
+### Phase 6: Fix AI Plan Activation Routing
+**Status**: ✅ Complete
+**Objective**: Fix UX flickering and race conditions during plan activation.
+**Requirements**: REQ-06
+- Backend returns full user on plan update.
+- Frontend repository synchronizes cache and returns data.
+- UI invalidates state and clears staging before navigation.
+
