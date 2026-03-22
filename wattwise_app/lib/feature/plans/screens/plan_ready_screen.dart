@@ -407,9 +407,17 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                       await ref
                                           .read(userRepositoryProvider)
                                           .saveActivePlan(payload);
-                                      // Refreshes global app state natively back to PlansScreen -> ActivePlanScreen branch
+
                                       if (context.mounted) {
+                                        // Clear the staging plan after activation
+                                        await ref
+                                            .read(aiPlanProvider.notifier)
+                                            .clearPlan();
+
+                                        // Invalidate auth state to reflect the new active plan
+                                        // AuthRepository will immediately yield the updated plan from cache.
                                         ref.invalidate(authStateProvider);
+
                                         if (Navigator.of(context).canPop()) {
                                           Navigator.of(
                                             context,
