@@ -61,6 +61,12 @@ exports.updateMe = asyncHandler(async (req, res, _next) => {
         await cacheService.del(cacheService.generateUserKey(req.user._id, 'streak'));
     }
 
+    // If activePlan was updated, return the full profile to sync frontend state immediately.
+    if (activePlan !== undefined) {
+        const userProfile = await userService.getUserProfile(req.user._id);
+        return sendSuccess(res, 200, 'Plan activated.', userProfile);
+    }
+
     // Return a lightweight acknowledgement — NOT the full profile.
     // This keeps PUT /users/me fast (~100ms) and avoids returning the
     // 400KB+ activePlan blob on every preference save.
