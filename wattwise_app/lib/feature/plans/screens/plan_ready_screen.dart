@@ -5,6 +5,7 @@ import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/plans/screens/active_plan_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class PlanReadyScreen extends ConsumerStatefulWidget {
@@ -408,22 +409,31 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                           .read(userRepositoryProvider)
                                           .saveActivePlan(payload);
 
-                                      if (context.mounted) {
-                                        // Clear the staging plan after activation
-                                        await ref
-                                            .read(aiPlanProvider.notifier)
-                                            .clearPlan();
+                                      if (!context.mounted) return;
 
-                                        // Invalidate auth state to reflect the new active plan
-                                        // AuthRepository will immediately yield the updated plan from cache.
-                                        ref.invalidate(authStateProvider);
+                                      // Clear the staging plan after activation
+                                      await ref
+                                          .read(aiPlanProvider.notifier)
+                                          .clearPlan();
 
-                                        if (Navigator.of(context).canPop()) {
-                                          Navigator.of(
-                                            context,
-                                          ).popUntil((route) => route.isFirst);
-                                        }
-                                      }
+                                      if (!context.mounted) return;
+
+                                      // Invalidate auth state to reflect the new active plan
+                                      // AuthRepository will immediately yield the updated plan from cache.
+                                      ref.invalidate(authStateProvider);
+
+                                      // Navigate directly to ActivePlanScreen with the local data
+                                      // Use pushAndRemoveUntil((route) => route.isFirst) to keep the bottom nav
+                                      // but replace the stack above it.
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ActivePlanScreen(
+                                                activePlan: payload,
+                                              ),
+                                        ),
+                                        (route) => route.isFirst,
+                                      );
                                     } catch (e) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(
