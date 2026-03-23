@@ -7,7 +7,7 @@ const mockOrchestrators = {
 };
 
 jest.mock("../src/middleware/authMiddleware", () => (req, _res, next) => {
-  req.user = { id: "test-user" };
+  req.user = { id: "test-user", tenantId: "tenant-test" };
   next();
 });
 
