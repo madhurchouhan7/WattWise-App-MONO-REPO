@@ -6,6 +6,21 @@ const ApiError = require("../../utils/ApiError");
 const memoryService = require("./shared/memoryService");
 const { composeAgentContext } = require("./shared/retrievalPlanner");
 const loggingMiddleware = require("../../middleware/logging.middleware");
+const { runAnalyst } = require("./analyst.node");
+const { runStrategist } = require("./strategist.node");
+const { runCopywriter } = require("./copywriter.node");
+const {
+  MAX_REVISION_ATTEMPTS,
+  buildCrossAgentChallenges,
+  buildFallbackFinalPlan,
+  buildReflection,
+  detectHallucinationRisks,
+  normalizeAnomalies,
+  normalizeStrategies,
+  validateAnomalies,
+  validateStrategies,
+  validateFinalPlan,
+} = require("./shared/phase4Contracts");
 
 const collaborativePlanApp = {
   async invoke(initialState = {}) {
@@ -49,7 +64,74 @@ const collaborativePlanApp = {
       usedFallback: composed.usedFallback,
     });
 
-    const summary = "Collaborative path scaffold is active for phased rollout.";
+    let revisionCount = 0;
+
+    const analystOut = await runAnalyst({
+      ...initialState,
+      memoryContext: composed.contextEvents,
+    });
+    let anomalies = normalizeAnomalies(analystOut?.anomalies || []);
+    let analystValidation = validateAnomalies(anomalies);
+
+    while (!analystValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
+      anomalies = normalizeAnomalies(anomalies);
+      analystValidation = validateAnomalies(anomalies);
+      revisionCount += 1;
+    }
+
+    const strategistOut = await runStrategist({
+      ...initialState,
+      anomalies,
+      memoryContext: composed.contextEvents,
+    });
+    let strategies = normalizeStrategies(strategistOut?.strategies || [], anomalies);
+    let strategistValidation = validateStrategies(strategies);
+
+    while (!strategistValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
+      strategies = normalizeStrategies(strategies, anomalies);
+      strategistValidation = validateStrategies(strategies);
+      revisionCount += 1;
+    }
+
+    const copywriterOut = await runCopywriter({
+      ...initialState,
+      anomalies,
+      strategies,
+      memoryContext: composed.contextEvents,
+    });
+
+    let finalPlan = copywriterOut?.finalPlan || buildFallbackFinalPlan(strategies);
+    let copywriterValidation = validateFinalPlan(finalPlan);
+
+    if (!copywriterValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
+      finalPlan = buildFallbackFinalPlan(strategies);
+      copywriterValidation = validateFinalPlan(finalPlan);
+      revisionCount += 1;
+    }
+
+    const hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
+    const challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
+    const validationIssues = [
+      ...analystValidation.issues,
+      ...strategistValidation.issues,
+      ...copywriterValidation.issues,
+      ...hallucinationRisks,
+    ];
+
+    const analystReflection = buildReflection("analyst", analystValidation.issues, challenges);
+    const strategistReflection = buildReflection(
+      "strategist",
+      [...strategistValidation.issues, ...hallucinationRisks],
+      challenges,
+    );
+    const copywriterReflection = buildReflection("copywriter", copywriterValidation.issues, challenges);
+    const reflections = [analystReflection, strategistReflection, copywriterReflection];
+
+    const qualityScore = Math.round(
+      reflections.reduce((sum, item) => sum + item.score, 0) / Math.max(reflections.length, 1),
+    );
+
+    const summary = finalPlan?.summary || "Collaborative plan generated with reflection and validation gates.";
 
     const memoryEvent = await memoryService.writeEvent({
       ...identity,
@@ -66,6 +148,11 @@ const collaborativePlanApp = {
         summary,
         mode: "collaborative",
         userData,
+        anomaliesCount: anomalies.length,
+        strategiesCount: strategies.length,
+        revisionCount,
+        qualityScore,
+        validationIssues,
       },
     });
 
@@ -85,30 +172,14 @@ const collaborativePlanApp = {
       weatherContext: initialState.weatherContext || "",
       memoryContext: composed.contextEvents,
       memoryEventRefs: [memoryEvent.revisionId],
-      anomalies: [],
-      strategies: [],
-      finalPlan: {
-        planType: "efficiency",
-        title: "Collaborative Efficiency Plan (Phase 2 Scaffold)",
-        status: "draft",
-        summary,
-        estimatedCurrentMonthlyCost: 0,
-        estimatedSavingsIfFollowed: {
-          units: 0,
-          rupees: 0,
-          percentage: 0,
-        },
-        efficiencyScore: null,
-        keyActions: [],
-        slabAlert: {
-          isInDangerZone: false,
-          currentSlab: "unknown",
-          warning: "",
-        },
-        quickWins: [],
-        monthlyTip: "",
-      },
-      qualityScore: null,
+      anomalies,
+      strategies,
+      finalPlan,
+      agentReflections: reflections,
+      validationIssues,
+      crossAgentChallenges: challenges,
+      revisionCount,
+      qualityScore,
       debateRounds: 0,
       runId: memoryMeta.runId,
       threadId: identity.threadId,

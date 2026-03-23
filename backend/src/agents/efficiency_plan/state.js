@@ -32,6 +32,22 @@ const StateAnnotation = Annotation.Root({
     memoryEventRefs: Annotation({
         reducer: (_curr, next) => next || [],
         default: () => []
+    }),
+    agentReflections: Annotation({
+        reducer: (_curr, next) => next || [],
+        default: () => []
+    }),
+    validationIssues: Annotation({
+        reducer: (_curr, next) => next || [],
+        default: () => []
+    }),
+    crossAgentChallenges: Annotation({
+        reducer: (_curr, next) => next || [],
+        default: () => []
+    }),
+    revisionCount: Annotation({
+        reducer: (_curr, next) => Number.isFinite(next) ? next : 0,
+        default: () => 0
     })
 });
 
