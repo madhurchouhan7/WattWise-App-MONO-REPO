@@ -22,6 +22,10 @@ const {
   validateFinalPlan,
 } = require("./shared/phase4Contracts");
 const { runDebateAndConsensus } = require("./shared/debateConsensus");
+const { invokeWithPolicy } = require("./shared/reliabilityPolicy");
+
+const AGENT_TIMEOUT_MS = Number(process.env.PHASE6_AGENT_TIMEOUT_MS || 4000);
+const AGENT_RETRIES = Number(process.env.PHASE6_AGENT_RETRIES || 1);
 
 const collaborativePlanApp = {
   async invoke(initialState = {}) {
@@ -72,11 +76,28 @@ const collaborativePlanApp = {
       copywriter: 0,
       challengeRouting: 0,
     };
+    const degradationEvents = [];
 
-    const analystOut = await runAnalyst({
-      ...initialState,
-      memoryContext: composed.contextEvents,
+    const analystCall = await invokeWithPolicy({
+      label: "analyst",
+      operation: () =>
+        runAnalyst({
+          ...initialState,
+          memoryContext: composed.contextEvents,
+        }),
+      fallbackValue: { anomalies: [] },
+      retries: AGENT_RETRIES,
+      timeoutMs: AGENT_TIMEOUT_MS,
     });
+    const analystOut = analystCall.result;
+    if (analystCall.degraded) {
+      degradationEvents.push({
+        agent: "analyst",
+        attempts: analystCall.attempts,
+        reason: analystCall.error?.message || "unknown",
+      });
+    }
+
     let anomalies = normalizeAnomalies(analystOut?.anomalies || []);
     let analystValidation = validateAnomalies(anomalies);
 
@@ -87,11 +108,27 @@ const collaborativePlanApp = {
       revisionCount += 1;
     }
 
-    const strategistOut = await runStrategist({
-      ...initialState,
-      anomalies,
-      memoryContext: composed.contextEvents,
+    const strategistCall = await invokeWithPolicy({
+      label: "strategist",
+      operation: () =>
+        runStrategist({
+          ...initialState,
+          anomalies,
+          memoryContext: composed.contextEvents,
+        }),
+      fallbackValue: { strategies: [] },
+      retries: AGENT_RETRIES,
+      timeoutMs: AGENT_TIMEOUT_MS,
     });
+    const strategistOut = strategistCall.result;
+    if (strategistCall.degraded) {
+      degradationEvents.push({
+        agent: "strategist",
+        attempts: strategistCall.attempts,
+        reason: strategistCall.error?.message || "unknown",
+      });
+    }
+
     let strategies = normalizeStrategies(
       strategistOut?.strategies || [],
       anomalies,
@@ -105,12 +142,27 @@ const collaborativePlanApp = {
       revisionCount += 1;
     }
 
-    const copywriterOut = await runCopywriter({
-      ...initialState,
-      anomalies,
-      strategies,
-      memoryContext: composed.contextEvents,
+    const copywriterCall = await invokeWithPolicy({
+      label: "copywriter",
+      operation: () =>
+        runCopywriter({
+          ...initialState,
+          anomalies,
+          strategies,
+          memoryContext: composed.contextEvents,
+        }),
+      fallbackValue: { finalPlan: buildFallbackFinalPlan(strategies) },
+      retries: AGENT_RETRIES,
+      timeoutMs: AGENT_TIMEOUT_MS,
     });
+    const copywriterOut = copywriterCall.result;
+    if (copywriterCall.degraded) {
+      degradationEvents.push({
+        agent: "copywriter",
+        attempts: copywriterCall.attempts,
+        reason: copywriterCall.error?.message || "unknown",
+      });
+    }
 
     let finalPlan =
       copywriterOut?.finalPlan || buildFallbackFinalPlan(strategies);
@@ -139,6 +191,16 @@ const collaborativePlanApp = {
       ...copywriterValidation.issues,
       ...hallucinationRisks,
     ];
+
+    if (degradationEvents.length > 0) {
+      validationIssues = [
+        ...validationIssues,
+        ...degradationEvents.map(
+          (item) =>
+            `ops:degraded:${item.agent}:attempts_${item.attempts}:${item.reason}`,
+        ),
+      ];
+    }
 
     while (challenges.length > 0 && revisionCount < MAX_REVISION_ATTEMPTS) {
       strategies = normalizeStrategies(strategies, anomalies);
@@ -241,6 +303,7 @@ const collaborativePlanApp = {
         consensusRounds: consensus.debateRounds,
         consensusDecision,
         unresolvedRoute: consensus.unresolvedRoute,
+        degradationEvents,
         validationIssues,
         challenges,
       },
@@ -277,6 +340,7 @@ const collaborativePlanApp = {
       consensusDecision,
       unresolvedRoute: consensus.unresolvedRoute,
       safeFallbackActivated,
+      degradationEvents,
       runId: memoryMeta.runId,
       threadId: identity.threadId,
     };

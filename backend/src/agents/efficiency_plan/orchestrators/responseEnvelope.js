@@ -17,6 +17,7 @@ function buildPlanResponseEnvelope({
   safeFallbackActivated,
   consensusDecision,
   unresolvedRoute,
+  degradationEvents,
 }) {
   const metadata = {
     executionPath,
@@ -80,6 +81,14 @@ function buildPlanResponseEnvelope({
               tieBreakRule: null,
             },
       unresolvedRoute: unresolvedRoute || "safe_fallback",
+    };
+  }
+
+  if (Array.isArray(degradationEvents) && degradationEvents.length > 0) {
+    metadata.phase6 = {
+      degraded: true,
+      degradedAgentCount: degradationEvents.length,
+      degradationEvents,
     };
   }
 

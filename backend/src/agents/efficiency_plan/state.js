@@ -79,6 +79,10 @@ const StateAnnotation = Annotation.Root({
       passed: false,
     }),
   }),
+  degradationEvents: Annotation({
+    reducer: (_curr, next) => next || [],
+    default: () => [],
+  }),
 });
 
 module.exports = { StateAnnotation };
