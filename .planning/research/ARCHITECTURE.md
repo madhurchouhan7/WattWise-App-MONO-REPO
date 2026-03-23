@@ -1,4 +1,406 @@
-# Architecture Research
+# Architecture Patterns
+
+**Domain:** WattWise v2.1 profile and utility screen integration (Flutter + Node)
+**Researched:** 2026-03-23
+**Confidence:** HIGH
+
+## Recommended Architecture
+
+Use an extension-first architecture, not a rewrite:
+
+1. Keep existing Flutter feature-first structure and Riverpod style.
+2. Keep existing backend controller -> service -> repository layering.
+3. Extend `GET/PUT /users/me` as the profile aggregate contract.
+4. Introduce narrowly scoped endpoints only for utility modules that are list-like or operational (`/notifications`, `/support/*`).
+
+This aligns with existing patterns already in the repo:
+- Auth/profile hydration already flows through `/users/me` and cache fallback.
+- Settings UI is currently local state and can be upgraded to remote-backed state without changing navigation.
+- Backend already supports cached profile reads and partial profile updates.
+
+---
+
+## Integration Points (Best Places to Hook In)
+
+## 1) Flutter Profile Domain (Primary Integration Point)
+
+Create a dedicated profile data slice under `feature/profile` instead of pushing logic into auth providers.
+
+### New component boundary
+
+```text
+feature/profile/
+  model/
+    profile_settings_model.dart
+    utility_resource_model.dart
+  repository/
+    profile_repository.dart
+  provider/
+    profile_provider.dart
+    settings_provider.dart
+    utility_resources_provider.dart
+  screens/
+    edit_profile_screen.dart
+    utility_resource_screen.dart
+```
+
+### Why here
+- Preserves current feature-scoped organization.
+- Avoids overloading `auth_provider.dart` (auth lifecycle stays auth-only).
+- Allows independent invalidation/refresh of profile settings while keeping auth stream stable.
+
+## 2) Flutter Core Network Contract (Secondary Integration Point)
+
+Extend constants and keep all calls through `ApiClient`.
+
+### Modify
+- `core/network/api_constants.dart`
+
+### Add route constants
+- `/users/me`
+- `/users/me/settings` (optional if split endpoint used)
+- `/support/resources`
+- `/support/contact`
+
+### Why
+- Existing app already uses typed constants + singleton `ApiClient` + standard `{ success, message, data }` envelope.
+
+## 3) Backend User Aggregate (Primary Server Integration Point)
+
+Extend `User` document with settings fields and keep profile updates in user service.
+
+### Modify
+- `models/User.model.js`
+- `services/UserService.js`
+- `controllers/user.controller.js`
+- `routes/user.routes.js` (only if adding dedicated settings route)
+
+### Why
+- Current `PUT /users/me` is already the convergence point for mutable user profile state.
+- Existing cache invalidation strategy is centered on user profile keys.
+
+## 4) Backend Utility Content (New Module Boundary)
+
+Utility actions in profile menu should map to either:
+- static deep links (legal pages), or
+- data-backed resources (FAQ/help articles/contact metadata).
+
+Create dedicated support module instead of bloating user controller:
+
+```text
+backend/src/
+  routes/support.routes.js
+  controllers/support.controller.js
+  services/SupportService.js
+  repositories/SupportRepository.js   # only if persisted DB content is needed
+  models/SupportResource.model.js     # optional for CMS-style content
+```
+
+---
+
+## Module Boundaries
+
+| Layer | Owns | Must Not Own |
+|-------|------|--------------|
+| Flutter UI screens/widgets | Rendering, user intents, navigation | API payload shaping, persistence logic |
+| Flutter Riverpod providers | Async state, optimistic updates, invalidation | direct Dio calls in widgets |
+| Flutter repositories | DTO <-> API mapping, endpoint invocation | UI concerns |
+| User controller | HTTP parsing + response envelope | business rules |
+| User service | profile/settings business rules and merge logic | transport concerns |
+| User repository/model | persistence and query projection | API response formatting |
+| Support module | utility resource retrieval and contact workflows | user profile mutation |
+
+---
+
+## Data Flow (Target)
+
+## A) Profile Screen Load
+
+```text
+ProfileScreen
+  -> ref.watch(profileProvider)
+  -> ProfileNotifier.load()
+  -> ProfileRepository.getMe()
+  -> GET /api/v1/users/me
+  -> UserController.getMe -> UserService.getUserProfile
+  -> { success, message, data }
+  -> provider state (AsyncData)
+  -> widgets render (header/stats/settings summary)
+```
+
+## B) Edit Profile Save
+
+```text
+EditProfileScreen submit
+  -> ProfileNotifier.updateProfile(patch)
+  -> optimistic local merge (optional)
+  -> ProfileRepository.updateMe(patch)
+  -> PUT /api/v1/users/me
+  -> UserController.updateMe
+  -> UserService.updateProfile
+  -> cache bust profile key
+  -> ack response
+  -> provider refresh + auth state invalidate (if display identity changed)
+```
+
+## C) Settings Toggle (Utility Preferences)
+
+```text
+SettingsScreen toggle
+  -> SettingsNotifier.setBillReminders(bool)
+  -> local optimistic state update
+  -> ProfileRepository.updateSettings(settingsPatch)
+  -> PUT /users/me (settings field) OR PATCH /users/me/settings
+  -> UserService.updateSettings
+  -> cache bust profile key
+  -> on failure: rollback toggle + show error banner/snackbar
+```
+
+## D) Utility Resources (FAQ, Help, Legal Metadata)
+
+```text
+Utility screen open
+  -> UtilityResourcesNotifier.fetch(type)
+  -> ProfileRepository.getSupportResources(type)
+  -> GET /api/v1/support/resources?type=faq|bill_help|legal
+  -> SupportController/Service
+  -> normalized resource list
+  -> UI list/detail rendering
+```
+
+---
+
+## API Design (Recommended Contracts)
+
+## 1) User Aggregate Response
+
+`GET /api/v1/users/me`
+
+```json
+{
+  "success": true,
+  "message": "User profile fetched.",
+  "data": {
+    "id": "...",
+    "email": "user@example.com",
+    "name": "Aarav",
+    "avatarUrl": "https://...",
+    "monthlyBudget": 3500,
+    "currency": "INR",
+    "address": {
+      "state": "Maharashtra",
+      "city": "Pune",
+      "discom": "MSEDCL",
+      "lat": 18.52,
+      "lng": 73.85
+    },
+    "household": {
+      "peopleCount": 3,
+      "familyType": "Small",
+      "houseType": "Apartment"
+    },
+    "settings": {
+      "notifications": {
+        "billReminders": true,
+        "planAlerts": true,
+        "weeklyInsights": false
+      },
+      "app": {
+        "theme": "light",
+        "units": "kWh",
+        "biometricLock": true
+      },
+      "privacy": {
+        "marketingConsent": false,
+        "dataSharingConsent": false
+      }
+    },
+    "streak": 7,
+    "lastCheckIn": "2026-03-23T06:20:00.000Z",
+    "longestStreak": 14,
+    "onboardingCompleted": true
+  }
+}
+```
+
+## 2) Update Profile + Settings
+
+Prefer single aggregate mutation for compatibility:
+
+`PUT /api/v1/users/me`
+
+```json
+{
+  "name": "Aarav Singh",
+  "avatarUrl": "https://...",
+  "currency": "INR",
+  "settings": {
+    "notifications": {
+      "billReminders": false
+    },
+    "app": {
+      "biometricLock": false
+    }
+  }
+}
+```
+
+Response remains lightweight acknowledgement (existing behavior):
+
+```json
+{
+  "success": true,
+  "message": "Profile updated.",
+  "data": {
+    "updated": true,
+    "updatedAt": "2026-03-23T06:32:00.000Z"
+  }
+}
+```
+
+Optional split endpoint if payload ownership must be explicit:
+- `PATCH /api/v1/users/me/settings`
+
+## 3) Support Resources
+
+`GET /api/v1/support/resources?type=faq`
+
+```json
+{
+  "success": true,
+  "message": "Support resources fetched.",
+  "data": [
+    {
+      "id": "faq_001",
+      "type": "faq",
+      "title": "Why is my bill estimate different?",
+      "content": "...",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## New vs Modified Components
+
+## Flutter - New
+- `wattwise_app/lib/feature/profile/model/profile_settings_model.dart`
+- `wattwise_app/lib/feature/profile/model/utility_resource_model.dart`
+- `wattwise_app/lib/feature/profile/repository/profile_repository.dart`
+- `wattwise_app/lib/feature/profile/provider/profile_provider.dart`
+- `wattwise_app/lib/feature/profile/provider/settings_provider.dart`
+- `wattwise_app/lib/feature/profile/provider/utility_resources_provider.dart`
+- `wattwise_app/lib/feature/profile/screens/edit_profile_screen.dart`
+- `wattwise_app/lib/feature/profile/screens/utility_resource_screen.dart`
+
+## Flutter - Modified
+- `wattwise_app/lib/feature/profile/screens/profile_screen.dart` (wire static menu actions to providers/navigation)
+- `wattwise_app/lib/feature/profile/screens/settings_screen.dart` (replace local bool fields with provider state)
+- `wattwise_app/lib/feature/profile/widgets/profile_header.dart` (consume profile data model instead of auth-only fields)
+- `wattwise_app/lib/feature/profile/widgets/profile_stats_card.dart` (optionally source bills/savings counters from profile aggregate)
+- `wattwise_app/lib/core/network/api_constants.dart` (add support/profile route constants)
+- `wattwise_app/lib/feature/auth/repository/auth_repository.dart` (small: include settings in cached profile map if needed)
+
+## Backend - New
+- `backend/src/routes/support.routes.js`
+- `backend/src/controllers/support.controller.js`
+- `backend/src/services/SupportService.js`
+- `backend/src/models/SupportResource.model.js` (optional; required if resources are DB-managed)
+
+## Backend - Modified
+- `backend/src/models/User.model.js` (add `settings` sub-schema)
+- `backend/src/services/UserService.js` (add `updateSettings`, include settings in projection)
+- `backend/src/controllers/user.controller.js` (accept `settings` patch in `updateMe`)
+- `backend/src/routes/index.js` (mount `/support` routes)
+- `backend/src/middleware/validation.middleware.js` (add schema for settings payload)
+
+---
+
+## Build Order (Dependency-Aware)
+
+## Phase 1: Contract Foundation (Backend First)
+1. Add `settings` schema to `User.model.js` with defaults.
+2. Extend `UserService.updateProfile` or add `updateSettings` merge path.
+3. Accept and validate `settings` in `PUT /users/me`.
+4. Keep response envelope unchanged.
+
+Reason: Frontend can only migrate safely after API contract exists.
+
+## Phase 2: Flutter Data Layer
+1. Add profile/settings models.
+2. Add `profile_repository.dart` with typed `getMe` + `updateMe`.
+3. Add `profile_provider.dart` and `settings_provider.dart` with optimistic update and rollback.
+
+Reason: Isolates network complexity before screen rewiring.
+
+## Phase 3: Screen Wiring (Low-Risk Incremental)
+1. Wire `settings_screen.dart` toggles to `settingsProvider`.
+2. Wire `Edit Profile` action to new edit screen and submit flow.
+3. Update `profile_header.dart` to consume profile provider first, auth fallback second.
+
+Reason: Avoids all-at-once UI migration.
+
+## Phase 4: Utility Resources
+1. Add backend support routes/service (or static adapter first).
+2. Add Flutter utility resource provider + screen.
+3. Connect FAQ/How to read bill/Legal/Contact menu items to real data routes or external links from config.
+
+Reason: Utility module is independent of core profile mutation and can ship later.
+
+## Phase 5: Hardening + Compatibility Checks
+1. Verify auth refresh still works when profile cache contains new settings keys.
+2. Verify cache invalidation (`profile` key) after settings update.
+3. Add tests for partial settings patch merge and unknown field rejection.
+4. Ensure old clients without `settings` field continue to work (defaults from model).
+
+---
+
+## Anti-Breakage Rules
+
+1. Do not change existing response envelope (`success/message/data`).
+2. Keep `/users/me` auth + cache behavior intact; only extend payload.
+3. Keep `authStateProvider` as lifecycle source; profile/settings providers should not replace auth routing logic.
+4. Keep feature ownership clear: profile/settings APIs in user domain, utility content APIs in support domain.
+5. Prefer additive schema changes with defaults to preserve backward compatibility.
+
+---
+
+## Risks and Mitigations
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Overloading auth stream with settings writes | unnecessary auth-driven rebuilds | keep settings in dedicated providers; only invalidate auth when identity fields change |
+| Partial update clobbers nested settings | user preference loss | deep-merge server-side (`notifications`, `app`, `privacy`) |
+| Utility endpoints mixed into user controller | bloated controller and unclear ownership | isolate in support module |
+| Stale profile cache after update | inconsistent UI | bust `profile` cache key and refetch provider after save |
+| Static menu links diverge across app versions | navigation regressions | centralize utility action registry in profile provider/repository |
+
+---
+
+## Sources (Codebase Evidence)
+
+- `.planning/PROJECT.md`
+- `wattwise_app/lib/feature/profile/screens/profile_screen.dart`
+- `wattwise_app/lib/feature/profile/screens/settings_screen.dart`
+- `wattwise_app/lib/feature/auth/repository/auth_repository.dart`
+- `wattwise_app/lib/core/network/api_client.dart`
+- `wattwise_app/lib/core/network/api_constants.dart`
+- `wattwise_app/lib/feature/on_boarding/repository/appliance_repository.dart`
+- `wattwise_app/lib/feature/notifications/providers/notification_provider.dart`
+- `backend/src/routes/user.routes.js`
+- `backend/src/controllers/user.controller.js`
+- `backend/src/services/UserService.js`
+- `backend/src/repositories/UserRepository.js`
+- `backend/src/models/User.model.js`
+- `backend/src/routes/notification.routes.js`
+- `backend/src/controllers/notification.controller.js`
+- `backend/src/routes/index.js`
+- `backend/src/middleware/validation.middleware.js`
+
+---
+*Architecture research for milestone v2.1 profile and utility screen integration.*# Architecture Research
 
 **Domain:** Production-grade collaborative multi-agent orchestration for WattWise efficiency plans
 **Researched:** 2026-03-23

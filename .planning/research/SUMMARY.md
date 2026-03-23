@@ -1,191 +1,168 @@
 # Project Research Summary
 
 **Project:** WattWise
-**Domain:** Production-grade collaborative multi-agent energy planning backend
+**Domain:** Consumer energy app profile utility functionalization (milestone v2.1)
 **Researched:** 2026-03-23
 **Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-WattWise v2.0 is a reliability-first upgrade of an existing LangGraph-based linear planning pipeline into a collaborative multi-agent orchestration system. The research converges on an additive migration strategy: preserve the current API contract and legacy execution path, then introduce a feature-gated collaborative path with persistent shared memory, cross-agent validation, quality gating, and stronger observability. This is the standard expert approach for high-risk orchestration upgrades where regressions are costly.
+WattWise v2.1 is a product-surface milestone: convert profile utility placeholders into reliable, backend-connected features without architectural churn. The research is consistent across stack, feature, architecture, and pitfalls outputs: ship via additive changes on the existing Flutter Riverpod + Dio and Node Express + Zod foundations, using `GET/PUT /users/me` as the primary profile aggregate contract and a small support module for utility resources.
 
-The recommended implementation is not a stack rewrite. Keep Node.js + Express, keep existing LangGraph orchestration foundations, and add Redis-backed LangGraph checkpointing/store, deterministic quality controls, and production telemetry. Pair this with bounded debate and consensus patterns only after core memory, validation, and fail-closed publication behavior are stable. In short: compatibility first, then collaborative intelligence, then optimization.
+The recommended implementation is intentionally minimal-risk. On Flutter, the only required dependency addition is `url_launcher` for legal/support links; all other needs are satisfied by current app patterns. On backend, no required package additions are needed; focus is endpoint completion, validation hardening, and data-contract stability. Build order should stay dependency-aware: API contract first, then Flutter data layer, then UI wiring, then utility resources, then reliability/UAT closure.
 
-The primary risk is false confidence: multiple agents can agree on unsupported claims unless evidence validation, factuality scoring, and publish controls are strict. Secondary risks are memory contamination across threads/users, retry storms during provider incidents, and observability blind spots. Mitigations are clear and should be mandatory: namespace isolation, required thread IDs, single retry owner with budgets, hard loop limits, and correlated trace/log/metric telemetry with auditable gate decisions.
+Primary delivery risks are contract drift, destructive appliance bulk writes, stale legal/FAQ content, and support/legal flows that look complete in UI but lack lifecycle traceability. Mitigation is straightforward and should be mandatory in roadmap planning: contract freeze tests, non-destructive appliance update strategy, versioned content manifest, and auditable support-case and consent events.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Research recommends a targeted additive stack extension around the current backend, not replacement.
+v2.1 should extend the current stack, not replace it.
 
 **Core technologies:**
+- Flutter + Riverpod + Dio: Keep current state/network architecture to minimize migration risk.
+- Node.js + Express + Zod: Reuse existing route/service validation pipeline for profile and support contracts.
+- url_launcher `^6.3.2`: Required to open support/legal channels cross-platform from profile utilities.
 
-- Node.js + Express (keep current runtime, express 5.2.1): API/control surface remains stable while orchestration internals evolve.
-- LangGraph (keep current baseline, 1.2.5): Existing orchestration capability already supports durable, stateful multi-agent patterns.
-- Redis-backed checkpoint/store (add `@langchain/langgraph-checkpoint-redis` 1.0.4): Enables durable thread continuity, replayability, and shared workspace memory.
-
-**Supporting additions (high impact):**
-
-- Reliability policy layer: `cockatiel` for bounded retry/timeout/circuit-breaker behavior.
-- Observability baseline: OpenTelemetry + `prom-client` + `pino`/`pino-http` for trace-metric-log correlation.
-- Test hardening: `supertest`, `testcontainers`, `nock` for contract regression, persistence, and fault-injection scenarios.
-
-**What should remain unchanged (mandatory):**
-
-- Existing linear graph entrypoint/exports in efficiency plan module.
-- Existing state channels and node contracts used by current analyst/strategist/copywriter flow.
-- Existing Express controller/response contract for AI plan generation.
-- Existing Redis/Mongo platform foundations (reuse operational footprint; no datastore migration this milestone).
+**Stack additions and constraints:**
+- Required: Flutter `url_launcher` only.
+- Optional: `flutter_markdown` for richer remote content rendering.
+- Optional backend docs tooling: `@asteasolutions/zod-to-openapi`, `swagger-ui-express`, `openapi-typescript`.
 
 ### Expected Features
 
-The feature research separates launch-critical capabilities from post-baseline differentiators.
+Feature research separates launch-critical table stakes from differentiators.
 
 **Must have (table stakes):**
+- Edit Profile fully functional with validation, save/retry states, and backend persistence.
+- Manage Appliances CRUD hardening with reliable refresh and invalid-state prevention.
+- FAQs with topic/search and direct escalation path into Contact Support.
+- Contact Support baseline form with category, durable submission, ticket reference, and fallback channels.
+- Legal hub with Terms/Privacy/Consent links plus visible version/date metadata.
+- Bill Reading Education v1 with bill anatomy walkthrough and glossary.
+- Solar Calculator v1 with transparent assumption-based range output.
 
-- Persistent shared memory with provenance and revision metadata.
-- Self-reflection plus cross-agent validation before publication.
-- Hard quality gate (>=85) with fail-closed behavior.
-- End-to-end trace transparency for every run.
-- Reliability controls: explicit retries/timeouts/degraded-mode signaling.
+**Should have (differentiators):**
+- Personalized/contextual bill-change explainers.
+- Intent-aware FAQ ranking.
+- Smart support triage with auto-attached context.
+- Appliance health/efficiency nudges.
 
-**Should have (competitive):**
-
-- Structured, bounded debate protocol with explicit resolution outcomes.
-- Weighted specialist consensus (not naive majority voting).
-- Quality score decomposition (factuality/actionability/consistency/safety/personalization).
-- Deterministic replay artifacts for faster incident triage.
-
-**Anti-features to reject in this milestone:**
-
-- Unbounded debate loops.
-- Opaque single-number quality scoring without evidence.
-- Silent partial success or auto-publish on agent failure.
-- Shared mutable memory without provenance/versioning.
-- Hidden synthetic fallback data presented as real output.
-
-**Defer (v2.0.x / v3+):**
-
-- Advanced debate/weighted consensus enhancements can follow baseline stability.
-- Adaptive learned agent weighting and policy simulation should remain v3+ exploration.
+**Defer (v2.2+):**
+- Solar financing optimizer and installer-grade outputs.
+- Full support inbox/threading and advanced personalization layers.
 
 ### Architecture Approach
 
-Architecture should follow a dual-path strangler pattern: keep the legacy graph untouched and introduce a new collaborative graph behind a service facade and feature flags. Roll out in shadow mode first, then canary cohorts, then progressive ramp with a kill switch and config-only rollback.
+Use extension-first architecture centered on clear module ownership. Keep profile mutation in the user aggregate (`/users/me`) and isolate utility resources/contact workflows in a support module (`/support/*`). On Flutter, introduce profile-domain repositories/providers under `feature/profile` and avoid overloading auth providers. This preserves current navigation/auth behavior while enabling independent profile/settings/resource invalidation.
 
 **Major components:**
-
-1. Orchestration facade (`service.js`) - stable controller integration, mode routing, fallback governance.
-2. Collaborative graph subtree - workspace builder, debate/revision nodes, consensus, and quality gates.
-3. Memory/checkpoint adapter - durable thread state with strict `thread_id` discipline.
-4. Contract adapter - guarantees output remains API-compatible with current `finalPlan` shape.
-5. Observability hooks - node-level traces, score/gate events, retries, and route decisions.
+1. Backend user aggregate contract: profile + settings read/write with deep-merge semantics.
+2. Backend support module: FAQ, bill-help, legal metadata, and contact operations.
+3. Flutter profile data layer: models, repository, providers for profile/settings/resources.
+4. Flutter screen wiring: profile menu actions and settings/edit flows connected to real providers.
+5. Reliability/test layer: contract, negative-path, and cache/rollback coverage.
 
 ### Critical Pitfalls
 
-1. **Hallucination leakage via false consensus** - enforce evidence-bound claim schema, verifier node, and separate factuality threshold in gate policy.
-2. **Context drift and memory contamination** - require strict namespace keys (`tenant_id`, `user_id`, `thread_id`), recency/relevance filters, and TTL/invalidation.
-3. **Retry storms and cascading overload** - set a single retry owner, exponential backoff + jitter, and request-level retry budgets with circuit-breaker behavior.
-4. **Non-deterministic debate loops** - enforce max rounds, quorum/tie-break rules, loop detection, and low-variance judge settings.
-5. **Observability gaps** - require correlated IDs and structured events for retrieval, validation, scoring, gate decisions, and retries.
+1. **Contract drift between UI and APIs** - freeze contracts and add per-route integration tests with mobile payload fixtures.
+2. **Destructive appliance bulk writes** - add revision tokens/compare-before-save and prefer patch semantics where possible.
+3. **Unversioned FAQ/legal content** - implement content manifest with version/checksum and explicit cache invalidation.
+4. **UI-only support flow (no durable case lifecycle)** - define ticket schema, case IDs, status transitions, and idempotency.
+5. **Missing consent/legal traceability** - persist acceptance events with version/timestamp/locale and expose audit-export paths.
 
 ## Implications for Roadmap
 
-Based on dependencies and risk concentration, use a 5-phase v2.0 roadmap:
+Based on combined research, use a 5-phase v2.1 structure.
 
-### Phase 1: Compatibility Foundation and Dual-Path Facade
+### Phase 1: Contract Freeze and Navigation Wiring
+**Rationale:** Frontend rewiring is unsafe without stable backend contracts.
+**Delivers:** Profile/settings contract finalization, endpoint matrix, and route-safe menu wiring.
+**Addresses:** Edit Profile baseline, utility entry-point activation.
+**Avoids:** Contract drift, dead menu items, env/auth fragility.
 
-**Rationale:** No safe collaborative rollout exists without a stable integration seam and rollback path.
-**Delivers:** `service.js` orchestration facade, feature flag routing, legacy-default behavior, backward-compatible state key extensions.
-**Addresses:** Contract stability and migration safety.
-**Avoids:** Big-bang rewrite regressions and uncontrolled rollout risk.
+### Phase 2: Appliance Domain Hardening
+**Rationale:** Appliance integrity is dependency-critical for profile trust and future personalization.
+**Delivers:** Non-destructive CRUD semantics, concurrency safeguards, validation guardrails, mutation audit logs.
+**Addresses:** Manage Appliances table stakes.
+**Avoids:** Data-loss regressions from bulk overwrite behavior.
 
-### Phase 2: Persistent Memory and Isolation Controls
+### Phase 3: Utility Content Platform (FAQ, Bill Help, Legal)
+**Rationale:** Content-driven screens can ship independently once contracts are stable.
+**Delivers:** Support resource APIs, versioned content manifest, cache strategy, utility resource provider/screens.
+**Addresses:** FAQs, Bill Reading Education v1, Legal hub.
+**Avoids:** Stale/inconsistent content and legal text drift.
 
-**Rationale:** Shared workspace quality depends on durable and isolated memory before advanced collaboration logic.
-**Delivers:** Redis-backed checkpointer/store, strict thread/user/tenant namespace model, provenance metadata, isolation tests.
-**Addresses:** Table-stakes persistent memory and provenance.
-**Avoids:** Context drift, cross-thread/user contamination.
+### Phase 4: Support Workflow and Compliance Operations
+**Rationale:** Contact/legal features are incomplete without durable operational lifecycles.
+**Delivers:** Structured support case flow, status lifecycle, metadata capture, consent acceptance eventing.
+**Addresses:** Contact Support baseline and legal traceability requirements.
+**Avoids:** Lost tickets and audit/compliance gaps.
 
-### Phase 3: Validation, Debate, and Consensus Core
-
-**Rationale:** Debate/consensus is only valuable after memory foundations and strict schema controls exist.
-**Delivers:** Cross-agent challenge flow, bounded debate rounds, verifier/evidence schema checks, weighted consensus mechanics.
-**Addresses:** Self-validation, cross-agent validation, differentiator-level collaborative quality.
-**Avoids:** Hallucination agreement, consensus deadlocks, schema drift.
-
-### Phase 4: Quality Gate and Reliability Governance
-
-**Rationale:** Production confidence requires deterministic publish policy and incident-safe failure behavior.
-**Delivers:** Score decomposition + >=85 gate enforcement, fail-closed publish rules, retry-budget policies, degraded-mode contract semantics.
-**Addresses:** Hard quality threshold and reliability baseline.
-**Avoids:** Silent fallback masking, retry amplification, low-quality publication.
-
-### Phase 5: Observability, Shadow-to-Canary Rollout, and Hardening
-
-**Rationale:** Full rollout should happen only after telemetry can prove safety and quality.
-**Delivers:** Correlated tracing/logs/metrics, gate outcome dashboards, shadow comparison reports, progressive ramp + kill switch procedures.
-**Addresses:** Trace transparency and operational readiness.
-**Avoids:** Untraceable incidents and slow rollback.
+### Phase 5: Reliability, Telemetry, and UAT Closure
+**Rationale:** Final release quality depends on edge-path resilience, not only happy-path functionality.
+**Delivers:** Unified error envelope handling, rate-limit/retry UX, negative-path test suite, milestone verification checklist closure.
+**Addresses:** Cross-feature production readiness.
+**Avoids:** brittle launches and unresolved UAT gaps.
 
 ### Phase Ordering Rationale
 
-- Memory/isolation must precede debate/consensus to prevent contaminated collaboration.
-- Validation and bounded debate must precede hard gate tuning to avoid scoring noisy artifacts.
-- Reliability and explicit degraded semantics must be in place before broad traffic exposure.
-- Observability and canary controls should gate progressive rollout, not follow it.
+- API and data contracts precede UI wiring to prevent churn.
+- Appliance hardening is early because it affects profile trust and downstream calculators.
+- Content and support/compliance are split so static-resource delivery is not blocked by ops workflow complexity.
+- Reliability closure is last so it validates integrated behavior across all utility surfaces.
+
+### Actionable Requirement Scoping
+
+- Lock v2.1 acceptance criteria to observable user contracts (load, save, error recovery, persistence on reopen).
+- Require a source-of-truth endpoint map with request/response/error schema per utility feature.
+- Scope Solar Calculator to transparent range outputs only; explicitly exclude financing-grade precision.
+- Treat legal/support as workflow requirements (versioning, consent events, case lifecycle), not only UI pages.
+- Add explicit non-functional requirements for cache invalidation, idempotency, and concurrency safety.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
+- **Phase 2:** Concurrency/versioning strategy for appliance updates under multi-session writes.
+- **Phase 4:** Ticketing integration model, SLA/status design, and compliance event retention requirements.
 
-- **Phase 2:** Redis operational shape (Redis 8/Stack modules), checkpoint scaling and retention policies.
-- **Phase 3:** Evidence schema design, deterministic consensus weighting, and anti-injection guardrails.
-- **Phase 4:** Retry budget calibration per provider and safe degraded-mode UX contract.
-
-Phases with standard patterns (can likely skip deep research-phase):
-
-- **Phase 1:** Service facade + feature flag strangler rollout is a mature pattern.
-- **Phase 5 (instrumentation mechanics):** OTEL + structured logging + metric baseline are well-established.
+Phases with standard patterns (can likely skip research-phase):
+- **Phase 1:** Contract freeze and provider-based route wiring are established repo patterns.
+- **Phase 5:** Error normalization and negative-path hardening are standard quality practices.
 
 ## Confidence Assessment
 
-| Area         | Confidence  | Notes                                                                                                                 |
-| ------------ | ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| Stack        | MEDIUM-HIGH | Strong official docs support for LangGraph and OTEL; some package/infrastructure choices need environment validation. |
-| Features     | HIGH        | Internally consistent with milestone intent and existing codebase constraints; clear dependency graph.                |
-| Architecture | HIGH        | Migration strategy and component boundaries are concrete, compatibility-safe, and implementation-ready.               |
-| Pitfalls     | MEDIUM      | Risks are well-known and actionable, but control tuning (thresholds, budgets) requires empirical calibration.         |
+| Area | Confidence | Notes |
+|------|------------|-------|
+| Stack | HIGH | Strong repo alignment and minimal required new dependencies. |
+| Features | MEDIUM-HIGH | Clear table stakes and defer list; some support/legal depth depends on ops decisions. |
+| Architecture | HIGH | Component boundaries and build order are concrete and dependency-aware. |
+| Pitfalls | HIGH | Risks are repository-grounded with direct prevention strategies. |
 
 **Overall confidence:** MEDIUM-HIGH
 
 ### Gaps to Address
 
-- **Consensus calibration data:** Need offline evaluation dataset to set specialist weights and gate thresholds without overfitting.
-- **Redis capability validation:** Confirm target environments satisfy Redis module/version requirements before phase commitment.
-- **Provider failure taxonomy:** Normalize cross-provider error classes for reliable retry/circuit-breaker policy enforcement.
-- **PII handling in memory traces:** Finalize redaction/tokenization standard before long-term persistence is enabled.
+- Solar estimator calibration inputs (tariff/regional assumptions) need product policy before final formula lock.
+- Support platform choice (in-house ticket store vs external provider) must be decided before Phase 4 execution.
+- Consent retention/export policy needs legal confirmation for final compliance scope.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-- https://docs.langchain.com/oss/javascript/langgraph/overview - orchestration and durable execution model
-- https://docs.langchain.com/oss/javascript/langgraph/persistence - thread/checkpoint/store patterns
-- https://opentelemetry.io/docs/languages/js/getting-started/nodejs/ - Node telemetry baseline
-- Internal planning context: `.planning/PROJECT.md`, `.planning/research/STACK.md`, `.planning/research/FEATURES.md`, `.planning/research/ARCHITECTURE.md`, `.planning/research/PITFALLS.md`
+- `.planning/research/STACK.md`
+- `.planning/research/FEATURES.md`
+- `.planning/research/ARCHITECTURE.md`
+- `.planning/research/PITFALLS.md`
+- `.planning/PROJECT.md`
 
 ### Secondary (MEDIUM confidence)
-
-- https://www.npmjs.com/package/@langchain/langgraph-checkpoint-redis - Redis checkpointer requirements and package guidance
-- https://github.com/siimon/prom-client - metrics instrumentation capabilities
-- https://github.com/connor4312/cockatiel - resilience policy primitives
-- https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/ - retry/backoff failure dynamics
-
-### Tertiary (LOW confidence)
-
-- None identified as roadmap-critical; all low-confidence assumptions were converted into explicit gaps/flags.
+- https://www.energy.gov/energysaver/estimating-appliance-and-home-electronic-energy-use
+- https://www.pge.com/en/account/billing-and-assistance/understand-your-bill.html
+- https://www.octopus.energy/help-and-faqs/
+- https://www.energystar.gov/about/federal_tax_credits
+- Pub package index for `url_launcher` and `flutter_markdown`
+- npm package index for `@asteasolutions/zod-to-openapi`, `swagger-ui-express`, `openapi-typescript`
 
 ---
 

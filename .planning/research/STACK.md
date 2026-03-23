@@ -1,141 +1,148 @@
-# Stack Research
+# Technology Stack Delta: Milestone v2.1 Profile Utility Functionalization
 
-**Domain:** Production-grade collaborative multi-agent orchestration for WattWise backend v2.0
+**Project:** WattWise Flutter + Backend
+**Scope:** Solar Calculator, How to Read Bill, FAQs, Contact Support, Legal, Edit Profile, Manage Appliances
 **Researched:** 2026-03-23
-**Confidence:** MEDIUM-HIGH
+**Confidence:** HIGH for baseline reuse, MEDIUM for optional tooling
 
-## Recommended Stack
+## Stack Changes (Required)
 
-### Core Technologies
+Minimal-change recommendation: keep existing app architecture and add only one Flutter dependency.
 
-| Technology                               | Version                                     | Purpose                                                             | Why Recommended                                                                                                                                                              |
-| ---------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node.js + Express (existing)             | Keep current runtime + express@5.2.1        | API entrypoint and controller integration                           | Preserves existing backend contract and avoids migration risk while adding collaborative orchestration behind current endpoints.                                             |
-| LangGraph (existing, keep)               | @langchain/langgraph@1.2.5                  | Multi-agent orchestration runtime                                   | Already integrated in the linear Analyst -> Strategist -> Copywriter pipeline; supports persistence, memory, and durable execution patterns required for collaborative mode. |
-| Redis-backed LangGraph persistence (new) | @langchain/langgraph-checkpoint-redis@1.0.4 | Durable checkpoints + shared memory store for multi-agent workspace | Purpose-built checkpointer/store for LangGraph; enables thread continuity, cross-step recovery, and shared workspace memory without replacing core orchestration.            |
+### Flutter (required)
 
-### Supporting Libraries
+| Package      | Version Constraint | Purpose                                                     | Why                                                                                                |
+| ------------ | ------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| url_launcher | ^6.3.2             | Open email/phone/website/legal links from profile utilities | Required for Contact Support and Legal in a cross-platform way; stable and official plugin family. |
 
-| Library                                   | Version | Purpose                                                            | When to Use                                                                                                                                    |
-| ----------------------------------------- | ------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| @langchain/langgraph-checkpoint           | 1.0.1   | Checkpointer interfaces/types and memory saver compatibility layer | Keep as base dependency and use in tests or local fallback checkpointer flows.                                                                 |
-| cockatiel                                 | 3.2.1   | Resilience policies: retry, timeout, circuit breaker, bulkhead     | Wrap external model calls and any remote tool/API calls in strategist/copywriter/debate nodes for graceful degradation and controlled retries. |
-| @opentelemetry/api                        | 1.9.0   | Tracing API contracts across modules                               | Use to instrument orchestration steps, debate rounds, and quality gate decisions with trace IDs.                                               |
-| @opentelemetry/sdk-node                   | 0.213.0 | Node telemetry SDK                                                 | Initialize once at app bootstrap to emit traces/metrics for collaborative pipeline execution.                                                  |
-| @opentelemetry/auto-instrumentations-node | 0.71.0  | Automatic instrumentation for Express/HTTP and common libs         | Use for low-friction baseline telemetry before adding custom spans for agent/debate semantics.                                                 |
-| @opentelemetry/exporter-trace-otlp-http   | 0.213.0 | OTLP trace export                                                  | Use in production to send traces to your APM/collector backend.                                                                                |
-| @opentelemetry/exporter-metrics-otlp-http | 0.213.0 | OTLP metrics export                                                | Use when central metrics backend is available and you want unified OTEL pipeline.                                                              |
-| prom-client                               | 15.1.3  | Prometheus counters/histograms/gauges                              | Expose milestone-critical SLI metrics: consensus pass rate, quality score distribution, retry counts, gate failures, and latency by node.      |
-| pino                                      | 10.3.1  | Structured JSON logging                                            | Add for machine-parseable production logs linked with trace/span IDs.                                                                          |
-| pino-http                                 | 11.0.0  | HTTP request log middleware for Express                            | Replace or phase out morgan in collaborative routes first, then broaden across API when stable.                                                |
-| supertest                                 | 7.2.2   | HTTP integration testing for Express routes                        | Add route-level tests covering backward-compatible behavior and new collaborative mode toggles.                                                |
-| testcontainers                            | 11.13.0 | Real dependency integration tests (Redis, optionally Mongo) in CI  | Use for production-like persistence/resilience tests (checkpoint recovery, thread memory continuity, restart behavior).                        |
-| nock                                      | 14.0.11 | Deterministic mocking of outbound HTTP/LLM calls in tests          | Use to test debate/consensus/quality gate edge cases without flaky live model calls.                                                           |
+### Backend (required)
 
-### Development Tools
+No new backend package is required for v2.1.
 
-| Tool                                     | Purpose                                       | Notes                                                                                                            |
-| ---------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Jest (existing)                          | Test runner and assertions                    | Keep current Jest setup and add dedicated suites for collaborative graph flows and resilience behavior.          |
-| ESLint (existing)                        | Static quality checks                         | Keep current lint flow; add rules only if needed for new observability/testing files.                            |
-| LangSmith tracing (optional integration) | Deep graph trace visualization and evaluation | Useful for development and tuning; do not make it a hard production dependency if policy/cost constraints apply. |
+Reuse existing stack:
 
-## Installation
+- `express` `^5.2.1` for new routes
+- `zod` `^4.3.6` for request/response shape validation
+- existing auth middleware and `/users/me` route grouping
+
+### Why this is enough
+
+- Networking is already solved (`dio` `^5.9.1` + auth interceptor/retry).
+- State management is already solved (`flutter_riverpod`).
+- Local lightweight persistence is already solved (`shared_preferences`).
+- Appliance/profile storage already exists server-side through current user endpoints.
+
+## Optional Dependencies (Only if you choose richer UX/tooling)
+
+These are optional, not required for milestone completion.
+
+### Flutter optional
+
+| Package          | Version Constraint | When to add                                                    | Risk                                                                |
+| ---------------- | ------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| flutter_markdown | ^0.7.7+1           | If FAQs/Legal pages are served as Markdown from backend or CMS | Low; simple renderer, but introduces formatting ownership concerns. |
+
+### Backend optional
+
+| Package                        | Version Constraint | When to add                                                  | Risk                                                                                              |
+| ------------------------------ | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| @asteasolutions/zod-to-openapi | ^8.5.0             | If you want auto-generated OpenAPI from existing Zod schemas | Low-medium; requires schema annotation discipline.                                                |
+| swagger-ui-express             | ^5.0.1             | If you want hosted API docs route for frontend alignment     | Low; exposes docs surface to secure in non-prod/prod.                                             |
+| openapi-typescript             | ^7.13.0            | If you want generated TS API types in tooling pipelines      | Medium in this repo because Flutter is Dart-first; mostly benefits backend/internal TS utilities. |
+
+## Backend Contracts for v2.1
+
+Recommended route additions under existing authenticated user domain:
+
+### 1) Profile edit flow
+
+- `GET /users/me/profile`
+  - Returns editable profile payload (`name`, `phone`, `address`, `householdSize`, `billingProvider`, etc.)
+- `PATCH /users/me/profile`
+  - Partial update for editable fields
+  - Validate with expanded Zod schema (reuse existing profile/address validators)
+
+### 2) Utility content flow (FAQ, bill help, legal, contact)
+
+- `GET /users/me/utility-content`
+  - Returns versioned content bundle:
+    - `faqItems[]`
+    - `billHelpSections[]`
+    - `legalLinks[]`
+    - `supportChannels[]` (email, phone, site URL)
+  - Include `contentVersion` for cache invalidation in Flutter
+
+### 3) Solar calculator support
+
+Two valid patterns, choose one and keep it consistent:
+
+- Client-compute (preferred for v2.1 speed):
+  - No new endpoint; Flutter computes from locally entered values and optional tariff fetched from existing profile/billing data.
+- Server-compute (if business logic must be centralized):
+  - `POST /users/me/solar/estimate`
+  - Body validated by Zod (`monthlyUnits`, `rooftopArea`, `city`, `tariffPerUnit`, optional `budget`)
+  - Returns deterministic estimate payload and assumptions used
+
+### 4) Manage appliances
+
+- Keep existing `GET/POST/PATCH /users/me/appliances` family.
+- No schema/library change needed unless introducing new appliance categories.
+
+## State Management and Persistence Pattern (v2.1)
+
+Keep current app pattern; do not switch frameworks.
+
+- Repository layer:
+  - Add `ProfileUtilityRepository` using current `ApiClient` conventions.
+- Riverpod providers:
+  - `FutureProvider` for utility content bundle.
+  - `StateNotifier/Notifier` for profile edit form state and optimistic saves.
+- Local cache:
+  - Use `shared_preferences` for content version + last fetched utility content timestamp.
+  - Continue server as source of truth for profile/appliances.
+
+## No-Go Additions (Do Not Add for v2.1)
+
+| Avoid                                                | Why not now                                              | Existing coverage                                                    |
+| ---------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------- |
+| `graphql` client/server stack                        | Large contract migration and infra churn                 | Existing REST routes are already in place and authenticated.         |
+| New Flutter state framework (`bloc`, `getx`, `mobx`) | Rewriting stable Riverpod architecture                   | `flutter_riverpod` already adopted across repositories/providers.    |
+| New local DB for this feature (`isar`, `sqflite`)    | Unneeded complexity for utility pages/forms              | `shared_preferences` + existing server persistence is sufficient.    |
+| WebView-only legal/help integration as default       | Adds platform-specific behavior and maintenance overhead | Use API content and `url_launcher` for external legal/support links. |
+| New backend ORM/query layer                          | High risk with no feature value                          | Existing `mongoose` model/repository path is sufficient.             |
+
+## Integration and Migration Risks
+
+| Area                                            | Risk                                           | Mitigation                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Unpinned Flutter dependencies already present   | Transitive breakage between builds             | Pin newly added deps explicitly and consider gradually pinning existing blank constraints. |
+| Placeholder UI callbacks in profile screen      | Feature appears complete but is non-functional | Wire all callbacks to routes/use-cases first, then add API calls.                          |
+| Utility content drift across app versions       | Stale FAQ/legal/support information            | Use `contentVersion` from backend and invalidate cache by version.                         |
+| Solar estimate inconsistency (client vs server) | Different numbers shown across clients         | Declare one source of truth; if client-compute, freeze formula constants by app version.   |
+
+## Install Commands
 
 ```bash
-# Core collaborative persistence + resilience + observability
-npm install @langchain/langgraph-checkpoint-redis cockatiel \
-  @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node \
-  @opentelemetry/exporter-trace-otlp-http @opentelemetry/exporter-metrics-otlp-http \
-  prom-client pino pino-http
+# Flutter (required)
+flutter pub add url_launcher:^6.3.2
 
-# Testing additions
-npm install -D supertest testcontainers nock
+# Optional backend docs tooling
+npm install @asteasolutions/zod-to-openapi@^8.5.0 swagger-ui-express@^5.0.1
+npm install -D openapi-typescript@^7.13.0
 ```
 
-## Where Each Choice Applies
+## Final Recommendation
 
-| Capability                                      | Recommended Library Choice                                                                    | Apply In                                                                                                                  |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Persistent workspace memory + thread continuity | @langchain/langgraph-checkpoint-redis (RedisSaver + RedisStore)                               | New collaborative graph compile path and runtime config, parallel to existing linear path.                                |
-| Debate protocol + consensus voting              | No new framework; implement as LangGraph nodes/subgraph patterns with existing zod validation | New debate/cross-review nodes in efficiency planning subsystem only.                                                      |
-| Quality gates                                   | zod (existing) + custom scoring module + prom-client metrics                                  | Gate node before final publication; enforce >=85 threshold and publish reason codes/metrics.                              |
-| Observability                                   | OpenTelemetry + prom-client + pino                                                            | App bootstrap (telemetry init), middleware layer (HTTP traces/logs), agent nodes (manual spans + quality/debate metrics). |
-| Resilience/error recovery                       | cockatiel + LangGraph checkpoint replay/restart                                               | Around outbound model/tool calls and around graph invocation boundary for retry/recovery.                                 |
-| Production-grade integration tests              | Jest + supertest + testcontainers + nock                                                      | Backend tests folder; add CI-friendly suites for fault-injection and memory persistence.                                  |
+1. Add only `url_launcher` on Flutter.
+2. Add no required backend dependency.
+3. Implement new routes + Zod schemas for profile utility content and profile edit.
+4. Keep Dio + Riverpod + existing user route patterns unchanged.
 
-## Backward Compatibility Plan (Must Keep Unchanged)
-
-| Keep Unchanged                                                         | Why                                                                                |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Existing linear graph entrypoint and exports in efficiency plan module | Prevents controller/API breakage and allows staged rollout via feature flag.       |
-| Existing state channels used by current nodes                          | Maintains compatibility with current analyst/strategist/copywriter node contracts. |
-| Existing Express routes/controller contract                            | Avoids frontend/mobile/API client changes during architecture evolution.           |
-| Existing Redis and Mongo foundations (ioredis, mongoose)               | Reuses known infra and operational patterns; no datastore migration required.      |
-
-## Alternatives Considered
-
-| Recommended                           | Alternative                              | When to Use Alternative                                                                                                                 |
-| ------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| @langchain/langgraph-checkpoint-redis | @langchain/langgraph-checkpoint-postgres | Use Postgres saver if your org has stronger Postgres ops maturity than Redis Stack modules.                                             |
-| cockatiel                             | p-retry                                  | Use p-retry only for very simple retry-only wrappers; cockatiel is better for circuit breaker + timeout + bulkhead in one policy model. |
-| OpenTelemetry + prom-client           | vendor-specific APM SDK only             | Use vendor SDK directly only if your org is fully locked into one APM and avoids OTEL standardization.                                  |
-
-## What NOT to Use
-
-| Avoid                                                                    | Why                                                                                                                               | Use Instead                                                                                                  |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Replacing LangGraph with a new orchestration framework in this milestone | High migration risk and unnecessary churn; current stack already supports required capabilities with persistence add-ons.         | Keep LangGraph and add Redis checkpointer/store plus new collaborative nodes.                                |
-| Introducing Kafka/NATS for intra-graph coordination now                  | Adds operational complexity before proving product value; not required for v2.0 collaborative behavior in single backend service. | Use LangGraph state + Redis checkpoint/store first; revisit message bus only after proven scale bottlenecks. |
-| Moving tests to a new test runner                                        | Tool churn without clear milestone benefit; Jest already in place.                                                                | Keep Jest and add supertest/testcontainers/nock suites.                                                      |
-| Adding multiple logging stacks simultaneously                            | Duplicative logs and operational noise.                                                                                           | Standardize on pino JSON logs and phase out morgan gradually.                                                |
-
-## Stack Patterns by Variant
-
-**If rollout needs strict safety:**
-
-- Keep legacy linear execution as default.
-- Add collaborative graph behind a feature flag per request/tenant.
-- Write to the same API response shape.
-
-**If high throughput starts stressing synchronous request path:**
-
-- Keep orchestration logic unchanged.
-- Add BullMQ@5.71.0 only for asynchronous plan generation jobs and retries.
-- Expose polling/webhook status to avoid long HTTP blocking.
-
-## Version Compatibility
-
-| Package A                                   | Compatible With                                       | Notes                                                                                                 |
-| ------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| @langchain/langgraph@1.2.5                  | @langchain/langgraph-checkpoint@1.0.1                 | Base checkpointer APIs aligned with current LangGraph generation.                                     |
-| @langchain/langgraph@1.2.5                  | @langchain/langgraph-checkpoint-redis@1.0.4           | Production Redis saver/store available and current.                                                   |
-| @langchain/langgraph-checkpoint-redis@1.0.4 | Redis 8+ (or Redis Stack with RedisJSON + RediSearch) | Critical infrastructure requirement; validate before rollout.                                         |
-| @opentelemetry/sdk-node@0.213.0             | @opentelemetry/api@1.9.0                              | Keep OTEL package family versions aligned to avoid instrumentation mismatch.                          |
-| pino@10.3.1                                 | pino-http@11.0.0                                      | Standard pairing for structured service + request logs.                                               |
-| jest@30.x                                   | supertest@7.2.2, testcontainers@11.13.0               | Works for Node backend integration tests; ensure Docker availability in CI for testcontainers suites. |
-
-## Integration Rationale and Churn Control
-
-1. Preserve existing orchestration shape and add a parallel collaborative graph path.
-2. Prefer additive dependencies over replacements (checkpointing, telemetry, resilience, tests).
-3. Reuse existing Redis presence to avoid new infrastructure category.
-4. Keep API/controller contracts unchanged and enforce compatibility via supertest regression tests.
-5. Defer heavyweight distributed systems additions unless telemetry proves a scaling need.
+This gives full v2.1 functionality with minimal risk and no architectural churn.
 
 ## Sources
 
-- https://docs.langchain.com/oss/javascript/langgraph/overview - LangGraph orchestration and durability positioning (HIGH)
-- https://docs.langchain.com/oss/javascript/langgraph/persistence - threads, checkpoints, store, production checkpointer options (HIGH)
-- https://www.npmjs.com/package/@langchain/langgraph-checkpoint-redis - Redis saver/store capabilities and Redis module requirements (MEDIUM-HIGH)
-- https://opentelemetry.io/docs/languages/js/getting-started/nodejs/ - Node OTEL setup and auto-instrumentation guidance (HIGH)
-- https://github.com/siimon/prom-client - Prometheus metrics client capabilities (MEDIUM)
-- https://github.com/connor4312/cockatiel - resilience policy support (retry/circuit breaker/timeout/bulkhead) (MEDIUM)
-- https://www.npmjs.com/package/testcontainers - Node testcontainers package availability/current version (MEDIUM)
-- https://jestjs.io/docs/getting-started - Jest baseline guidance and compatibility context (HIGH)
-- npm registry version checks executed on 2026-03-23 for package pin recommendations (HIGH)
-
----
-
-_Stack research for: WattWise backend milestone v2.0 collaborative multi-agent system_
-_Researched: 2026-03-23_
+- Pub API (latest stable): `url_launcher` `6.3.2`.
+- npm registry (latest stable): `@asteasolutions/zod-to-openapi` `8.5.0`.
+- npm registry (latest stable): `swagger-ui-express` `5.0.1`.
+- npm registry (latest stable): `openapi-typescript` `7.13.0`.

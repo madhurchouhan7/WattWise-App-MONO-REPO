@@ -1,168 +1,193 @@
-# Feature Research
+# Feature Landscape
 
-**Domain:** Production-grade collaborative multi-agent energy planning backend (milestone v2.0)
+**Domain:** Functional profile utility screens for consumer energy app (milestone v2.1)
 **Researched:** 2026-03-23
-**Confidence:** HIGH
+**Confidence:** MEDIUM-HIGH
 
-## Feature Landscape
+## Scope
 
-### Table Stakes (Users Expect These)
+Target profile utility features for v2.1:
 
-Features users assume exist for a production system. Missing these = system feels untrustworthy.
+- Solar Calculator
+- Bill Reading Education
+- FAQs
+- Contact Support
+- Legal
+- Edit Profile
+- Manage Appliances
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Persistent shared workspace memory with provenance | Users expect all agents to use the same context and not contradict prior turns | HIGH | User-visible: plan references prior facts consistently across steps. Operator-visible: each memory item has source, timestamp, and writer agent metadata. Concerns: memory, orchestration, reliability. |
-| Agent self-reflection and self-validation before publishing output | Users expect the system to catch obvious mistakes before showing recommendations | MEDIUM | User-visible: fewer internally inconsistent recommendations. Operator-visible: per-agent reflection checklist pass/fail logged before publish. Concerns: validation, reliability. |
-| Cross-agent validation gate (challenge + verify) | Users expect claims to be challenged, not blindly accepted by downstream agents | HIGH | User-visible: recommendations include resolved rationale when challenged. Operator-visible: challenge records contain claim, challenger, response, resolution state. Concerns: validation, orchestration. |
-| Quality scoring with hard release threshold (>=85) and fail-closed behavior | Users expect low-quality plans to be blocked rather than shipped | MEDIUM | User-visible: low-confidence plans return actionable retry/fallback messaging, not fabricated certainty. Operator-visible: score components and gate decision are logged for every run. Concerns: validation, reliability. |
-| Execution trace transparency for each run | Users expect explainability for why a plan exists; operators need auditability | MEDIUM | User-visible: concise explanation trail (what changed and why). Operator-visible: full trace graph with node inputs/outputs, retries, and guardrail decisions. Concerns: orchestration, reliability. |
+Goal: move current profile placeholders to functional, backend-connected experiences while preserving existing WattWise UI/UX patterns.
 
-### Differentiators (Competitive Advantage)
+## Table Stakes
 
-Features that materially improve trust and decision quality beyond baseline production expectations.
+These are baseline expectations in utility/energy apps. Missing these usually feels broken to users.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Structured debate protocol with bounded rounds and explicit resolution outcomes | Improves recommendation quality by forcing adversarial testing of weak assumptions | HIGH | User-visible: contentious recommendations include "debated and resolved" justification. Operator-visible: debate transcript with per-round outcome and termination reason (resolved/timeout/escalated). Concerns: validation, orchestration. |
-| Weighted consensus model across specialist agents | Produces better final decisions than majority vote by weighting domain expertise and confidence | HIGH | User-visible: final recommendation prioritizes strongest specialist evidence. Operator-visible: weight vector, confidence inputs, and final consensus math are exposed. Concerns: orchestration, validation. |
-| Quality score decomposition (factuality, actionability, consistency, safety, personalization) | Makes quality actionable instead of opaque, enabling rapid tuning and SLO ownership | MEDIUM | User-visible: transparent reason when plan is blocked (for example, low factuality). Operator-visible: component scores with threshold policy and trend monitoring. Concerns: validation, reliability. |
-| Trace replay mode for post-incident debugging | Reduces MTTR by replaying execution with same inputs and policy version | HIGH | User-visible: improved stability over time from faster fixes. Operator-visible: deterministic replay artifacts linked to incident IDs. Concerns: reliability, orchestration. |
+| Feature Area           | Typical User-Centric Behavior                                                                                                           | Complexity | Dependencies                                                                                            | v2.1 vs Future                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Edit Profile           | User can view and update identity + household metadata, save, and see success/error state immediately                                   | MEDIUM     | `GET/PUT /api/v1/users/me`, auth token, field validation, cache invalidation already present in backend | **v2.1**                                  |
+| Manage Appliances      | User can add/remove appliances, adjust usage level/count/specs, save to backend, and see fresh list on reopen                           | MEDIUM     | Existing appliance screens/providers, `GET/POST /api/v1/appliances`, `/api/v1/appliances/bulk`          | **v2.1 hardening**                        |
+| FAQs                   | Searchable FAQ list grouped by topics (billing, meter, tariff, app issues); each item expandable and easy to scan                       | LOW-MEDIUM | Static CMS JSON or backend FAQ endpoint, local cache, analytics on top queries                          | **v2.1** (static or remote-config-backed) |
+| Contact Support        | In-app contact entry point with category selection, context payload (user id/app version), response expectations, and fallback channels | MEDIUM     | Support ticket endpoint/email relay, auth identity, device/app diagnostics                              | **v2.1 baseline**                         |
+| Legal                  | Dedicated legal hub with Terms, Privacy, Data Consent, and policy version/date; links open reliably and are readable on mobile          | LOW        | Hosted legal docs URLs, deep-link/webview handler, version metadata                                     | **v2.1**                                  |
+| Bill Reading Education | Structured walkthrough of bill sections (due date, usage, rate slab, taxes, arrears), glossary, and visual examples                     | MEDIUM     | Existing bill domain model, optional sample bill payloads, content authoring                            | **v2.1**                                  |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+## Differentiators
 
-Features that seem attractive but degrade correctness, reliability, or operability.
+These are high-value enhancements that can make profile utilities feel intelligent and product-defining.
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Unlimited/open-ended debate loops | "More debate means better answers" | Creates non-terminating orchestration, latency blowups, and cost volatility | Bounded debate rounds with clear stop conditions and escalation policy |
-| Opaque single-number quality score without evidence | "Keep scoring simple" | Hides failure modes and prevents targeted remediation or policy tuning | Multi-component quality scorecard with per-component thresholds |
-| Auto-publish when one agent fails (silent partial success) | "Never block output" | Encourages hallucinated completions and hides degraded quality | Fail-closed for critical validations; explicit degraded-mode response for users |
-| Shared mutable memory without versioning/provenance | "Fast collaboration" | Causes context corruption, race conditions, and un-auditable decisions | Append-first memory model with revision IDs, provenance, and conflict resolution |
-| Hidden fallback/mocked data in production responses | "Keep UX smooth" | Breaks trust and contaminates decision quality when synthetic data is presented as real | Explicit fallback labeling plus operator alerting and retry policy |
+| Feature Area           | Differentiator                                                                                                  | Value Proposition                                                         | Complexity  | Dependencies                                                                         | v2.1 vs Future                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------ | ----------------------------------------- |
+| Solar Calculator       | Personalized savings estimator using user location, tariff, and current appliance profile with confidence range | Converts curiosity into concrete action and creates strong upgrade intent | HIGH        | Tariff logic, geo context, appliance usage baseline, optional irradiance data source | **Future (v2.2+)**                        |
+| Bill Reading Education | Interactive "why this changed" explainer linked to user's latest bill trends                                    | Reduces bill anxiety and support tickets with contextual coaching         | HIGH        | Bill history APIs, explanation rules engine, chart overlays                          | **Future**                                |
+| FAQs                   | Intent-aware FAQ ranking (top by user segment + season + recent behavior)                                       | Increases self-serve resolution and reduces support load                  | MEDIUM      | Analytics events, personalization layer, ranking logic                               | **Future**                                |
+| Contact Support        | Smart pre-fill and triage (auto attach logs + account context + predicted issue category)                       | Faster first-response and fewer back-and-forth tickets                    | MEDIUM-HIGH | Ticketing integration, telemetry consent flow, issue taxonomy                        | **Future (phase after baseline support)** |
+| Manage Appliances      | Appliance health nudges (usage anomaly, replacement threshold, efficiency score)                                | Creates ongoing retention loop and measurable savings outcomes            | HIGH        | Usage inference, benchmarks, notifications pipeline                                  | **Future**                                |
 
-## Expected Behavior Contracts
+## Anti-Features
 
-### User-Visible Behavior
+Features to explicitly avoid in v2.1, even if they sound attractive.
 
-| Capability | Observable Behavior | Testability |
-|------------|---------------------|-------------|
-| Persistent memory | Follow-up plans reuse confirmed prior constraints without re-asking | Given prior accepted constraint, next run references same constraint in final plan |
-| Self-reflection | Agent removes contradictions before final output | Inject contradictory draft; verify contradiction is removed or run is blocked |
-| Cross-validation | Claims can be challenged and either corrected or rejected | Seed false claim; verify challenge event and non-acceptance in final plan |
-| Quality gate | Low-quality output is blocked with actionable message | Force score <85; verify no final publish and user receives retry/degraded guidance |
-| Trace transparency | User can view concise "why this plan" trail | Verify summary trace contains major decisions and quality gate outcome |
+| Anti-Feature                                                                         | Why Teams Ask For It           | Why It Hurts                                 | Better Alternative                                      |
+| ------------------------------------------------------------------------------------ | ------------------------------ | -------------------------------------------- | ------------------------------------------------------- |
+| Fake precision in Solar Calculator (single exact payback number with no uncertainty) | Marketing-friendly output      | Undermines trust when real bills differ      | Show low/med/high ranges and assumptions                |
+| Overly long bill education articles with no guided flow                              | Easier to dump content quickly | Users abandon before understanding           | Progressive, section-by-section explainers with visuals |
+| Contact Support as only external email link                                          | Fastest implementation         | Breaks context handoff and slows resolution  | In-app form first, then fallback channels               |
+| Legal hidden behind tiny footer links                                                | Cleaner-looking UI             | Compliance and trust risk                    | Dedicated Legal screen from profile menu                |
+| Appliance editor that allows invalid states (zero count, missing category)           | Less validation code initially | Causes backend errors and inconsistent plans | Client validation mirroring backend constraints         |
+| Shipping all features as webviews only                                               | Fast to launch                 | Inconsistent UX and weak offline behavior    | Native shells with selective webview fallback           |
 
-### Operator-Visible Behavior
+## Feature Requirements By Area
 
-| Capability | Observable Behavior | Testability |
-|------------|---------------------|-------------|
-| Memory provenance | Every memory write has writer, source, timestamp, and revision | Validate persisted memory records for required metadata fields |
-| Debate protocol observability | Debate rounds, outcomes, and stop reason are recorded | Verify trace contains round count and terminal state |
-| Weighted consensus observability | Weight and confidence inputs are inspectable per decision | Verify run artifact includes weights, inputs, and final aggregate score |
-| Quality scoring observability | Component scores and gate decision are queryable | Verify dashboards/logs expose component breakdown per run ID |
-| Reliability controls | Retries, timeouts, and fallback modes are explicit in traces | Inject provider failure; verify retry path and labeled degraded state |
+### 1) Solar Calculator
 
-## Feature Dependencies
+| Requirement    | User Behavior Contract                                                         | Complexity | Dependencies                                   | Recommendation                                                  |
+| -------------- | ------------------------------------------------------------------------------ | ---------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| Input capture  | User enters roof type/size, monthly bill, location, tariff or utility          | MEDIUM     | Profile address, bill history, tariff defaults | v2.1: lightweight calculator with transparent assumptions       |
+| Output clarity | Show estimated generation (kWh), bill offset (%), savings range, payback range | HIGH       | Calculation model + assumptions library        | v2.1: include range-based estimate only, no financing optimizer |
+| Explainability | User can inspect assumptions (sun hours, losses, tariff)                       | MEDIUM     | Content + model metadata                       | v2.1 required                                                   |
+
+### 2) Bill Reading Education
+
+| Requirement      | User Behavior Contract                                                               | Complexity | Dependencies                    | Recommendation |
+| ---------------- | ------------------------------------------------------------------------------------ | ---------- | ------------------------------- | -------------- |
+| Bill anatomy     | User taps each bill section and sees plain-language meaning + "why it matters"       | MEDIUM     | Content model, bill field map   | v2.1 required  |
+| Glossary         | User can search terms like kWh, fixed charge, subsidy, slab                          | LOW        | Local glossary data             | v2.1 required  |
+| Contextual hints | User sees likely reason for higher bill (seasonal use, tariff slab, appliance usage) | HIGH       | Bill history + insights linkage | Future         |
+
+### 3) FAQs
+
+| Requirement        | User Behavior Contract                                                                         | Complexity | Dependencies                          | Recommendation |
+| ------------------ | ---------------------------------------------------------------------------------------------- | ---------- | ------------------------------------- | -------------- |
+| Fast discovery     | User can search and filter FAQs by topic in <3 taps                                            | LOW        | FAQ data source                       | v2.1 required  |
+| Self-serve handoff | If FAQ doesn't solve issue, user can escalate directly to Contact Support with topic prefilled | LOW-MEDIUM | Navigation + support form integration | v2.1 required  |
+| Adaptive ranking   | Most relevant FAQs appear first for user's context                                             | MEDIUM     | Analytics + ranking logic             | Future         |
+
+### 4) Contact Support
+
+| Requirement       | User Behavior Contract                                                     | Complexity | Dependencies                                  | Recommendation                       |
+| ----------------- | -------------------------------------------------------------------------- | ---------- | --------------------------------------------- | ------------------------------------ |
+| Structured ticket | User selects issue type, adds message/screenshots, submits, gets ticket ID | MEDIUM     | Ticket endpoint/service provider, file upload | v2.1 required                        |
+| Transparent SLA   | User sees expected response time and status updates                        | MEDIUM     | Ticket status sync                            | v2.1 baseline (status can be simple) |
+| Emergency routing | User sees clear alternate channels for urgent power/billing issues         | LOW        | Content + locale config                       | v2.1 required                        |
+
+### 5) Legal
+
+| Requirement        | User Behavior Contract                                          | Complexity | Dependencies                            | Recommendation                     |
+| ------------------ | --------------------------------------------------------------- | ---------- | --------------------------------------- | ---------------------------------- |
+| Policy access      | User opens Terms/Privacy/Consent docs from one legal hub        | LOW        | URLs + webview/deep-link                | v2.1 required                      |
+| Version visibility | User sees last updated date + policy version                    | LOW        | Metadata in docs service                | v2.1 required                      |
+| Consent actions    | User can review and update data-sharing/marketing consent state | MEDIUM     | Existing user consent fields in backend | v2.1 if UX scope allows, else v2.2 |
+
+### 6) Edit Profile
+
+| Requirement         | User Behavior Contract                                                        | Complexity | Dependencies                                   | Recommendation |
+| ------------------- | ----------------------------------------------------------------------------- | ---------- | ---------------------------------------------- | -------------- |
+| Profile editing     | Update name/avatar/address/budget/currency with immediate validation feedback | MEDIUM     | `PUT /api/v1/users/me`, model validators       | v2.1 required  |
+| Preferences editing | Update household/plan preferences without breaking active plan behavior       | MEDIUM     | User service update paths + cache invalidation | v2.1 required  |
+| Reliability states  | Clear loading/success/error states and retry path                             | LOW        | Existing UI patterns (shimmer/snackbar)        | v2.1 required  |
+
+### 7) Manage Appliances
+
+| Requirement           | User Behavior Contract                                          | Complexity | Dependencies                              | Recommendation |
+| --------------------- | --------------------------------------------------------------- | ---------- | ----------------------------------------- | -------------- |
+| CRUD integrity        | Add/edit/remove appliances and persist accurately               | MEDIUM     | Existing appliance repository + endpoints | v2.1 required  |
+| Validation guardrails | Prevent invalid counts, categories, dropdown mismatch           | MEDIUM     | Client validators + backend schema        | v2.1 hardening |
+| State consistency     | Reopen screen and see server-truth state (no ghost local edits) | MEDIUM     | Init provider + robust refresh after save | v2.1 required  |
+
+## Dependency Graph
 
 ```text
-Persistent Shared Memory + Provenance
-    --> Self-Reflection (needs stable prior context)
-    --> Cross-Agent Validation (needs shared claims/evidence)
+Auth + Profile APIs
+    -> Edit Profile
+    -> Contact Support (identity prefill)
 
-Cross-Agent Validation
-    --> Structured Debate Protocol (formalizes challenge-response)
+Appliance APIs
+    -> Manage Appliances
+    -> Solar Calculator personalization
 
-Structured Debate Protocol
-    --> Weighted Consensus (consumes debated positions + confidence)
+Bill APIs + Bill Domain Content
+    -> Bill Reading Education
+    -> FAQ topics
+    -> Solar Calculator assumptions (bill baseline)
 
-Weighted Consensus + Validation Artifacts
-    --> Quality Score Decomposition
+Support Ticketing Integration
+    -> Contact Support
+    -> FAQ escalation
 
-Quality Score Decomposition
-    --> Hard Quality Gate (>=85)
-
-All Above + Runtime Instrumentation
-    --> Execution Trace Transparency
-
-Execution Trace Transparency
-    --> Trace Replay Mode
+Legal Docs Hosting + Consent Fields
+    -> Legal
+    -> Edit Profile consent controls
 ```
 
-### Dependency Notes
+## Milestone Recommendation
 
-- **Self-reflection requires persistent memory:** reflection quality drops if each node only sees local transient state.
-- **Debate requires cross-validation first:** without structured challenge artifacts, debate is ungrounded conversation.
-- **Weighted consensus requires debate outputs:** weighting only works when each position is explicit and evidence-backed.
-- **Hard quality gates require score decomposition:** a single score cannot safely drive block/allow policy in production.
-- **Trace replay depends on full trace transparency:** deterministic replay is impossible without complete inputs, policy versions, and transition logs.
+### Include In v2.1 (Must Ship)
 
-## MVP Definition
+1. Edit Profile fully functional on existing `GET/PUT /api/v1/users/me`.
+2. Manage Appliances reliability hardening and validation pass.
+3. FAQs (topic + search + escalation to support).
+4. Contact Support baseline ticket form and fallback channels.
+5. Legal hub with Terms/Privacy/Consent links and metadata.
+6. Bill Reading Education v1 (guided static + glossary + simple examples).
+7. Solar Calculator v1 (assumption-based range output, not financing-grade).
 
-### Launch With (v2.0 Milestone Core)
+### Defer To Future (v2.2+)
 
-- [ ] Persistent shared memory with provenance and revision IDs
-- [ ] Self-reflection and cross-agent validation before publish
-- [ ] Hard quality gate at >=85 with fail-closed behavior
-- [ ] End-to-end execution traces for every run
-- [ ] Reliability baseline: retries, timeout handling, explicit degraded-mode responses
+1. Solar financing optimizer (loan/EMI, subsidy scenarios, installer marketplace).
+2. AI bill anomaly explainers personalized per billing cycle.
+3. Dynamic FAQ ranking and intent personalization.
+4. Full support inbox with threaded conversation history and push updates.
+5. Advanced appliance efficiency scoring and proactive lifecycle nudges.
 
-### Add After Validation (v2.0.x)
+## Confidence Assessment
 
-- [ ] Structured multi-round debate protocol with escalation paths
-- [ ] Weighted consensus across specialist agents
-- [ ] Score decomposition dashboards and alert thresholds
-
-### Future Consideration (v3+)
-
-- [ ] Adaptive agent weighting learned from historical outcome quality
-- [ ] Policy simulation/sandbox to evaluate threshold changes before production rollout
-
-## Feature Prioritization Matrix
-
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Persistent shared memory + provenance | HIGH | HIGH | P1 |
-| Self-reflection + cross-validation gate | HIGH | HIGH | P1 |
-| Hard quality gate (>=85) | HIGH | MEDIUM | P1 |
-| Execution trace transparency | HIGH | MEDIUM | P1 |
-| Reliability controls (retry/timeout/degraded mode) | HIGH | MEDIUM | P1 |
-| Structured debate protocol | MEDIUM | HIGH | P2 |
-| Weighted consensus | MEDIUM | HIGH | P2 |
-| Score decomposition dashboards | MEDIUM | MEDIUM | P2 |
-| Replay mode | MEDIUM | HIGH | P3 |
-
-**Priority key:**
-- P1: Must have for milestone v2.0 production launch
-- P2: Should have after production baseline is stable
-- P3: Nice to have once observability and policy maturity improve
-
-## Implementation Concern Mapping
-
-| Feature | Memory | Validation | Orchestration | Reliability |
-|---------|--------|------------|---------------|-------------|
-| Persistent shared memory + provenance | Primary | Supports | Primary | Supports |
-| Self-reflection + cross-validation | Depends | Primary | Primary | Supports |
-| Structured debate protocol | Supports | Primary | Primary | Supports |
-| Weighted consensus | Supports | Primary | Primary | Supports |
-| Quality scoring + hard gate | Supports | Primary | Supports | Primary |
-| Execution trace transparency | Supports | Supports | Primary | Primary |
+| Area                                         | Confidence  | Notes                                                                            |
+| -------------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| Edit Profile + Manage Appliances feasibility | HIGH        | Directly supported by current Flutter providers and backend routes/controllers.  |
+| FAQ/Support/Legal baseline expectations      | MEDIUM-HIGH | Strongly consistent across major utility help centers and account apps.          |
+| Solar calculator best-practice output format | MEDIUM      | Reliable formula patterns are clear; regional tariff/financing specifics vary.   |
+| Bill education interaction design            | MEDIUM-HIGH | Utility sites consistently use bill anatomy, glossary, and comparison workflows. |
 
 ## Sources
 
-- Internal project scope: `.planning/PROJECT.md`
-- Internal milestone requirements context: `.planning/REQUIREMENTS.md`
-- Current orchestration baseline: `backend/src/agents/efficiency_plan/index.js`
-- Current state schema baseline: `backend/src/agents/efficiency_plan/state.js`
-- Current node behavior/fallback paths:
-  - `backend/src/agents/efficiency_plan/analyst.node.js`
-  - `backend/src/agents/efficiency_plan/strategist.node.js`
-  - `backend/src/agents/efficiency_plan/copywriter.node.js`
-- Prompt-level current behavioral constraints:
-  - `backend/src/agents/efficiency_plan/analyst.prompt.js`
-  - `backend/src/agents/efficiency_plan/strategist.prompt.js`
-  - `backend/src/agents/efficiency_plan/copywriter.prompt.js`
+### Internal (HIGH confidence)
 
----
-*Feature research for: production-grade collaborative multi-agent planning milestone (v2.0)*
-*Researched: 2026-03-23*
+- `.planning/PROJECT.md`
+- `README.md`
+- `wattwise_app/lib/feature/profile/screens/profile_screen.dart`
+- `wattwise_app/lib/feature/profile/screens/manage_appliances_screen.dart`
+- `wattwise_app/lib/feature/profile/provider/manage_appliances_provider.dart`
+- `wattwise_app/lib/feature/on_boarding/provider/on_boarding_page_5_notifier.dart`
+- `wattwise_app/lib/feature/on_boarding/repository/appliance_repository.dart`
+- `backend/src/routes/user.routes.js`
+- `backend/src/routes/appliance.routes.js`
+- `backend/src/routes/bill.routes.js`
+- `backend/src/controllers/user.controller.js`
+- `backend/src/models/User.model.js`
+
+### External (MEDIUM confidence)
+
+- U.S. DOE Energy Saver: https://www.energy.gov/energysaver/estimating-appliance-and-home-electronic-energy-use
+- PG&E Bill Education: https://www.pge.com/en/account/billing-and-assistance/understand-your-bill.html
+- Octopus Help and FAQs: https://www.octopus.energy/help-and-faqs/
+- ENERGY STAR incentives context: https://www.energystar.gov/about/federal_tax_credits

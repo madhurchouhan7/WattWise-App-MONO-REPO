@@ -1,323 +1,242 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** Production-grade collaborative multi-agent orchestration for LLM planning systems
+**Domain:** Milestone v2.1 functional profile utility features (calculator, CMS-like static pages, support flows, legal docs, appliance management)
 **Researched:** 2026-03-23
-**Confidence:** MEDIUM
+**Confidence:** HIGH (repository-grounded)
 
 ## Critical Pitfalls
 
-### Pitfall 1: Hallucination Leakage Through Multi-Agent Agreement
-
+### Pitfall 1: Contract Drift Between Flutter Screens and Backend Endpoints
 **What goes wrong:**
-Multiple agents repeat the same unverified claim and consensus scoring marks it as high confidence, so fabricated numbers or unsupported advice reaches `finalPlan`.
+Profile utility screens are wired to endpoints that are deprecated, moved, or return different payload shapes, causing silent failures or partially updated UI state.
 
 **Why it happens:**
-Consensus is treated as truth, while source-grounding and evidence quality are not scored separately from fluency.
+The profile area is expanding quickly with mixed old/new patterns. The backend already contains deprecated routes (example: appliance updates via user routes), while Flutter screens can still assume legacy behavior.
 
-**How to avoid:**
-- Add evidence-anchored claims schema: every non-trivial claim requires `evidence_type`, `evidence_ref`, and `confidence`.
-- Add a verifier node that rejects claims lacking evidence or using out-of-bounds values.
-- Use strict structured outputs + runtime schema validation before writing to shared memory.
-- Gate publish with dual threshold: quality >= 85 and factuality >= threshold (separate metric).
+**Consequences:**
+Broken saves, stale UI, confusing success states, and regression loops after backend refactors.
 
-**Warning signs:**
-- Different agents produce near-identical claims with no citations.
-- Output confidence rises while verifier rejection rate is also rising.
-- Sudden spikes in high-savings recommendations not supported by user data.
+**Prevention:**
+- Establish one contract registry for v2.1 profile features (path, method, request, response, error payloads).
+- Add integration tests for every profile utility route using real mobile payload fixtures.
+- Reject legacy endpoint usage in code review and CI (lint/search gate on deprecated routes).
+- Require each new screen PR to include a contract test and error-state screenshot/video.
 
-**Test strategy:**
-- Build adversarial prompts with contradictory or insufficient data and assert verifier blocks publication.
-- Property tests for numeric bounds (e.g., rupee savings cannot exceed feasible monthly baseline).
-- Golden-set evaluation with known-truth scenarios and measured factual precision/recall.
+**Detection (warning signs):**
+- Mobile logs show 301/404/400 for profile flows after deployment.
+- "Saved successfully" UI appears but data does not persist on reload.
+- Frontend code references both old and new route families for the same domain action.
 
 **Phase to address:**
-Phase 2.2 - Structured Debate + Evidence Validation Layer
+**Phase v2.1-1: API Contract Freeze + Navigation Wiring**
 
 ---
 
-### Pitfall 2: Context Drift and Memory Contamination
-
+### Pitfall 2: Destructive Appliance Bulk Updates Causing Data Loss
 **What goes wrong:**
-Agents debate using stale or cross-user memory, causing plans to reference wrong appliance profiles, old anomalies, or unrelated threads.
+Appliance management uses full-list replacement semantics; partial edits from one screen overwrite or deactivate existing appliances unintentionally.
 
 **Why it happens:**
-Weak namespace discipline (`thread_id`, `user_id`, memory namespace), broad memory retrieval, and no recency/relevance filters.
+Bulk endpoints are simple to integrate but dangerous when multiple app states can submit incomplete lists (stale provider state, interrupted sessions, background resume).
 
-**How to avoid:**
-- Enforce strict memory keying with tuple namespace: `(tenant_id, user_id, memory_type)`.
-- Require `thread_id` on every invocation and reject missing IDs at API boundary.
-- Add recency + semantic relevance filters; limit retrieved memories and include provenance tags.
-- Add memory TTL and invalidation policy for derived/ephemeral reasoning artifacts.
+**Consequences:**
+User appliance history disappears, downstream plan quality drops, and trust erodes because data appears to "randomly vanish."
 
-**Warning signs:**
-- Plans mention appliances not present in current `userData`.
-- Same user request produces different context snapshots without data changes.
-- Increasing token use from memory payload growth over time.
+**Prevention:**
+- Introduce optimistic concurrency (revision/version token) for appliance list writes.
+- Split update semantics: patch single appliance vs full-replace bulk operation.
+- Add guardrails in Flutter submit flow: compare local count/hash vs latest server snapshot before overwrite.
+- Add server-side audit trail for appliance mutations with request ID and diff.
 
-**Test strategy:**
-- Cross-thread isolation tests: write memory in thread A, assert unreadable in thread B unless explicitly shared.
-- Cross-user leak tests with synthetic tenants and canary markers.
-- Replay/time-travel tests asserting deterministic context reconstruction from checkpoints.
+**Detection (warning signs):**
+- Sudden drops in appliance counts immediately after app updates.
+- Frequent support complaints about missing appliances after editing one item.
+- Multiple write operations in short time windows with conflicting payload sizes.
 
 **Phase to address:**
-Phase 2.1 - Persistent Memory Foundation and Isolation Controls
+**Phase v2.1-2: Appliance Domain Hardening (CRUD + Concurrency)**
 
 ---
 
-### Pitfall 3: Retry Storms and Cascading Overload
-
+### Pitfall 3: CMS-Like Static Content Without Versioning or Cache Invalidation
 **What goes wrong:**
-Transient model/API failures trigger layered retries (node-level + orchestration-level + queue-level), amplifying traffic and causing latency collapse.
+FAQ/how-to/legal/support content renders stale, mismatched, or inconsistent across app sessions and platforms.
 
 **Why it happens:**
-Retries are implemented independently across layers, without global budgets, jitter, or idempotency keys.
+Teams treat "static" pages as simple hardcoded content or ad-hoc JSON without content version IDs, publish states, or cache busting policy.
 
-**How to avoid:**
-- Single retry owner per request path (usually orchestrator).
-- Exponential backoff with jitter, bounded retries, and retry budget per request.
-- Add idempotency keys for side-effecting operations (memory writes, scoring writes).
-- Introduce circuit-breaker/degradation mode: fail closed on publish, not fail open with mock success.
+**Consequences:**
+Incorrect guidance, legal exposure (outdated policy text), and costly hotfix cycles just to update content.
 
-**Warning signs:**
-- Attempt count per request > expected cap.
-- Error rates and request volume rise together.
-- Queue depth and p95 latency climb during dependency incidents.
+**Prevention:**
+- Define a content manifest contract: slug, version, locale, publishedAt, checksum.
+- Keep legal content immutable by version; render the accepted version in user-facing audit logs.
+- Use explicit cache TTL + ETag/content-hash invalidation strategy.
+- Add kill-switch/fallback bundle when content service is unavailable.
 
-**Test strategy:**
-- Fault injection tests (429/5xx/timeouts) asserting capped retries and bounded tail latency.
-- Load tests validating no multiplicative retry behavior under partial outage.
-- Idempotency tests ensuring repeated requests do not duplicate memory or scores.
+**Detection (warning signs):**
+- Different users see different legal text for the same app version.
+- Content fixes require app release instead of backend/content update.
+- High cache hit rates but persistent user reports of old content.
 
 **Phase to address:**
-Phase 2.4 - Reliability, Retry Governance, and Graceful Degradation
+**Phase v2.1-3: Content Platform (CMS-like Pages + Legal Versioning)**
 
 ---
 
-### Pitfall 4: Non-Deterministic Consensus Loops
-
+### Pitfall 4: Support Flows Built as UI-Only Without Case Lifecycle
 **What goes wrong:**
-Debate and adjudication cycles fail to converge, or converge inconsistently, producing unstable outputs for identical inputs.
+"Contact Support" launches but submissions are not durable, not trackable, or not correlated to user/account/app context.
 
 **Why it happens:**
-No termination criteria, high model temperature variance, and circular challenge routing without quorum/iteration limits.
+Support UI ships before a backend case model, triage queue, and SLA states are defined.
 
-**How to avoid:**
-- Define finite-state debate protocol with max rounds, quorum rule, and tie-break policy.
-- Freeze candidate set before final scoring; do not allow unbounded new claims after round N.
-- Use deterministic settings for judge/verifier roles (low temperature, fixed rubric weights).
-- Add loop detector using `(state_hash, round, participants)` fingerprints.
+**Consequences:**
+Lost tickets, no resolution tracking, repeated user submissions, and support team overload.
 
-**Warning signs:**
-- Repeated round transitions with minimal delta in score.
-- Same input yields materially different winners across runs.
-- Orchestration traces show recurring subgraph patterns beyond expected rounds.
+**Prevention:**
+- Define support ticket schema up front (category, severity, metadata, status transitions).
+- Generate stable case IDs and expose status timeline in app.
+- Store device/app/build/request context automatically with each ticket.
+- Add anti-spam throttling and idempotency keys for repeated submissions.
 
-**Test strategy:**
-- Determinism tests: run N times on fixed seed/config and assert bounded variance.
-- Convergence tests with adversarial disagreement cases; assert termination within max rounds.
-- Stateful fuzzing of debate transitions to detect illegal or looping state transitions.
+**Detection (warning signs):**
+- Support cannot map user complaints to submitted tickets.
+- Users resubmit identical issues multiple times.
+- Ticket state transitions are manual or happen outside system logs.
 
 **Phase to address:**
-Phase 2.3 - Debate Protocol, Consensus Scoring, and Termination Guards
+**Phase v2.1-4: Support Workflow + Operational Integration**
 
 ---
 
-### Pitfall 5: Observability Gaps and Untraceable Failures
-
+### Pitfall 5: Missing Compliance and Consent Traceability for Legal Flows
 **What goes wrong:**
-Production incidents cannot be diagnosed because traces do not connect node attempts, memory operations, validation decisions, and final output lineage.
+Users can access legal docs, but acceptance/version proof and data-export/deletion pathways are incomplete or unverifiable.
 
 **Why it happens:**
-Logs are uncorrelated, no request/trace IDs, and quality-gate decisions are not emitted as structured telemetry.
+Legal screens are treated as content-only work instead of compliance workflows with data lineage.
 
-**How to avoid:**
-- Instrument traces, metrics, and logs with shared correlation IDs (`request_id`, `thread_id`, `user_id_hash`, `run_id`).
-- Emit structured events for: retrieval set, verifier failures, score breakdown, gate decision, retries.
-- Define SLO-driven dashboards: pass rate, hallucination reject rate, retry budget burn, loop termination rate.
-- Add audit trail table for publish decisions with reproducible inputs (redacted).
+**Consequences:**
+Compliance risk, inability to prove consent history, and incident escalation during audits.
 
-**Warning signs:**
-- Cannot answer "why was this plan published/rejected" within 5 minutes.
-- High error budget burn with unknown top failing node.
-- Missing lineage from final plan back to source anomalies/strategies.
+**Prevention:**
+- Record legal acceptance events with document version, timestamp, locale, and user ID.
+- Implement explicit privacy actions (data export/delete) with auditable status states.
+- Define retention and redaction policies for support/legal attachments.
+- Add compliance-focused tests for consent replay and audit export.
 
-**Test strategy:**
-- Telemetry contract tests asserting required fields on every critical event.
-- Incident game-days: inject failures and verify on-call can root-cause via traces alone.
-- Regression tests that fail if dashboards/alerts lose required dimensions.
+**Detection (warning signs):**
+- No reliable answer to "which terms version did user X accept?"
+- Manual scripts needed to reconstruct consent history.
+- Legal copy changes without corresponding version bump in backend records.
 
 **Phase to address:**
-Phase 2.5 - Observability, Auditability, and Quality Gate Telemetry
+**Phase v2.1-4: Support Workflow + Operational Integration**
 
----
+## Moderate Pitfalls
 
-### Pitfall 6: Silent Fallbacks That Mask Real Failures
-
+### Pitfall 1: Auth and Environment Fragility on Utility Endpoints
 **What goes wrong:**
-When provider calls fail, mock/fallback payloads are returned as valid outputs, hiding outages and contaminating quality metrics.
+Profile utility requests fail in non-standard environments (Firebase config missing, token refresh race, expired token retry loops).
 
-**Why it happens:**
-Fail-open behavior is optimized for demo continuity, not production correctness.
-
-**How to avoid:**
-- Distinguish `degraded` from `success` in response schema and metrics.
-- Block final publish when critical nodes are in fallback mode unless explicit operator override.
-- Tag all fallback outputs with `synthetic=true` and exclude from model quality KPIs.
-
-**Warning signs:**
-- Stable success rates during known provider outages.
-- Repeated generic plan text despite diverse inputs.
-- Sudden drop in variance of outputs and score inflation.
-
-**Test strategy:**
-- Chaos tests that disable model providers and assert `degraded` status propagates.
-- Contract tests ensuring fallback outputs cannot pass production publish gate.
+**Prevention:**
+- Add environment readiness checks before enabling profile utility navigation.
+- Standardize 401/403/503 handling in one Flutter error adapter.
+- Add synthetic health checks for auth + profile utility API paths.
 
 **Phase to address:**
-Phase 2.4 - Reliability, Retry Governance, and Graceful Degradation
+**Phase v2.1-1: API Contract Freeze + Navigation Wiring**
 
----
-
-### Pitfall 7: Schema Drift Between Prompts, Validators, and Storage
-
+### Pitfall 2: Rate Limiting Colliding with Burst UX
 **What goes wrong:**
-Agents emit fields that parse locally but fail downstream contracts, or pass parsing but violate domain constraints.
+Rapid edits (appliance updates, support retries) hit strict rate limits and present generic failures.
 
-**Why it happens:**
-Prompt-defined schemas diverge from runtime validators and persistence schema over time.
-
-**How to avoid:**
-- Single source of truth for schemas (versioned JSON Schema + generated types).
-- Validate at every boundary: model output, inter-node state, DB write.
-- CI rule: fail build on schema mismatch between prompts/contracts/types.
-
-**Warning signs:**
-- Increased JSON parse/validation failures after prompt edits.
-- Breaking changes in downstream consumer without code changes in consumers.
-- Frequent hotfixes around field names or enum values.
-
-**Test strategy:**
-- Contract tests from canonical schema fixtures.
-- Backward-compatibility tests for N-1 schema versions.
-- Mutation tests that inject extra/renamed fields and assert rejection.
+**Prevention:**
+- Calibrate per-endpoint limits to expected mobile interaction bursts.
+- Surface rate-limit retry-after hints in API and UI.
+- Add client-side request coalescing/debouncing for repetitive saves.
 
 **Phase to address:**
-Phase 2.2 - Structured Debate + Evidence Validation Layer
+**Phase v2.1-5: Reliability, Telemetry, and UAT Closure**
 
----
-
-### Pitfall 8: Prompt/Policy Injection in Shared Debate Context
-
+### Pitfall 3: Inconsistent Error Envelope Handling in Flutter
 **What goes wrong:**
-One agent or untrusted user input injects instructions that alter validator or judge behavior, bypassing quality gates.
+Some screens parse success-only payloads and ignore structured backend error fields, leading to poor recovery UX.
 
-**Why it happens:**
-System policy and untrusted content are concatenated without role separation and sanitization.
-
-**How to avoid:**
-- Strict role separation: system policy immutable, user/memory content treated as untrusted data.
-- Sanitization and quoting of retrieved memory blocks before reuse in prompts.
-- Add policy-violation detector before consensus scoring.
-
-**Warning signs:**
-- Judge output references instructions that only appeared in user text.
-- Sudden changes in rubric application after adversarial inputs.
-- Gate bypass events clustered around specific prompt patterns.
-
-**Test strategy:**
-- Red-team prompt-injection suite against each agent role.
-- Regression tests for known jailbreak strings in memory and user input.
+**Prevention:**
+- Enforce one typed API error model for all profile utilities.
+- Add golden tests for empty, partial, timeout, unauthorized, and validation-error states.
+- Ban raw exception string rendering in production UX.
 
 **Phase to address:**
-Phase 2.2 - Structured Debate + Evidence Validation Layer
+**Phase v2.1-5: Reliability, Telemetry, and UAT Closure**
 
-## Technical Debt Patterns
+## Minor Pitfalls
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Parse model JSON via regex/trim only | Fast to ship | Fragile parsing, silent corruption | Never for production publish path |
-| In-memory checkpointer/store in production | Simple setup | Data loss, no replay/audit fidelity | Only local dev and CI smoke tests |
-| Mock success fallback on provider failure | Better demos | Masks outages and quality regressions | Only explicit sandbox mode |
-| Consensus by averaging agent scores only | Low implementation effort | Shared hallucinations pass as "agreement" | Never without evidence verifier |
+### Pitfall 1: Utility Screens Ship as Dead Menu Items
+**What goes wrong:**
+Profile menu entries exist without route wiring, permission checks, or analytics events.
 
-## Integration Gotchas
+**Prevention:**
+- Use feature flags and route guards before exposing menu tiles.
+- Add smoke tests that tap each tile and assert expected route/result.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| LangGraph checkpointer/store | Using only in-memory persistence and missing `thread_id` | Use persistent saver/store (Postgres/Redis) and enforce required `thread_id` in API contract |
-| Multi-provider LLM calls | Env var mismatch and provider-specific fallback confusion | Provider adapter layer with explicit health checks and normalized error taxonomy |
-| JSON contracts | Prompt schema differs from runtime validators | Generate validators/types from one versioned JSON Schema source |
-| Telemetry backend | Logs only, no trace correlation across nodes | Emit OpenTelemetry traces + metrics + structured logs with shared IDs |
+**Phase to address:**
+**Phase v2.1-1: API Contract Freeze + Navigation Wiring**
 
-## Performance Traps
+### Pitfall 2: Incomplete Localization/Currency Formatting in Calculator and Legal Copy
+**What goes wrong:**
+Units, symbols, and legal language appear inconsistent with user locale.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Unbounded memory retrieval into prompts | Rising token cost, latency spikes | Top-k retrieval, summarization, token budgets per node | Typically at 1k+ active users or long-lived threads |
-| Debate round explosion | Tail latency and cost variance | Max rounds, loop detector, deterministic judge | During noisy inputs or model instability |
-| Retry multiplication across layers | Error storm and queue saturation | Single retry owner, jitter, bounded retry budget | During partial provider outages |
+**Prevention:**
+- Externalize all utility copy and numeric formatting rules.
+- Add locale snapshot tests for key profile utility pages.
 
-## Security Mistakes
+**Phase to address:**
+**Phase v2.1-3: Content Platform (CMS-like Pages + Legal Versioning)**
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing raw PII in long-term memory without minimization | Privacy breach and compliance risk | PII redaction/tokenization before memory write; encryption at rest |
-| Cross-tenant memory namespace collisions | Data leakage across users | Tenant-scoped namespace keys and access-control checks |
-| Prompt injection from retrieved memory | Gate bypass and unsafe plans | Treat memory as untrusted input; sanitize and policy-check before model call |
+## Integration Pitfalls (Milestone-Specific)
 
-## UX Pitfalls
+| Integration Area | Common Mistake | Prevention | Phase |
+|---|---|---|---|
+| Flutter profile menu -> backend routes | Wiring placeholder onTap handlers directly to unstable APIs | Introduce typed route/use-case layer between UI and API client | v2.1-1 |
+| Appliance provider state -> bulk API | Sending stale/incomplete appliance list as authoritative truth | Add server revision token + client compare-before-save | v2.1-2 |
+| CMS-like pages -> cache | Treating content as hardcoded constants with no manifest/version | Use manifest with checksum/version and cache invalidation strategy | v2.1-3 |
+| Legal docs -> consent records | Showing legal text without storing accepted version | Persist versioned acceptance event and audit export endpoint | v2.1-4 |
+| Support form -> ops tooling | Capturing message only (no metadata/case lifecycle) | Add case model, status workflow, and correlation IDs | v2.1-4 |
+| Mobile retries -> strict rate limiters | Immediate blind retries after failures | Add retry budget, exponential backoff, and Retry-After UX | v2.1-5 |
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Non-deterministic plan outputs for same input | Trust erosion | Deterministic consensus config + explainable score breakdown |
-| Hidden degraded mode | Users act on low-quality fallback plans | Show clear degraded status and confidence bands |
-| Opaque quality gate rejection | Confusing "try again" loop | Return actionable rejection reasons and missing evidence hints |
+## Phase-Specific Warnings
 
-## "Looks Done But Isn't" Checklist
+| Phase Topic | Likely Pitfall | Mitigation |
+|---|---|---|
+| v2.1-1 API contracts and navigation | Hidden use of deprecated user appliance endpoints | CI guard + contract tests on all profile utility paths |
+| v2.1-2 Appliance management | Data loss from full-list overwrite writes | Versioned writes + patch endpoints + mutation audit logs |
+| v2.1-3 Calculator/content/legal rendering | Hardcoded formulas/content with no versioning | Config-driven formulas and content manifest with publish workflow |
+| v2.1-4 Support/legal operations | No durable case/compliance lifecycle | Ticket state machine + legal consent event store |
+| v2.1-5 Reliability/UAT | "Happy path only" testing misses mobile edge failures | End-to-end negative-path suite + telemetry SLO checks |
 
-- [ ] **Persistent memory:** Often missing strict namespace isolation - verify cross-user/thread leak tests pass.
-- [ ] **Debate consensus:** Often missing termination guards - verify max rounds and loop detector metrics.
-- [ ] **Quality gating:** Often missing separate factuality metric - verify hallucination red-team suite blocks publish.
-- [ ] **Retry logic:** Often missing global retry budget - verify fault-injection tests cap attempts.
-- [ ] **Observability:** Often missing end-to-end lineage - verify final plan can be traced to source evidence.
+## What to Verify Before Marking v2.1 Done
 
-## Recovery Strategies
-
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Hallucination leakage in production outputs | HIGH | Freeze publish gate, replay affected runs, invalidate impacted plans, patch verifier rules, re-evaluate golden set |
-| Context contamination/data leak | HIGH | Disable shared retrieval, rotate namespaces, run leak audit, notify security/compliance workflow |
-| Retry storm incident | MEDIUM | Activate retry kill-switch, enforce fixed low retry cap, drain queues, restore with jittered ramp-up |
-| Consensus loop deadlock | MEDIUM | Force terminate at orchestrator, emit incident artifact, patch transition rules and tie-break policy |
-| Observability gap during outage | HIGH | Enable emergency verbose tracing profile, add minimal mandatory event fields, backfill missing run metadata |
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Hallucination leakage | Phase 2.2 | Adversarial factuality suite + verifier pass/fail audit |
-| Context drift/memory contamination | Phase 2.1 | Isolation tests + replay consistency checks |
-| Retry storms | Phase 2.4 | Fault-injection load tests with retry budget assertions |
-| Non-deterministic consensus loops | Phase 2.3 | Convergence and determinism test suite |
-| Observability gaps | Phase 2.5 | Telemetry contract tests + incident game-day runbook drill |
-| Silent fallback masking | Phase 2.4 | Chaos tests with provider outages and publish gate assertions |
-| Schema drift | Phase 2.2 | CI schema compatibility and boundary validation tests |
-| Prompt/policy injection | Phase 2.2 | Red-team injection tests and policy violation detector metrics |
+- [ ] Every profile utility screen has contract-tested API integration and deterministic fallback UI.
+- [ ] Appliance edits are non-destructive under concurrent sessions and offline-resume scenarios.
+- [ ] FAQ/how-to/legal content is versioned, cache-safe, and remotely updatable.
+- [ ] Support submissions produce traceable case IDs and status transitions.
+- [ ] Legal acceptance is versioned and exportable for audit requests.
+- [ ] Rate-limit and auth failures are user-recoverable, not generic dead ends.
 
 ## Sources
 
-- LangGraph persistence (threads, checkpoints, stores): https://docs.langchain.com/oss/javascript/langgraph/persistence (MEDIUM)
-- LangGraph overview (durable execution, debugging): https://docs.langchain.com/oss/javascript/langgraph/overview (MEDIUM)
-- OpenAI Structured Outputs (schema adherence, refusals, JSON mode caveats): https://developers.openai.com/api/docs/guides/structured-outputs (MEDIUM)
-- AWS Builders Library on retries/backoff/jitter and retry amplification: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/ (MEDIUM)
-- OpenTelemetry observability primer (traces/metrics/logs, distributed tracing): https://opentelemetry.io/docs/concepts/observability-primer/ (MEDIUM)
-- Repository analysis of current orchestration implementation:
-  - backend/src/agents/efficiency_plan/index.js
-  - backend/src/agents/efficiency_plan/state.js
-  - backend/src/agents/efficiency_plan/analyst.node.js
-  - backend/src/agents/efficiency_plan/strategist.node.js
-  - backend/src/agents/efficiency_plan/copywriter.node.js
-
----
-*Pitfalls research for: v2.0 Production-Grade Collaborative Multi-Agent System*
-*Researched: 2026-03-23*
+- Repository contract and implementation evidence (HIGH):
+  - wattwise_app/lib/feature/profile/screens/profile_screen.dart
+  - wattwise_app/lib/feature/profile/provider/manage_appliances_provider.dart
+  - wattwise_app/lib/feature/on_boarding/repository/appliance_repository.dart
+  - wattwise_app/lib/core/network/api_client.dart
+  - backend/src/routes/user.routes.js
+  - backend/src/routes/appliance.routes.js
+  - backend/src/controllers/user.controller.js
+  - backend/src/controllers/appliance.controller.js
+  - backend/src/middleware/authMiddleware.js
+  - backend/src/middleware/rateLimit.middleware.js
+  - backend/src/middleware/errorHandler.js
