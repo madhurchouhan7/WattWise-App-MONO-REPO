@@ -120,6 +120,7 @@ const getEfficiencyPlan = async (req, res, next) => {
       challengeCount: Array.isArray(resultState.crossAgentChallenges)
         ? resultState.crossAgentChallenges.length
         : undefined,
+      roleRetryBudgets: resultState.roleRetryBudgets,
     });
 
     return sendSuccess(

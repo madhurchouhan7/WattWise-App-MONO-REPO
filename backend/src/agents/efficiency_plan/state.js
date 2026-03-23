@@ -48,6 +48,20 @@ const StateAnnotation = Annotation.Root({
     revisionCount: Annotation({
         reducer: (_curr, next) => Number.isFinite(next) ? next : 0,
         default: () => 0
+    }),
+    roleRetryBudgets: Annotation({
+        reducer: (_curr, next) => next || {
+            analyst: 0,
+            strategist: 0,
+            copywriter: 0,
+            challengeRouting: 0,
+        },
+        default: () => ({
+            analyst: 0,
+            strategist: 0,
+            copywriter: 0,
+            challengeRouting: 0,
+        })
     })
 });
 

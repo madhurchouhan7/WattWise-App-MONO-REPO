@@ -65,6 +65,12 @@ const collaborativePlanApp = {
     });
 
     let revisionCount = 0;
+    const roleRetryBudgets = {
+      analyst: 0,
+      strategist: 0,
+      copywriter: 0,
+      challengeRouting: 0,
+    };
 
     const analystOut = await runAnalyst({
       ...initialState,
@@ -76,6 +82,7 @@ const collaborativePlanApp = {
     while (!analystValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
       anomalies = normalizeAnomalies(anomalies);
       analystValidation = validateAnomalies(anomalies);
+      roleRetryBudgets.analyst += 1;
       revisionCount += 1;
     }
 
@@ -90,6 +97,7 @@ const collaborativePlanApp = {
     while (!strategistValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
       strategies = normalizeStrategies(strategies, anomalies);
       strategistValidation = validateStrategies(strategies);
+      roleRetryBudgets.strategist += 1;
       revisionCount += 1;
     }
 
@@ -106,6 +114,7 @@ const collaborativePlanApp = {
     if (!copywriterValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
       finalPlan = buildFallbackFinalPlan(strategies);
       copywriterValidation = validateFinalPlan(finalPlan);
+      roleRetryBudgets.copywriter += 1;
       revisionCount += 1;
     }
 
@@ -122,6 +131,7 @@ const collaborativePlanApp = {
       strategies = normalizeStrategies(strategies, anomalies);
       finalPlan = buildFallbackFinalPlan(strategies);
       copywriterValidation = validateFinalPlan(finalPlan);
+      roleRetryBudgets.challengeRouting += 1;
       revisionCount += 1;
 
       hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
@@ -167,8 +177,10 @@ const collaborativePlanApp = {
         anomaliesCount: anomalies.length,
         strategiesCount: strategies.length,
         revisionCount,
+        roleRetryBudgets,
         qualityScore,
         validationIssues,
+        challenges,
       },
     });
 
@@ -195,6 +207,7 @@ const collaborativePlanApp = {
       validationIssues,
       crossAgentChallenges: challenges,
       revisionCount,
+      roleRetryBudgets,
       qualityScore,
       debateRounds: 0,
       runId: memoryMeta.runId,

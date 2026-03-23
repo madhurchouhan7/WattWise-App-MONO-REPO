@@ -10,6 +10,7 @@ function buildPlanResponseEnvelope({
   revisionCount,
   validationIssueCount,
   challengeCount,
+  roleRetryBudgets,
 }) {
   const metadata = {
     executionPath,
@@ -39,6 +40,15 @@ function buildPlanResponseEnvelope({
         ? validationIssueCount
         : 0,
       challengeCount: Number.isFinite(challengeCount) ? challengeCount : 0,
+      roleRetryBudgets:
+        roleRetryBudgets && typeof roleRetryBudgets === "object"
+          ? roleRetryBudgets
+          : {
+              analyst: 0,
+              strategist: 0,
+              copywriter: 0,
+              challengeRouting: 0,
+            },
     };
   }
 

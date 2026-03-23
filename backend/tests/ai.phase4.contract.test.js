@@ -84,6 +84,12 @@ describe("AI phase4 response contract", () => {
       revisionCount: 2,
       validationIssueCount: 1,
       challengeCount: 1,
+      roleRetryBudgets: {
+        analyst: 0,
+        strategist: 0,
+        copywriter: 0,
+        challengeRouting: 0,
+      },
     });
   });
 });
