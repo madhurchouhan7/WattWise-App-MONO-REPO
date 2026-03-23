@@ -29,4 +29,5 @@ Last activity: 2026-03-23
 
 ### To Do List
 
-- Run /gsd-execute-phase 2 to implement and verify all planned work.
+- Run /gsd-discuss-phase 3 to capture implementation context for Phase 3.
+- Then run /gsd-plan-phase 3 to generate executable plans.
