@@ -1,33 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: milestone
-status: planning
+milestone: v2.1
+milestone_name: Functional Profile and Utility Screens
+status: ready
 last_updated: "2026-03-23T11:15:00.000Z"
 last_activity: 2026-03-23
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # State
 
 ## Current Position
 
-Phase: 6
-Plan: Phase 4-6 implementation iteration active
-Status: Phase 4 and 5 implemented; Phase 6 reliability baseline implemented
-Last activity: 2026-03-23
+Phase: Not started (planning phase execution)
+Plan: -
+Status: Milestone v2.1 initialized and roadmap approved; ready to plan Phase 7
+Last activity: 2026-03-23 - Milestone v2.1 started
 
 ## Accumulated Context
 
 ### Pending Blockers
 
-- None at this moment.
+- Decide support-platform implementation model (internal storage vs provider integration).
 
 ### To Do List
 
-- Finalize Phase 6 production-readiness docs (README/runbook/perf baseline outputs).
-- Run full backend validation suite and publish phase-level verification summaries.
+- Start `/gsd-plan-phase 7` for contract freeze and profile wiring.
+- Keep phase-level verification and docs updates in sync through v2.1 execution.

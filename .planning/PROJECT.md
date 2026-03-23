@@ -2,22 +2,23 @@
 
 ## What This Is
 
-WattWise is an energy intelligence platform that helps households understand electricity usage, detect inefficiency patterns, and receive actionable AI plans to reduce bills. The backend contains a LangGraph-based multi-agent planning engine that currently runs in a linear pipeline. This milestone upgrades that engine into a production-grade collaborative multi-agent workspace with persistent memory, debate, and strict quality gating.
+WattWise is an energy intelligence platform that helps households understand electricity usage, reduce avoidable energy waste, and act on clear recommendations. The product includes a Flutter consumer app and a Node backend that powers profile, appliance, billing education, and intelligent energy planning features.
 
 ## Core Value
 
-Help users monitor their electricity consumption, discover insights, and generate AI-driven efficiency plans to save energy and reduce their carbon footprint.
+Help users monitor their electricity consumption, discover insights, and generate actionable plans to reduce energy bills and carbon footprint.
 
-## Current Milestone: v2.0 Production-Grade Collaborative Multi-Agent System
+## Current Milestone: v2.1 Functional Profile and Utility Screens
 
-**Goal:** Transform the existing linear Analyst -> Strategist -> Copywriter flow into a collaborative, memory-enabled, self-validating multi-agent system that is production ready and hallucination resistant.
+**Goal:** Make currently static profile utility surfaces fully functional, backend-connected, and production-ready while preserving the existing WattWise design language and Riverpod architecture.
 
 **Target features:**
 
-- Shared persistent workspace memory and conversation history across all agents
-- Structured debate protocol, cross-validation, and weighted consensus
-- Multi-layer quality gates with minimum quality score enforcement
-- Production-grade reliability controls (retry, error handling, logging, traceability)
+- Fully functional Edit Profile and synchronized user settings
+- Reliable Manage Appliances flows with safer mutation and refresh behavior
+- Dynamic utility content: FAQs, How to Read Bill, and Legal hub
+- Contact Support workflow with durable submission and user feedback states
+- Solar Calculator v1 with transparent assumptions and dynamic estimates
 
 ## Requirements
 
@@ -31,31 +32,38 @@ Help users monitor their electricity consumption, discover insights, and generat
 
 ### Active
 
-- [ ] Finalize production docs/runbook/performance baseline artifacts for milestone closure
+- [ ] Deliver profile and settings data flows backed by stable API contracts
+- [ ] Ship utility content modules with versioned, refresh-safe delivery
+- [ ] Implement support and legal consent workflows with auditability
+- [ ] Ship Solar Calculator v1 with transparent estimate assumptions
+- [ ] Close milestone with reliability hardening and UAT-ready verification
 
 ### Out of Scope
 
-- Replacing the full technology stack outside the efficiency planning subsystem - this milestone targets the agentic architecture upgrade
-- Frontend redesign unrelated to AI planning collaboration - not needed for milestone success
+- Replacing the app architecture with a new state-management stack - Riverpod remains the standard
+- Re-platforming backend frameworks (for example, GraphQL rewrite) during this milestone
+- Financing-grade solar optimization and installer quotation workflows - deferred beyond v2.1
 
 ## Context
 
-- Existing backend implementation already uses LangGraph and three specialist nodes.
-- Current flow is mostly sequential and lacks robust shared-memory collaboration guarantees.
-- Milestone intent is to elevate reliability, transparency, and output quality for production use.
+- Existing profile menu has placeholder actions for several utility entries.
+- Riverpod, Dio, and current backend modules are already in place and should be extended, not replaced.
+- This milestone focuses on product-surface completion and data-flow reliability, not a visual redesign.
 
 ## Constraints
 
-- **Compatibility**: Keep existing linear files and entrypoints functional - backward compatibility is required.
-- **Reliability**: Avoid runtime crashes and provide graceful degradation paths - production readiness mandate.
-- **Quality**: Prevent fabricated outputs with strict validation and quality scoring - zero hallucination objective.
+- **UX Consistency**: Preserve existing WattWise UI/UX patterns and component behavior.
+- **Architecture**: Keep Riverpod-centered state management and existing repository/service boundaries.
+- **Compatibility**: Additive API evolution only; avoid breaking existing mobile flows.
+- **Reliability**: Support loading/error/retry states and avoid destructive writes in appliance operations.
 
 ## Key Decisions
 
-| Decision                                                                   | Rationale                                                 | Outcome   |
-| -------------------------------------------------------------------------- | --------------------------------------------------------- | --------- |
-| Keep legacy linear pipeline files while adding enhanced collaborative path | Reduces migration risk and allows controlled rollout      | - Pending |
-| Use explicit validation and debate layers before final output              | Needed for auditability, self-correction, and consistency | - Pending |
+| Decision                                                                        | Rationale                                                             | Outcome   |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------- |
+| Keep v2.1 implementation additive to existing Flutter and backend modules       | Minimizes migration risk and accelerates delivery                     | - Pending |
+| Use versioned utility content delivery for FAQ/Bill/Legal surfaces              | Prevents stale or inconsistent guidance text in production            | - Pending |
+| Keep Solar Calculator scoped to transparent estimates (not financing optimizer) | Delivers immediate value while avoiding precision and compliance risk | - Pending |
 
 ## Evolution
 
@@ -78,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-03-23 after milestone v2.0 start_
+_Last updated: 2026-03-23 after milestone v2.1 start_
