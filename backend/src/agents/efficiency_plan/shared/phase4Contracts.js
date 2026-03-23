@@ -240,19 +240,52 @@ function buildCrossAgentChallenges(
   strategies = [],
   finalPlan = null,
 ) {
+  const normalizedAnomalies = normalizeAnomalies(anomalies);
+  const normalizedStrategies = normalizeStrategies(
+    strategies,
+    normalizedAnomalies,
+  );
+  const anomalyBudget = normalizedAnomalies.reduce(
+    (sum, item) => sum + item.rupeeCostImpact,
+    0,
+  );
+  const strategyBudget = normalizedStrategies.reduce(
+    (sum, item) => sum + item.projectedSavings,
+    0,
+  );
   const challenges = [];
+  const makeChallenge = (input, index) => ({
+    challengeId: `ch_${input.source}_${input.target}_${input.type}_${index + 1}`,
+    severity: input.severity || "medium",
+    ...input,
+  });
 
   if (
-    Array.isArray(strategies) &&
-    strategies.length > 0 &&
-    (!Array.isArray(anomalies) || anomalies.length === 0)
+    (Array.isArray(strategies) &&
+      strategies.length > 0 &&
+      (!Array.isArray(anomalies) || anomalies.length === 0)) ||
+    (strategyBudget > 0 && anomalyBudget <= 0)
   ) {
-    challenges.push({
-      source: "strategist",
-      target: "analyst",
-      type: "missing_evidence",
-      reason: "Strategies were generated without anomaly evidence.",
-    });
+    challenges.push(
+      makeChallenge(
+        {
+          source: "strategist",
+          target: "analyst",
+          type: "missing_evidence",
+          severity: "high",
+          reason: "Strategies were generated without anomaly evidence.",
+          evidence: {
+            anomalyCount: Array.isArray(anomalies) ? anomalies.length : 0,
+            strategyCount: Array.isArray(strategies) ? strategies.length : 0,
+            anomalyBudget,
+            strategyBudget,
+          },
+          expectedCorrection:
+            "Provide anomaly-backed evidence or reduce projected savings before publish.",
+        },
+        challenges.length,
+      ),
+    );
   }
 
   if (
@@ -260,13 +293,27 @@ function buildCrossAgentChallenges(
     Array.isArray(finalPlan.keyActions) &&
     finalPlan.keyActions.length < (strategies || []).length
   ) {
-    challenges.push({
-      source: "copywriter",
-      target: "strategist",
-      type: "coverage_gap",
-      reason:
-        "Some strategist outputs were not represented in final keyActions.",
-    });
+    challenges.push(
+      makeChallenge(
+        {
+          source: "copywriter",
+          target: "strategist",
+          type: "coverage_gap",
+          severity: "medium",
+          reason:
+            "Some strategist outputs were not represented in final keyActions.",
+          evidence: {
+            strategyCount: Array.isArray(strategies) ? strategies.length : 0,
+            keyActionCount: Array.isArray(finalPlan.keyActions)
+              ? finalPlan.keyActions.length
+              : 0,
+          },
+          expectedCorrection:
+            "Map each validated strategy to at least one keyAction.",
+        },
+        challenges.length,
+      ),
+    );
   }
 
   return challenges;

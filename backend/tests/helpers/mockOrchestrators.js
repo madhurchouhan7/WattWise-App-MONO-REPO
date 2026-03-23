@@ -35,14 +35,25 @@ function collaborativeSuccessStub({
   finalPlan = defaultFinalPlan("Collaborative Plan"),
   qualityScore = 88,
   debateRounds = 2,
+  revisionCount = 0,
+  validationIssues = [],
+  crossAgentChallenges = [],
 } = {}) {
   return {
-    invoke: jest
-      .fn()
-      .mockResolvedValue({ finalPlan, qualityScore, debateRounds }),
+    invoke: jest.fn().mockResolvedValue({
+      finalPlan,
+      qualityScore,
+      debateRounds,
+      revisionCount,
+      validationIssues,
+      crossAgentChallenges,
+    }),
     finalPlan,
     qualityScore,
     debateRounds,
+    revisionCount,
+    validationIssues,
+    crossAgentChallenges,
   };
 }
 

@@ -7,6 +7,9 @@ function buildPlanResponseEnvelope({
   threadId,
   qualityScore,
   debateRounds,
+  revisionCount,
+  validationIssueCount,
+  challengeCount,
 }) {
   const metadata = {
     executionPath,
@@ -22,6 +25,20 @@ function buildPlanResponseEnvelope({
       requestId: requestId || null,
       runId: runId || null,
       threadId: threadId || null,
+    };
+  }
+
+  if (
+    Number.isFinite(revisionCount) ||
+    Number.isFinite(validationIssueCount) ||
+    Number.isFinite(challengeCount)
+  ) {
+    metadata.phase4 = {
+      revisionCount: Number.isFinite(revisionCount) ? revisionCount : 0,
+      validationIssueCount: Number.isFinite(validationIssueCount)
+        ? validationIssueCount
+        : 0,
+      challengeCount: Number.isFinite(challengeCount) ? challengeCount : 0,
     };
   }
 

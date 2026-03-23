@@ -113,6 +113,13 @@ const getEfficiencyPlan = async (req, res, next) => {
       threadId: resultState.threadId || threadId,
       qualityScore: resultState.qualityScore,
       debateRounds: resultState.debateRounds,
+      revisionCount: resultState.revisionCount,
+      validationIssueCount: Array.isArray(resultState.validationIssues)
+        ? resultState.validationIssues.length
+        : undefined,
+      challengeCount: Array.isArray(resultState.crossAgentChallenges)
+        ? resultState.crossAgentChallenges.length
+        : undefined,
     });
 
     return sendSuccess(

@@ -55,6 +55,14 @@ describe("phase4 validation contracts", () => {
     const reflection = buildReflection("strategist", ["qa:missing-evidence"], challenges);
 
     expect(challenges.length).toBeGreaterThan(0);
+    const strategistChallenge = challenges.find(
+      (item) => item.source === "strategist" && item.target === "analyst",
+    );
+    expect(strategistChallenge).toBeTruthy();
+    expect(strategistChallenge).toHaveProperty("challengeId");
+    expect(strategistChallenge).toHaveProperty("severity");
+    expect(strategistChallenge).toHaveProperty("evidence");
+    expect(strategistChallenge).toHaveProperty("expectedCorrection");
     expect(reflection.approved).toBe(false);
     expect(reflection.score).toBeLessThan(100);
   });
