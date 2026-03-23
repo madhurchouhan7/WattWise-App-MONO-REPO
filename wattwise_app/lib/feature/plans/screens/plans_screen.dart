@@ -25,8 +25,10 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
     return aiPlanState.when(
       data: (plan) {
         // Prevent flickering when authState is loading (e.g. after invalidation)
+        // If we have no staging plan yet, we MUST wait for auth state to resolve
+        // to see if there's an active plan before showing DesignPlanScreen.
         final authState = ref.watch(authStateProvider);
-        if (authState.isLoading && authUser == null) {
+        if (authState.isLoading && (authUser == null || plan == null)) {
           return Scaffold(
             backgroundColor: Colors.white,
             body: _buildLoadingShimmer(),
