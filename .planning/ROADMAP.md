@@ -6,7 +6,7 @@ Phase numbering continues from prior milestone phases.
 
 | #   | Phase                                          | Goal                                                                                        | Requirements                                          | Success Criteria |
 | --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------- |
-| 2   | Compatibility Foundation and Dual-Path Routing | Add collaborative orchestration entrypoint while preserving legacy flow and API contract    | Complete    | 2026-03-23 |
+| 2   | Compatibility Foundation and Dual-Path Routing | Add collaborative orchestration entrypoint while preserving legacy flow and API contract    | Complete                                              | 2026-03-23       |
 | 3   | Shared Memory and Context Infrastructure       | Implement persistent workspace and conversation continuity with provenance and isolation    | MEM-01, MEM-02, MEM-03, OPS-02                        | 5                |
 | 4   | Agent Reflection, Validation, and Cross-Checks | Upgrade Analyst/Strategist/Copywriter agents with self-validation and cross-agent challenge | AGENT-01, AGENT-02, AGENT-03, QA-02                   | 5                |
 | 5   | Debate, Consensus, and Quality Gates           | Add bounded debate, weighted consensus, and enforce final gate >=85 with auditable scores   | DEBATE-01, DEBATE-02, DEBATE-03, QA-01, QA-03, NFR-02 | 6                |
@@ -21,9 +21,9 @@ Requirements: COMP-01, COMP-02, OPS-03
 Plans: 3 plans
 Plan list:
 
-- [ ] 02-01-PLAN.md - Mode resolver + collaborative entrypoint foundation
-- [ ] 02-02-PLAN.md - Controller dual-dispatch + compatibility response envelope
-- [ ] 02-03-PLAN.md - Integration test matrix for routing and centralized errors
+- [x] 02-01-PLAN.md - Mode resolver + collaborative entrypoint foundation
+- [x] 02-02-PLAN.md - Controller dual-dispatch + compatibility response envelope
+- [x] 02-03-PLAN.md - Integration test matrix for routing and centralized errors
       Success criteria:
 
 1. Existing linear entrypoint remains callable and behavior-compatible.
@@ -38,10 +38,10 @@ Requirements: MEM-01, MEM-02, MEM-03, OPS-02
 Plans: 3 plans
 Plan list:
 
-- [ ] 03-01-PLAN.md - Memory identity/provenance contracts and redaction foundation
-- [ ] 03-02-PLAN.md - Redis memory service and bounded retrieval engine
-- [ ] 03-03-PLAN.md - Collaborative wiring, trace correlation, and continuity tests
-Success criteria:
+- [x] 03-01-PLAN.md - Memory identity/provenance contracts and redaction foundation
+- [x] 03-02-PLAN.md - Redis memory service and bounded retrieval engine
+- [x] 03-03-PLAN.md - Collaborative wiring, trace correlation, and continuity tests
+      Success criteria:
 
 1. Shared workspace persists artifacts, messages, and revisions per run/thread.
 2. Full conversation history is accessible to all agents each cycle.
