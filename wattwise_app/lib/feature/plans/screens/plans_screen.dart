@@ -20,32 +20,33 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
   @override
   Widget build(BuildContext context) {
     final aiPlanState = ref.watch(aiPlanProvider);
-    final authUser = ref.watch(authStateProvider).value;
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
 
     return aiPlanState.when(
       data: (plan) {
-        // Prevent flickering when authState is loading (e.g. after invalidation)
-        // If we have no staging plan yet, we MUST wait for auth state to resolve
-        // to see if there's an active plan before showing DesignPlanScreen.
-        final authState = ref.watch(authStateProvider);
-        if (authState.isLoading && (authUser == null || plan == null)) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            body: _buildLoadingShimmer(),
-          );
+        // Prevent flickering when authState is loading (e.g. after activation/invalidation)
+        if (authState.isLoading) {
+          // While loading, if we don't have an active plan in hand yet, show shimmer.
+          if (user?.activePlan == null) {
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: _buildLoadingShimmer(),
+            );
+          }
         }
 
-        // 1. If user has an already active AI Plan persisting in the backend, show Dashboard
-        if (authUser?.activePlan != null) {
-          return ActivePlanScreen(activePlan: authUser!.activePlan!);
+        // 1. If user has an already active AI Plan persisting in the backend, show it.
+        if (user != null && user.activePlan != null) {
+          return ActivePlanScreen(activePlan: user.activePlan!);
         }
 
-        // 2. If plan hasn't been generated yet, show the design flow
+        // 2. If plan hasn't been generated yet, show the design flow.
         if (plan == null) {
           return const DesignPlanScreen();
         }
 
-        // 3. If plan is generated but NOT active to the backend yet, show the staging PlanReadyScreen preview
+        // 3. If plan is generated but NOT active to the backend yet, show the staging preview.
         return const PlanReadyScreen();
       },
       loading: () =>

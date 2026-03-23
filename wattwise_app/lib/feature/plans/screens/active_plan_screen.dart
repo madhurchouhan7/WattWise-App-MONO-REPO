@@ -7,7 +7,6 @@ import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
 import 'package:wattwise_app/feature/notifications/screens/notification_list_screen.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
-import 'package:wattwise_app/feature/plans/screens/design_plan_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
 
@@ -198,11 +197,9 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                   await ref.read(aiPlanProvider.notifier).clearPlan();
                   if (context.mounted) {
                     ref.invalidate(authStateProvider);
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const DesignPlanScreen(),
-                      ),
-                    );
+                    // No need to pushReplacement to DesignPlanScreen. 
+                    // Invalidating authProvider causes PlansScreen to organically render DesignPlanScreen
+                    // while naturally keeping the BottomNavigationBar visible.
                   }
                 } catch (e) {
                   if (context.mounted) {
