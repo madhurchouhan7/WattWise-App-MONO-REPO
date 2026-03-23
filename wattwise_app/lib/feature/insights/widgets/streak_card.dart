@@ -164,13 +164,18 @@ class StreakCard extends ConsumerWidget {
                     size: 16,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    "Streak broken! Check in today to start again.",
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red.shade600,
-                    ),
+                  Wrap(
+                    children: [
+                      Text(
+                        "Streak broken! Check in today to start again",
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

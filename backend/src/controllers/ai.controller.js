@@ -70,13 +70,16 @@ const getEfficiencyPlan = async (req, res, next) => {
     const threadId = req.get("x-thread-id") || userData.threadId || req.id;
     const tenantId = req.user?.tenantId || userData.user?.tenantId;
     const memoryUserId =
-      req.user?.id || req.user?._id || userData.user?.id || userData.user?.userId;
+      req.user?.id ||
+      req.user?._id ||
+      userData.user?.id ||
+      userData.user?.userId;
 
     if (executionPath === "collaborative") {
       if (!tenantId || !memoryUserId || !threadId) {
         throw new ApiError(
           400,
-          "Missing required memory identity keys for collaborative mode: tenantId, userId, threadId"
+          "Missing required memory identity keys for collaborative mode: tenantId, userId, threadId",
         );
       }
     }

@@ -8,7 +8,7 @@ function assertMemoryIdentity(ctx = {}) {
   if (!tenantId || !userId || !threadId) {
     throw new ApiError(
       400,
-      "Missing required memory identity keys: tenantId, userId, threadId"
+      "Missing required memory identity keys: tenantId, userId, threadId",
     );
   }
 

@@ -29,13 +29,13 @@ const MemoryEventSchema = z
     payload: z.any().optional(),
   })
   .superRefine((val, ctx) => {
-    const hasEvidence = Array.isArray(val.evidenceRefs) && val.evidenceRefs.length > 0;
+    const hasEvidence =
+      Array.isArray(val.evidenceRefs) && val.evidenceRefs.length > 0;
     if (!hasEvidence && val.confidenceScore > 0.49) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["evidenceRefs"],
-        message:
-          "evidenceRefs required when confidenceScore > 0.49",
+        message: "evidenceRefs required when confidenceScore > 0.49",
       });
     }
 

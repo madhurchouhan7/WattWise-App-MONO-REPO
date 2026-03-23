@@ -73,11 +73,15 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                               Icons.arrow_back,
                               color: AppColors.textPrimary,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (Navigator.of(context).canPop()) {
+                                // If overlay, just pop to reveal the tab version underneath
                                 Navigator.of(context).pop();
                               } else {
-                                ref.read(aiPlanProvider.notifier).clearPlan();
+                                // If already in tab, clearing plan takes us back to DesignPlanScreen
+                                await ref
+                                    .read(aiPlanProvider.notifier)
+                                    .clearPlan();
                               }
                             },
                           ),
@@ -411,29 +415,21 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
 
                                       if (!context.mounted) return;
 
-                                      // Clear the staging plan after activation
+                                      // 1. Pop the overlay FIRST if we are currently a pushed route.
+                                      // This reveals the RootScreen (PlansScreen tab) immediately.
+                                      if (Navigator.of(context).canPop()) {
+                                        Navigator.of(context).pop();
+                                      }
+
+                                      // 2. Invalidate auth state to reflect the new active plan.
+                                      // RootScreen will now rebuild and fetch the updated user with activePlan.
+                                      ref.invalidate(authStateProvider);
+
+                                      // 3. Finally, clear the staging plan after activation.
+                                      // This will cause the PlansScreen tab to transition to ActivePlanScreen.
                                       await ref
                                           .read(aiPlanProvider.notifier)
                                           .clearPlan();
-
-                                      if (!context.mounted) return;
-
-                                      // Invalidate auth state to reflect the new active plan
-                                      // AuthRepository will immediately yield the updated plan from cache.
-                                      ref.invalidate(authStateProvider);
-
-                                      // Navigate directly to ActivePlanScreen with the local data
-                                      // Use pushAndRemoveUntil((route) => route.isFirst) to keep the bottom nav
-                                      // but replace the stack above it.
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ActivePlanScreen(
-                                                activePlan: payload,
-                                              ),
-                                        ),
-                                        (route) => route.isFirst,
-                                      );
                                     } catch (e) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(

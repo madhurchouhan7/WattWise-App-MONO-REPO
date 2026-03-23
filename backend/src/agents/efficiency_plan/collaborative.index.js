@@ -91,7 +91,10 @@ const collaborativePlanApp = {
       anomalies,
       memoryContext: composed.contextEvents,
     });
-    let strategies = normalizeStrategies(strategistOut?.strategies || [], anomalies);
+    let strategies = normalizeStrategies(
+      strategistOut?.strategies || [],
+      anomalies,
+    );
     let strategistValidation = validateStrategies(strategies);
 
     while (!strategistValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
@@ -108,7 +111,8 @@ const collaborativePlanApp = {
       memoryContext: composed.contextEvents,
     });
 
-    let finalPlan = copywriterOut?.finalPlan || buildFallbackFinalPlan(strategies);
+    let finalPlan =
+      copywriterOut?.finalPlan || buildFallbackFinalPlan(strategies);
     let copywriterValidation = validateFinalPlan(finalPlan);
 
     if (!copywriterValidation.ok && revisionCount < MAX_REVISION_ATTEMPTS) {
@@ -118,8 +122,16 @@ const collaborativePlanApp = {
       revisionCount += 1;
     }
 
-    let hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
-    let challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
+    let hallucinationRisks = detectHallucinationRisks(
+      anomalies,
+      strategies,
+      finalPlan,
+    );
+    let challenges = buildCrossAgentChallenges(
+      anomalies,
+      strategies,
+      finalPlan,
+    );
     let validationIssues = [
       ...analystValidation.issues,
       ...strategistValidation.issues,
@@ -134,7 +146,11 @@ const collaborativePlanApp = {
       roleRetryBudgets.challengeRouting += 1;
       revisionCount += 1;
 
-      hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
+      hallucinationRisks = detectHallucinationRisks(
+        anomalies,
+        strategies,
+        finalPlan,
+      );
       challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
       validationIssues = [
         ...analystValidation.issues,
@@ -144,20 +160,35 @@ const collaborativePlanApp = {
       ];
     }
 
-    const analystReflection = buildReflection("analyst", analystValidation.issues, challenges);
+    const analystReflection = buildReflection(
+      "analyst",
+      analystValidation.issues,
+      challenges,
+    );
     const strategistReflection = buildReflection(
       "strategist",
       [...strategistValidation.issues, ...hallucinationRisks],
       challenges,
     );
-    const copywriterReflection = buildReflection("copywriter", copywriterValidation.issues, challenges);
-    const reflections = [analystReflection, strategistReflection, copywriterReflection];
+    const copywriterReflection = buildReflection(
+      "copywriter",
+      copywriterValidation.issues,
+      challenges,
+    );
+    const reflections = [
+      analystReflection,
+      strategistReflection,
+      copywriterReflection,
+    ];
 
     const qualityScore = Math.round(
-      reflections.reduce((sum, item) => sum + item.score, 0) / Math.max(reflections.length, 1),
+      reflections.reduce((sum, item) => sum + item.score, 0) /
+        Math.max(reflections.length, 1),
     );
 
-    const summary = finalPlan?.summary || "Collaborative plan generated with reflection and validation gates.";
+    const summary =
+      finalPlan?.summary ||
+      "Collaborative plan generated with reflection and validation gates.";
 
     const memoryEvent = await memoryService.writeEvent({
       ...identity,

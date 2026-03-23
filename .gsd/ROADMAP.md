@@ -54,7 +54,7 @@
 - Final end-to-end testing and deployment.
 
 ### Phase 6: Fix AI Plan Activation Routing
-**Status**: âœ… Complete
+**Status**: ✅ Complete
 **Goal**: plan_ready_screen.dart correctly pushes to active_plan_screen.dart instead of falling back to design_plan_screen.dart.
 **Requirements**: REQ-06
 **Plans**: 2 plans (2/2 complete)
@@ -62,4 +62,12 @@
 - Frontend repository synchronizes cache and returns data.
 - UI invalidates state and clears staging before navigation.
 - Added direct navigation and loading guards to prevent UI flickering.
+
+### Phase 7: Fix Plan Activation Navigation Stack and UI Consistency
+**Status**: ✅ Complete
+**Goal**: Ensure active plan is shown within RootScreen context (with bottom nav bar) and handle back button correctly.
+- Replace root navigation push with popUntil to return to RootScreen.
+- Strengthen loading guards in PlansScreen to prevent flickering.
+- Clean up back button logic in DesignPlanScreen.
+
 

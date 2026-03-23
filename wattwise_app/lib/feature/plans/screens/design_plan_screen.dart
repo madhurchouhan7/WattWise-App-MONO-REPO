@@ -73,15 +73,20 @@ class _DesignPlanScreenState extends ConsumerState<DesignPlanScreen> {
               ),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: AppColors.textPrimary,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
+                  if (Navigator.of(context).canPop())
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: AppColors.textPrimary,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    )
+                  else
+                    const SizedBox(
+                      width: 48,
+                    ), // Match IconButton size for alignment
                   Expanded(
                     child: Center(
                       child: RichText(

@@ -197,7 +197,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                   await ref.read(aiPlanProvider.notifier).clearPlan();
                   if (context.mounted) {
                     ref.invalidate(authStateProvider);
-                    // No need to pushReplacement to DesignPlanScreen. 
+                    // No need to pushReplacement to DesignPlanScreen.
                     // Invalidating authProvider causes PlansScreen to organically render DesignPlanScreen
                     // while naturally keeping the BottomNavigationBar visible.
                   }
