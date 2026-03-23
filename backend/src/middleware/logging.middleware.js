@@ -466,6 +466,32 @@ class LoggingMiddleware {
 
         loggingMiddleware.log('info', 'Health Check', logData);
     }
+
+    logMemoryEvent({
+        eventType,
+        scope,
+        revisionId,
+        requestId,
+        runId,
+        threadId,
+        tokenBudgetUsed,
+        usedFallback,
+    }) {
+        const logData = {
+            type: 'memory',
+            eventType,
+            timestamp: new Date().toISOString(),
+            scope,
+            revisionId,
+            requestId,
+            runId,
+            threadId,
+            tokenBudgetUsed,
+            usedFallback,
+        };
+
+        loggingMiddleware.log('info', 'Memory Event', logData);
+    }
 }
 
 // Singleton instance
