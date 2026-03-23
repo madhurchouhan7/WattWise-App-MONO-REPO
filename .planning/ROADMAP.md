@@ -61,6 +61,11 @@ Success criteria:
 4. Failed validations route to revision loops with bounded retry budgets.
 5. Hallucination checks block unsupported claims from advancing.
 
+Execution status:
+
+- Core runtime delivered: self-reflection, schema/evidence validation, cross-agent challenges, bounded revision loops.
+- API metadata and tests delivered for phase-4 contracts.
+
 ### Phase 5: Debate, Consensus, and Quality Gates
 
 Goal: Resolve disagreement rigorously and publish only high-quality consensus.
@@ -74,6 +79,12 @@ Success criteria:
 5. Score output includes dimension breakdown and fail reasons.
 6. Unresolved/tied debates route to revision or safe fallback path.
 
+Execution status:
+
+- Bounded debate rounds and weighted consensus scoring implemented.
+- Quality gate (>=85), tie-break rules, and safe fallback routing implemented.
+- Route-level API contract tests added for consensus/fallback metadata.
+
 ### Phase 6: Reliability, Testing, and Production Readiness
 
 Goal: Harden system for production operation and team handoff.
@@ -86,6 +97,12 @@ Success criteria:
 4. Example execution trace demonstrates full collaboration lifecycle.
 5. Observability captures per-agent attempts, revisions, and timing.
 6. Baseline performance/quality checks are reported with thresholds.
+
+Execution status:
+
+- Timeout/retry/degradation policies implemented with integration tests.
+- Degradation metadata surfaced in orchestration state and API envelope.
+- Documentation/runbook/performance baselines remain pending.
 
 ## Requirement Coverage Matrix
 

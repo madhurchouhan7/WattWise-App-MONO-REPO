@@ -23,15 +23,15 @@ Help users monitor their electricity consumption, discover insights, and generat
 
 ### Validated
 
-(None yet - ship to validate)
+- [x] Build collaborative orchestration with persistent shared context and complete conversation memory (Phases 2-3)
+- [x] Introduce agent self-reflection and self-validation before output publication (Phase 4)
+- [x] Add cross-agent challenge, debate resolution, and consensus scoring (Phases 4-5)
+- [x] Enforce strict anti-hallucination checks and final quality gating at >=85 score (Phases 4-5)
+- [x] Deliver production-ready observability and graceful error recovery paths (Phase 6 baseline)
 
 ### Active
 
-- [ ] Build collaborative orchestration with persistent shared context and complete conversation memory
-- [ ] Introduce agent self-reflection and self-validation before output publication
-- [ ] Add cross-agent challenge, debate resolution, and consensus scoring
-- [ ] Enforce strict anti-hallucination checks and final quality gating at >=85 score
-- [ ] Deliver production-ready observability and graceful error recovery paths
+- [ ] Finalize production docs/runbook/performance baseline artifacts for milestone closure
 
 ### Out of Scope
 

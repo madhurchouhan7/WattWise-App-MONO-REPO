@@ -7,6 +7,9 @@ class CacheService {
     constructor() {
         this.client = null;
         this.isConnected = false;
+        if (process.env.NODE_ENV === 'test') {
+            return;
+        }
         this.init();
     }
 
