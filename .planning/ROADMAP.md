@@ -35,6 +35,12 @@ Plan list:
 
 Goal: Establish persistent, auditable memory as collaboration foundation.
 Requirements: MEM-01, MEM-02, MEM-03, OPS-02
+Plans: 3 plans
+Plan list:
+
+- [ ] 03-01-PLAN.md - Memory identity/provenance contracts and redaction foundation
+- [ ] 03-02-PLAN.md - Redis memory service and bounded retrieval engine
+- [ ] 03-03-PLAN.md - Collaborative wiring, trace correlation, and continuity tests
 Success criteria:
 
 1. Shared workspace persists artifacts, messages, and revisions per run/thread.
