@@ -13,6 +13,8 @@ function buildPlanResponseEnvelope({
   roleRetryBudgets,
   qualityGate,
   consensusRoundCount,
+  consensusRationale,
+  safeFallbackActivated,
 }) {
   const metadata = {
     executionPath,
@@ -63,6 +65,10 @@ function buildPlanResponseEnvelope({
       consensusRoundCount: Number.isFinite(consensusRoundCount)
         ? consensusRoundCount
         : 0,
+      consensusRationale: Array.isArray(consensusRationale)
+        ? consensusRationale
+        : [],
+      safeFallbackActivated: Boolean(safeFallbackActivated),
     };
   }
 

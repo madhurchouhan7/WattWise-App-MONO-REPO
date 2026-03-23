@@ -65,6 +65,23 @@ describe("AI phase4 response contract", () => {
           severity: "high",
         },
       ],
+      consensusLog: [
+        {
+          round: 1,
+          qualityScore: 93,
+          unresolvedIssues: 1,
+          unresolvedChallenges: 1,
+          votes: [
+            {
+              role: "analyst",
+              stance: "approve",
+              confidence: 93,
+              rationale: "round-1:validated",
+            },
+          ],
+        },
+      ],
+      safeFallbackActivated: false,
     }).invoke;
   });
 
@@ -96,7 +113,24 @@ describe("AI phase4 response contract", () => {
         minScore: 85,
         passed: false,
       },
-      consensusRoundCount: 0,
+      consensusRoundCount: 1,
+      consensusRationale: [
+        {
+          round: 1,
+          qualityScore: 93,
+          unresolvedIssues: 1,
+          unresolvedChallenges: 1,
+          votes: [
+            {
+              role: "analyst",
+              stance: "approve",
+              confidence: 93,
+              rationale: "round-1:validated",
+            },
+          ],
+        },
+      ],
+      safeFallbackActivated: false,
     });
   });
 });

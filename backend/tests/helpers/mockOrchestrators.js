@@ -38,6 +38,9 @@ function collaborativeSuccessStub({
   revisionCount = 0,
   validationIssues = [],
   crossAgentChallenges = [],
+  qualityGate = { minScore: 85, passed: false },
+  consensusLog = [],
+  safeFallbackActivated = false,
 } = {}) {
   return {
     invoke: jest.fn().mockResolvedValue({
@@ -47,6 +50,9 @@ function collaborativeSuccessStub({
       revisionCount,
       validationIssues,
       crossAgentChallenges,
+      qualityGate,
+      consensusLog,
+      safeFallbackActivated,
     }),
     finalPlan,
     qualityScore,
@@ -54,6 +60,9 @@ function collaborativeSuccessStub({
     revisionCount,
     validationIssues,
     crossAgentChallenges,
+    qualityGate,
+    consensusLog,
+    safeFallbackActivated,
   };
 }
 

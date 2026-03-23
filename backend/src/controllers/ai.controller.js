@@ -128,6 +128,23 @@ const getEfficiencyPlan = async (req, res, next) => {
       consensusRoundCount: Array.isArray(resultState.consensusLog)
         ? resultState.consensusLog.length
         : resultState.debateRounds,
+      consensusRationale: Array.isArray(resultState.consensusLog)
+        ? resultState.consensusLog.map((entry) => ({
+            round: entry.round,
+            qualityScore: entry.qualityScore,
+            unresolvedIssues: entry.unresolvedIssues,
+            unresolvedChallenges: entry.unresolvedChallenges,
+            votes: Array.isArray(entry.votes)
+              ? entry.votes.map((vote) => ({
+                  role: vote.role,
+                  stance: vote.stance,
+                  confidence: vote.confidence,
+                  rationale: vote.rationale,
+                }))
+              : [],
+          }))
+        : [],
+      safeFallbackActivated: Boolean(resultState.safeFallbackActivated),
     });
 
     return sendSuccess(

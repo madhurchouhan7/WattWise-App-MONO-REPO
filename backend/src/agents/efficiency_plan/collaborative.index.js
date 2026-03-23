@@ -196,16 +196,19 @@ const collaborativePlanApp = {
       passed: consensus.gatePassed,
     };
 
+    let safeFallbackActivated = false;
     if (!qualityGate.passed) {
       validationIssues = [
         ...validationIssues,
         `qa:quality_gate_failed:score_${qualityScore}_min_${qualityGate.minScore}`,
       ];
       finalPlan = {
-        ...finalPlan,
-        status: "needs_revision",
-        summary: `${finalPlan.summary} Quality gate not met; additional revision required.`,
+        ...buildFallbackFinalPlan(strategies),
+        status: "safe_fallback",
+        summary:
+          "Safe fallback activated after unresolved debate. Review and refine this plan before publish.",
       };
+      safeFallbackActivated = true;
     }
 
     const summary =
@@ -233,6 +236,7 @@ const collaborativePlanApp = {
         roleRetryBudgets,
         qualityScore,
         qualityGate,
+        safeFallbackActivated,
         consensusRounds: consensus.debateRounds,
         validationIssues,
         challenges,
@@ -267,6 +271,7 @@ const collaborativePlanApp = {
       debateRounds: consensus.debateRounds,
       consensusLog: consensus.consensusLog,
       qualityGate,
+      safeFallbackActivated,
       runId: memoryMeta.runId,
       threadId: identity.threadId,
     };
