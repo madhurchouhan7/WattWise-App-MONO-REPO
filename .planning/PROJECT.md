@@ -23,7 +23,7 @@ Help users monitor their electricity consumption, discover insights, and generat
 
 ### Validated
 
-(None yet - ship to validate)
+- Compatibility foundation and dual-path routing completed (Phase 2) with preserved legacy entrypoint behavior and explicit collaborative path selection.
 
 ### Active
 
@@ -54,7 +54,7 @@ Help users monitor their electricity consumption, discover insights, and generat
 
 | Decision                                                                   | Rationale                                                 | Outcome   |
 | -------------------------------------------------------------------------- | --------------------------------------------------------- | --------- |
-| Keep legacy linear pipeline files while adding enhanced collaborative path | Reduces migration risk and allows controlled rollout      | - Pending |
+| Keep legacy linear pipeline files while adding enhanced collaborative path | Reduces migration risk and allows controlled rollout      | - Completed in Phase 2 |
 | Use explicit validation and debate layers before final output              | Needed for auditability, self-correction, and consistency | - Pending |
 
 ## Evolution
@@ -78,4 +78,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-_Last updated: 2026-03-23 after milestone v2.0 start_
+_Last updated: 2026-03-23 after Phase 2 execution_
