@@ -30,6 +30,14 @@ describe("phase4 collaborative reflection", () => {
     expect(Array.isArray(out.crossAgentChallenges)).toBe(true);
     expect(Number.isFinite(out.revisionCount)).toBe(true);
     expect(Number.isFinite(out.qualityScore)).toBe(true);
+    expect(Number.isFinite(out.debateRounds)).toBe(true);
+    expect(Array.isArray(out.consensusLog)).toBe(true);
+    expect(out.qualityGate).toEqual(
+      expect.objectContaining({
+        minScore: expect.any(Number),
+        passed: expect.any(Boolean),
+      }),
+    );
     expect(out.roleRetryBudgets).toEqual(
       expect.objectContaining({
         analyst: expect.any(Number),

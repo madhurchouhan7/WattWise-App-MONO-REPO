@@ -64,6 +64,21 @@ const StateAnnotation = Annotation.Root({
       challengeRouting: 0,
     }),
   }),
+  consensusLog: Annotation({
+    reducer: (_curr, next) => next || [],
+    default: () => [],
+  }),
+  qualityGate: Annotation({
+    reducer: (_curr, next) =>
+      next || {
+        minScore: 85,
+        passed: false,
+      },
+    default: () => ({
+      minScore: 85,
+      passed: false,
+    }),
+  }),
 });
 
 module.exports = { StateAnnotation };

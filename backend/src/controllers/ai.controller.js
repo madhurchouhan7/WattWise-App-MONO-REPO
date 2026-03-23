@@ -124,6 +124,10 @@ const getEfficiencyPlan = async (req, res, next) => {
         ? resultState.crossAgentChallenges.length
         : undefined,
       roleRetryBudgets: resultState.roleRetryBudgets,
+      qualityGate: resultState.qualityGate,
+      consensusRoundCount: Array.isArray(resultState.consensusLog)
+        ? resultState.consensusLog.length
+        : resultState.debateRounds,
     });
 
     return sendSuccess(

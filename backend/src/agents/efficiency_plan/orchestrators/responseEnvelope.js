@@ -11,6 +11,8 @@ function buildPlanResponseEnvelope({
   validationIssueCount,
   challengeCount,
   roleRetryBudgets,
+  qualityGate,
+  consensusRoundCount,
 }) {
   const metadata = {
     executionPath,
@@ -49,6 +51,18 @@ function buildPlanResponseEnvelope({
               copywriter: 0,
               challengeRouting: 0,
             },
+    };
+  }
+
+  if (qualityGate || Number.isFinite(consensusRoundCount)) {
+    metadata.phase5 = {
+      qualityGate:
+        qualityGate && typeof qualityGate === "object"
+          ? qualityGate
+          : { minScore: 85, passed: false },
+      consensusRoundCount: Number.isFinite(consensusRoundCount)
+        ? consensusRoundCount
+        : 0,
     };
   }
 

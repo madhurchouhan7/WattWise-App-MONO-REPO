@@ -91,5 +91,12 @@ describe("AI phase4 response contract", () => {
         challengeRouting: 0,
       },
     });
+    expect(res.body.data.metadata.phase5).toEqual({
+      qualityGate: {
+        minScore: 85,
+        passed: false,
+      },
+      consensusRoundCount: 0,
+    });
   });
 });

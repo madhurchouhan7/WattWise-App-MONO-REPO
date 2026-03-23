@@ -21,6 +21,7 @@ const {
   validateStrategies,
   validateFinalPlan,
 } = require("./shared/phase4Contracts");
+const { runDebateAndConsensus } = require("./shared/debateConsensus");
 
 const collaborativePlanApp = {
   async invoke(initialState = {}) {
@@ -181,10 +182,31 @@ const collaborativePlanApp = {
       copywriterReflection,
     ];
 
-    const qualityScore = Math.round(
-      reflections.reduce((sum, item) => sum + item.score, 0) /
-        Math.max(reflections.length, 1),
-    );
+    const consensus = runDebateAndConsensus({
+      reflections,
+      validationIssues,
+      challenges,
+      maxRounds: 2,
+      minQualityScore: 85,
+    });
+
+    const qualityScore = consensus.finalQualityScore;
+    const qualityGate = {
+      minScore: consensus.minQualityScore,
+      passed: consensus.gatePassed,
+    };
+
+    if (!qualityGate.passed) {
+      validationIssues = [
+        ...validationIssues,
+        `qa:quality_gate_failed:score_${qualityScore}_min_${qualityGate.minScore}`,
+      ];
+      finalPlan = {
+        ...finalPlan,
+        status: "needs_revision",
+        summary: `${finalPlan.summary} Quality gate not met; additional revision required.`,
+      };
+    }
 
     const summary =
       finalPlan?.summary ||
@@ -210,6 +232,8 @@ const collaborativePlanApp = {
         revisionCount,
         roleRetryBudgets,
         qualityScore,
+        qualityGate,
+        consensusRounds: consensus.debateRounds,
         validationIssues,
         challenges,
       },
@@ -240,7 +264,9 @@ const collaborativePlanApp = {
       revisionCount,
       roleRetryBudgets,
       qualityScore,
-      debateRounds: 0,
+      debateRounds: consensus.debateRounds,
+      consensusLog: consensus.consensusLog,
+      qualityGate,
       runId: memoryMeta.runId,
       threadId: identity.threadId,
     };
