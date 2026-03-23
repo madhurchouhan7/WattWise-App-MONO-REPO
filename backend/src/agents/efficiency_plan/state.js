@@ -24,6 +24,14 @@ const StateAnnotation = Annotation.Root({
     finalPlan: Annotation({
         reducer: (curr, next) => next || curr,
         default: () => null
+    }),
+    memoryContext: Annotation({
+        reducer: (_curr, next) => next || [],
+        default: () => []
+    }),
+    memoryEventRefs: Annotation({
+        reducer: (_curr, next) => next || [],
+        default: () => []
     })
 });
 

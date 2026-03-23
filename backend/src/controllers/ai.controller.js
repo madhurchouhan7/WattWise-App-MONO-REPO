@@ -66,7 +66,35 @@ const getEfficiencyPlan = async (req, res, next) => {
         ? collaborativePlanApp
         : efficiencyPlanApp;
 
-    const resultState = await selectedApp.invoke(initialState);
+    const runId = userData.runId || `run-${req.id || Date.now()}`;
+    const threadId = req.get("x-thread-id") || userData.threadId || req.id;
+    const tenantId = req.user?.tenantId || userData.user?.tenantId;
+    const memoryUserId =
+      req.user?.id || req.user?._id || userData.user?.id || userData.user?.userId;
+
+    if (executionPath === "collaborative") {
+      if (!tenantId || !memoryUserId || !threadId) {
+        throw new ApiError(
+          400,
+          "Missing required memory identity keys for collaborative mode: tenantId, userId, threadId"
+        );
+      }
+    }
+
+    const resultState = await selectedApp.invoke({
+      ...initialState,
+      memoryMeta:
+        executionPath === "collaborative"
+          ? {
+              tenantId,
+              userId: memoryUserId,
+              threadId,
+              runId,
+              requestId: req.id,
+              query: userData.query || "",
+            }
+          : undefined,
+    });
     const plan = resultState.finalPlan;
 
     if (!plan) {
@@ -81,6 +109,8 @@ const getEfficiencyPlan = async (req, res, next) => {
       requestedMode,
       executionPath,
       requestId: req.id,
+      runId: resultState.runId || runId,
+      threadId: resultState.threadId || threadId,
       qualityScore: resultState.qualityScore,
       debateRounds: resultState.debateRounds,
     });
