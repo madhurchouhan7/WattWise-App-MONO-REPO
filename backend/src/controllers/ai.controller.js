@@ -145,6 +145,8 @@ const getEfficiencyPlan = async (req, res, next) => {
           }))
         : [],
       safeFallbackActivated: Boolean(resultState.safeFallbackActivated),
+      consensusDecision: resultState.consensusDecision,
+      unresolvedRoute: resultState.unresolvedRoute,
     });
 
     return sendSuccess(

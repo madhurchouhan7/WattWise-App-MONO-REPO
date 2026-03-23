@@ -26,7 +26,8 @@ function weightedAverageScore(reflections = []) {
 
   for (const reflection of normalized) {
     const weight =
-      DEFAULT_ROLE_WEIGHTS[reflection.role] || 1 / Math.max(normalized.length, 1);
+      DEFAULT_ROLE_WEIGHTS[reflection.role] ||
+      1 / Math.max(normalized.length, 1);
     weightedSum += reflection.score * weight;
     totalWeight += weight;
   }
@@ -44,6 +45,43 @@ function buildVotes(reflections = [], round = 1) {
         ? `round-${round}:validated`
         : `round-${round}:issues=${reflection.issues.length}`,
   }));
+}
+
+function resolveVoteDecision(votes = []) {
+  const weighted = {
+    approve: 0,
+    revise: 0,
+  };
+
+  for (const vote of Array.isArray(votes) ? votes : []) {
+    const roleWeight = DEFAULT_ROLE_WEIGHTS[vote.role] || 0.33;
+    const confidence = Number.isFinite(vote.confidence) ? vote.confidence : 0;
+    const stance = vote.stance === "approve" ? "approve" : "revise";
+    weighted[stance] += roleWeight * confidence;
+  }
+
+  const delta = Math.abs(weighted.approve - weighted.revise);
+  if (delta <= 1) {
+    const priority = ["analyst", "strategist", "copywriter"];
+    for (const role of priority) {
+      const roleVote = votes.find((item) => item.role === role);
+      if (roleVote) {
+        return {
+          stance: roleVote.stance,
+          tieBreakApplied: true,
+          tieBreakRule: `priority:${role}`,
+          weighted,
+        };
+      }
+    }
+  }
+
+  return {
+    stance: weighted.approve >= weighted.revise ? "approve" : "revise",
+    tieBreakApplied: false,
+    tieBreakRule: null,
+    weighted,
+  };
 }
 
 function applyRoundAdjustments({
@@ -66,7 +104,9 @@ function runDebateAndConsensus({
   maxRounds = 2,
   minQualityScore = 85,
 }) {
-  const issueCount = Array.isArray(validationIssues) ? validationIssues.length : 0;
+  const issueCount = Array.isArray(validationIssues)
+    ? validationIssues.length
+    : 0;
   const challengeCount = Array.isArray(challenges) ? challenges.length : 0;
   const baseScore = weightedAverageScore(reflections);
 
@@ -105,12 +145,20 @@ function runDebateAndConsensus({
     });
   }
 
+  const finalRound = consensusLog[consensusLog.length - 1] || {
+    votes: [],
+  };
+  const decision = resolveVoteDecision(finalRound.votes);
+
   return {
     finalQualityScore: finalScore,
     debateRounds: rounds,
     gatePassed: finalScore >= minQualityScore,
     consensusLog,
     minQualityScore,
+    decision,
+    unresolvedRoute:
+      finalScore >= minQualityScore ? "publish" : "safe_fallback",
   };
 }
 

@@ -131,6 +131,12 @@ describe("AI phase4 response contract", () => {
         },
       ],
       safeFallbackActivated: false,
+      consensusDecision: {
+        stance: "revise",
+        tieBreakApplied: false,
+        tieBreakRule: null,
+      },
+      unresolvedRoute: "safe_fallback",
     });
   });
 });

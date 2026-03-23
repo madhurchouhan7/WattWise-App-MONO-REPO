@@ -41,6 +41,12 @@ function collaborativeSuccessStub({
   qualityGate = { minScore: 85, passed: false },
   consensusLog = [],
   safeFallbackActivated = false,
+  consensusDecision = {
+    stance: "revise",
+    tieBreakApplied: false,
+    tieBreakRule: null,
+  },
+  unresolvedRoute = "safe_fallback",
 } = {}) {
   return {
     invoke: jest.fn().mockResolvedValue({
@@ -53,6 +59,8 @@ function collaborativeSuccessStub({
       qualityGate,
       consensusLog,
       safeFallbackActivated,
+      consensusDecision,
+      unresolvedRoute,
     }),
     finalPlan,
     qualityScore,
@@ -63,6 +71,8 @@ function collaborativeSuccessStub({
     qualityGate,
     consensusLog,
     safeFallbackActivated,
+    consensusDecision,
+    unresolvedRoute,
   };
 }
 

@@ -195,6 +195,7 @@ const collaborativePlanApp = {
       minScore: consensus.minQualityScore,
       passed: consensus.gatePassed,
     };
+    const consensusDecision = consensus.decision;
 
     let safeFallbackActivated = false;
     if (!qualityGate.passed) {
@@ -238,6 +239,8 @@ const collaborativePlanApp = {
         qualityGate,
         safeFallbackActivated,
         consensusRounds: consensus.debateRounds,
+        consensusDecision,
+        unresolvedRoute: consensus.unresolvedRoute,
         validationIssues,
         challenges,
       },
@@ -271,6 +274,8 @@ const collaborativePlanApp = {
       debateRounds: consensus.debateRounds,
       consensusLog: consensus.consensusLog,
       qualityGate,
+      consensusDecision,
+      unresolvedRoute: consensus.unresolvedRoute,
       safeFallbackActivated,
       runId: memoryMeta.runId,
       threadId: identity.threadId,

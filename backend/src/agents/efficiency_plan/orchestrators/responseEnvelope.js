@@ -15,6 +15,8 @@ function buildPlanResponseEnvelope({
   consensusRoundCount,
   consensusRationale,
   safeFallbackActivated,
+  consensusDecision,
+  unresolvedRoute,
 }) {
   const metadata = {
     executionPath,
@@ -69,6 +71,15 @@ function buildPlanResponseEnvelope({
         ? consensusRationale
         : [],
       safeFallbackActivated: Boolean(safeFallbackActivated),
+      consensusDecision:
+        consensusDecision && typeof consensusDecision === "object"
+          ? consensusDecision
+          : {
+              stance: "revise",
+              tieBreakApplied: false,
+              tieBreakRule: null,
+            },
+      unresolvedRoute: unresolvedRoute || "safe_fallback",
     };
   }
 

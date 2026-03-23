@@ -37,5 +37,24 @@ describe("phase5 debate consensus", () => {
     expect(out.gatePassed).toBe(false);
     expect(out.debateRounds).toBe(2);
     expect(out.consensusLog).toHaveLength(2);
+    expect(out.unresolvedRoute).toBe("safe_fallback");
+  });
+
+  it("applies deterministic tie-break rule when weighted votes are tied", () => {
+    const out = runDebateAndConsensus({
+      reflections: [
+        { role: "analyst", score: 100, approved: true, issues: [] },
+        { role: "strategist", score: 100, approved: false, issues: [] },
+        { role: "copywriter", score: 0, approved: false, issues: [] },
+      ],
+      validationIssues: ["x", "y"],
+      challenges: [{ type: "coverage_gap" }],
+      maxRounds: 1,
+      minQualityScore: 85,
+    });
+
+    expect(out.decision).toBeTruthy();
+    expect(out.decision.tieBreakApplied).toBe(true);
+    expect(out.decision.tieBreakRule).toBe("priority:analyst");
   });
 });
