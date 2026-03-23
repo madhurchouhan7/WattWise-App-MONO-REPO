@@ -1,115 +1,86 @@
-# Milestone v2.0 Roadmap
+# Milestone v2.1 Roadmap
 
-**5 phases** | **21 requirements mapped** | Coverage complete ✓
+**5 phases** | **24 requirements mapped** | Coverage complete ✓
 
 Phase numbering continues from prior milestone phases.
 
-| #   | Phase                                          | Goal                                                                                        | Requirements                                          | Success Criteria |
-| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------- |
-| 2   | Compatibility Foundation and Dual-Path Routing | Add collaborative orchestration entrypoint while preserving legacy flow and API contract    | Complete                                              | 2026-03-23       |
-| 3   | Shared Memory and Context Infrastructure       | Implement persistent workspace and conversation continuity with provenance and isolation    | MEM-01, MEM-02, MEM-03, OPS-02                        | 5                |
-| 4   | Agent Reflection, Validation, and Cross-Checks | Upgrade Analyst/Strategist/Copywriter agents with self-validation and cross-agent challenge | AGENT-01, AGENT-02, AGENT-03, QA-02                   | 5                |
-| 5   | Debate, Consensus, and Quality Gates           | Add bounded debate, weighted consensus, and enforce final gate >=85 with auditable scores   | DEBATE-01, DEBATE-02, DEBATE-03, QA-01, QA-03, NFR-02 | 6                |
-| 6   | Reliability, Testing, and Production Readiness | Finalize retry/degradation/error handling, tests, docs, and execution-trace handoff         | OPS-01, COMP-03, NFR-01, NFR-03                       | 6                |
+| #   | Phase                              | Goal                                                                             | Requirements                                                   | Success Criteria |
+| --- | ---------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------- |
+| 7   | Contract Freeze and Profile Wiring | Stabilize backend and mobile contracts, then activate profile utility navigation | PRO-01, PRO-02, PRO-03, PRO-04                                 | 5                |
+| 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                    | APP-01, APP-02, APP-03, APP-04                                 | 5                |
+| 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh      | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
+| 10  | Support and Solar Workflows        | Ship durable support flow and Solar Calculator v1 behavior                       | SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04 | 6                |
+| 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                   | NFR-01, NFR-02, NFR-03                                         | 5                |
 
 ## Phase Details
 
-### Phase 2: Compatibility Foundation and Dual-Path Routing
+### Phase 7: Contract Freeze and Profile Wiring
 
-Goal: Build additive collaborative path without breaking current production behavior.
-Requirements: COMP-01, COMP-02, OPS-03
-Plans: 3 plans
-Plan list:
-
-- [x] 02-01-PLAN.md - Mode resolver + collaborative entrypoint foundation
-- [x] 02-02-PLAN.md - Controller dual-dispatch + compatibility response envelope
-- [x] 02-03-PLAN.md - Integration test matrix for routing and centralized errors
-      Success criteria:
-
-1. Existing linear entrypoint remains callable and behavior-compatible.
-2. New collaborative entrypoint exists and is selectable via explicit routing/flag.
-3. Output contract remains API-compatible (`finalPlan` + metadata extensions allowed).
-4. Centralized error handler returns structured failure payloads without process crash.
-
-### Phase 3: Shared Memory and Context Infrastructure
-
-Goal: Establish persistent, auditable memory as collaboration foundation.
-Requirements: MEM-01, MEM-02, MEM-03, OPS-02
-Plans: 3 plans
-Plan list:
-
-- [x] 03-01-PLAN.md - Memory identity/provenance contracts and redaction foundation
-- [x] 03-02-PLAN.md - Redis memory service and bounded retrieval engine
-- [x] 03-03-PLAN.md - Collaborative wiring, trace correlation, and continuity tests
-      Success criteria:
-
-1. Shared workspace persists artifacts, messages, and revisions per run/thread.
-2. Full conversation history is accessible to all agents each cycle.
-3. Memory writes include provenance fields (agent, timestamp, evidence/source refs).
-4. Execution trace IDs correlate workspace events and logs.
-5. Context retrieval supports bounded/filtered recall to avoid prompt bloat.
-
-### Phase 4: Agent Reflection, Validation, and Cross-Checks
-
-Goal: Ensure each specialist is self-correcting and peer-checkable.
-Requirements: AGENT-01, AGENT-02, AGENT-03, QA-02
+Goal: Finalize profile and settings contracts, then connect profile screens to real providers and endpoints.
+Requirements: PRO-01, PRO-02, PRO-03, PRO-04
 Success criteria:
 
-1. Analyst/Strategist/Copywriter each run self-reflection before publish.
-2. Schema + evidence validation rejects malformed or unsupported claims.
-3. Agents can raise structured challenges against prior outputs.
-4. Failed validations route to revision loops with bounded retry budgets.
-5. Hallucination checks block unsupported claims from advancing.
+1. Endpoint contract matrix exists for profile/settings load and save paths.
+2. Profile screen actions navigate to functional flows (no placeholders).
+3. Profile fetch/update states include loading, error, retry, and success feedback.
+4. Validation errors are surfaced inline before submit.
+5. Saved profile data is visible after reopen and app restart.
 
-Execution status:
+### Phase 8: Appliance Domain Hardening
 
-- Core runtime delivered: self-reflection, schema/evidence validation, cross-agent challenges, bounded revision loops.
-- API metadata and tests delivered for phase-4 contracts.
-
-### Phase 5: Debate, Consensus, and Quality Gates
-
-Goal: Resolve disagreement rigorously and publish only high-quality consensus.
-Requirements: DEBATE-01, DEBATE-02, DEBATE-03, QA-01, QA-03, NFR-02
+Goal: Ensure Manage Appliances operations are safe under real-world mutation and refresh conditions.
+Requirements: APP-01, APP-02, APP-03, APP-04
 Success criteria:
 
-1. Debate protocol supports bounded rounds with deterministic stop conditions.
-2. Weighted voting combines specialist confidence and role priorities.
-3. Consensus log records positions, votes, and rationale per round.
-4. Quality gate enforces minimum score >=85 before publication.
-5. Score output includes dimension breakdown and fail reasons.
-6. Unresolved/tied debates route to revision or safe fallback path.
+1. Add/edit/delete appliance operations complete with deterministic success/error states.
+2. Updates are non-destructive and do not remove unrelated appliance records.
+3. Delete path requires confirmation and updates list immediately.
+4. Concurrency-safe update strategy prevents stale-write overwrite.
+5. Appliance mutation failures provide retry and recovery guidance.
 
-Execution status:
+### Phase 9: Utility Content Platform
 
-- Bounded debate rounds and weighted consensus scoring implemented.
-- Quality gate (>=85), tie-break rules, and safe fallback routing implemented.
-- Route-level API contract tests added for consensus/fallback metadata.
-
-### Phase 6: Reliability, Testing, and Production Readiness
-
-Goal: Harden system for production operation and team handoff.
-Requirements: OPS-01, COMP-03, NFR-01, NFR-03
+Goal: Power FAQ, bill-reading education, and legal surfaces from backend-delivered content.
+Requirements: CNT-01, CNT-02, CNT-03, CNT-04, CNT-05
 Success criteria:
 
-1. Retry/timeout/degradation policies are implemented and tested.
-2. Integration tests cover happy path, debate conflict, gate fail, and fallback behavior.
-3. README documents architecture, setup, usage, and debugging flow.
-4. Example execution trace demonstrates full collaboration lifecycle.
-5. Observability captures per-agent attempts, revisions, and timing.
-6. Baseline performance/quality checks are reported with thresholds.
+1. FAQ list/topics load from backend and render in app.
+2. FAQ search or filter returns relevant content reliably.
+3. Bill-reading guide displays structured educational sections and glossary.
+4. Legal docs show version/date metadata and open correctly.
+5. Content refresh path prevents stale-cache confusion after backend updates.
 
-Execution status:
+### Phase 10: Support and Solar Workflows
 
-- Timeout/retry/degradation policies implemented with integration tests.
-- Degradation metadata surfaced in orchestration state and API envelope.
-- Documentation/runbook/performance baselines remain pending.
+Goal: Deliver complete support request handling and dynamic Solar Calculator v1.
+Requirements: SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04
+Success criteria:
+
+1. Contact Support submission captures required fields and posts successfully.
+2. Successful support submission returns and shows durable reference ID.
+3. Failed support submission gives actionable retry options.
+4. Support and legal-consent events are traceable in backend logs or audit records.
+5. Solar Calculator computes and displays a transparent estimate range.
+6. Solar assumptions and limitations are clearly visible to users.
+
+### Phase 11: Reliability and Milestone Closure
+
+Goal: Validate end-to-end resilience and finalize v2.1 verification evidence.
+Requirements: NFR-01, NFR-02, NFR-03
+Success criteria:
+
+1. All new utility screens handle loading/empty/error/retry consistently.
+2. New endpoints return normalized success and error envelopes.
+3. Negative-path tests pass for profile, appliances, content, support, and solar flows.
+4. Milestone UAT checklist is completed with no critical open gaps.
+5. Verification artifacts are documented for milestone closure.
 
 ## Requirement Coverage Matrix
 
-- Phase 2 -> COMP-01, COMP-02, OPS-03
-- Phase 3 -> MEM-01, MEM-02, MEM-03, OPS-02
-- Phase 4 -> AGENT-01, AGENT-02, AGENT-03, QA-02
-- Phase 5 -> DEBATE-01, DEBATE-02, DEBATE-03, QA-01, QA-03, NFR-02
-- Phase 6 -> OPS-01, COMP-03, NFR-01, NFR-03
+- Phase 7 -> PRO-01, PRO-02, PRO-03, PRO-04
+- Phase 8 -> APP-01, APP-02, APP-03, APP-04
+- Phase 9 -> CNT-01, CNT-02, CNT-03, CNT-04, CNT-05
+- Phase 10 -> SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04
+- Phase 11 -> NFR-01, NFR-02, NFR-03
 
-All active milestone requirements are mapped to at least one phase.
+All active milestone requirements are mapped to exactly one phase.
