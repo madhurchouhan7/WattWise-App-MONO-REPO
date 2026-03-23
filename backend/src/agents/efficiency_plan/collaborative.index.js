@@ -109,14 +109,30 @@ const collaborativePlanApp = {
       revisionCount += 1;
     }
 
-    const hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
-    const challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
-    const validationIssues = [
+    let hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
+    let challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
+    let validationIssues = [
       ...analystValidation.issues,
       ...strategistValidation.issues,
       ...copywriterValidation.issues,
       ...hallucinationRisks,
     ];
+
+    while (challenges.length > 0 && revisionCount < MAX_REVISION_ATTEMPTS) {
+      strategies = normalizeStrategies(strategies, anomalies);
+      finalPlan = buildFallbackFinalPlan(strategies);
+      copywriterValidation = validateFinalPlan(finalPlan);
+      revisionCount += 1;
+
+      hallucinationRisks = detectHallucinationRisks(anomalies, strategies, finalPlan);
+      challenges = buildCrossAgentChallenges(anomalies, strategies, finalPlan);
+      validationIssues = [
+        ...analystValidation.issues,
+        ...strategistValidation.issues,
+        ...copywriterValidation.issues,
+        ...hallucinationRisks,
+      ];
+    }
 
     const analystReflection = buildReflection("analyst", analystValidation.issues, challenges);
     const strategistReflection = buildReflection(
