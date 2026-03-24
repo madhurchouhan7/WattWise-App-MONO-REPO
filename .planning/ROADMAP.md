@@ -44,7 +44,7 @@ Plans:
 
 - [x] 08-01-PLAN.md - Freeze appliance mutation contracts, create Wave-0 tests, and define migration-safety guardrails.
 - [x] 08-02-PLAN.md - Harden backend appliance create/patch/delete behavior with non-destructive and concurrency-safe mutations.
-- [ ] 08-03-PLAN.md - Wire Manage Appliances client delete/retry/conflict UX for deterministic recovery behavior.
+- [x] 08-03-PLAN.md - Wire Manage Appliances client delete/retry/conflict UX for deterministic recovery behavior.
 
 Success criteria:
 
