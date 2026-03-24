@@ -6,6 +6,29 @@ const { sendSuccess } = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { asyncHandler } = require('../middleware/errorHandler');
 
+const buildConflictEnvelope = (req) => ({
+    success: false,
+    message: 'Precondition failed: appliance was modified. Refresh and retry.',
+    errorCode: 'PRECONDITION_FAILED',
+    requestId: req.id,
+    timestamp: new Date().toISOString(),
+    details: [{ path: '_expectedVersion', message: 'Stale appliance version.' }],
+});
+
+const conflictOrNotFound = async (req, res) => {
+    const latest = await Appliance.findOne({
+        _id: req.params.id,
+        userId: req.user._id,
+        isActive: true,
+    });
+
+    if (latest) {
+        return res.status(412).json(buildConflictEnvelope(req));
+    }
+
+    throw new ApiError(404, 'Appliance not found.');
+};
+
 // ─── POST /api/v1/appliances ─────────────────────────────────────────────────────
 exports.createAppliance = asyncHandler(async (req, res, _next) => {
     const applianceData = {
@@ -57,16 +80,24 @@ exports.updateAppliance = asyncHandler(async (req, res, _next) => {
     const { _expectedVersion, ...patch } = req.body;
 
     const appliance = await Appliance.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id, isActive: true },
         {
-            ...patch,
-            lastUpdated: new Date()
+            _id: req.params.id,
+            userId: req.user._id,
+            isActive: true,
+            __v: _expectedVersion,
+        },
+        {
+            $set: {
+                ...patch,
+                lastUpdated: new Date()
+            },
+            $inc: { __v: 1 }
         },
         { returnDocument: 'after', runValidators: true }
     );
 
     if (!appliance) {
-        throw new ApiError(404, 'Appliance not found.');
+        return conflictOrNotFound(req, res);
     }
 
     sendSuccess(res, 200, 'Appliance updated successfully.', appliance);
@@ -74,14 +105,27 @@ exports.updateAppliance = asyncHandler(async (req, res, _next) => {
 
 // ─── DELETE /api/v1/appliances/:id ─────────────────────────────────────────────────────
 exports.deleteAppliance = asyncHandler(async (req, res, _next) => {
+    const { _expectedVersion } = req.body;
+
     const appliance = await Appliance.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id, isActive: true },
-        { isActive: false },
-        { returnDocument: 'after' }
+        {
+            _id: req.params.id,
+            userId: req.user._id,
+            isActive: true,
+            __v: _expectedVersion,
+        },
+        {
+            $set: {
+                isActive: false,
+                lastUpdated: new Date(),
+            },
+            $inc: { __v: 1 }
+        },
+        { returnDocument: 'after', runValidators: true }
     );
 
     if (!appliance) {
-        throw new ApiError(404, 'Appliance not found.');
+        return conflictOrNotFound(req, res);
     }
 
     sendSuccess(res, 200, 'Appliance deleted successfully.');

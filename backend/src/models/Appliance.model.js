@@ -113,6 +113,7 @@ const applianceSchema = new mongoose.Schema(
     },
     {
         timestamps: true,
+        optimisticConcurrency: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
     }
@@ -122,6 +123,7 @@ const applianceSchema = new mongoose.Schema(
 applianceSchema.index({ userId: 1, isActive: 1 });
 applianceSchema.index({ userId: 1, category: 1 });
 applianceSchema.index({ userId: 1, usageLevel: 1 });
+applianceSchema.index({ userId: 1, isActive: 1, __v: 1 });
 
 // Virtual for daily energy consumption (kWh)
 applianceSchema.virtual('dailyConsumption').get(function() {

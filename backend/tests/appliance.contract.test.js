@@ -8,6 +8,7 @@ jest.mock("../src/utils/ApiResponse", () => ({
 
 jest.mock("../src/models/Appliance.model", () => ({
   create: jest.fn(),
+  findOne: jest.fn(),
   findOneAndUpdate: jest.fn(),
 }));
 
@@ -67,6 +68,7 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
       title: "AC Bedroom",
       userId: "user-1",
       isActive: true,
+      __v: 3,
     };
 
     Appliance.findOneAndUpdate.mockResolvedValue(updated);
@@ -74,15 +76,18 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
     const req = {
       params: { id: "a-1" },
       user: { _id: "user-1" },
-      body: { title: "AC Bedroom" },
+      body: { title: "AC Bedroom", _expectedVersion: 2 },
     };
     const res = {};
 
     await applianceController.updateAppliance(req, res, jest.fn());
 
     expect(Appliance.findOneAndUpdate).toHaveBeenCalledWith(
-      { _id: "a-1", userId: "user-1", isActive: true },
-      expect.objectContaining({ title: "AC Bedroom", lastUpdated: expect.any(Date) }),
+      { _id: "a-1", userId: "user-1", isActive: true, __v: 2 },
+      {
+        $set: expect.objectContaining({ title: "AC Bedroom", lastUpdated: expect.any(Date) }),
+        $inc: { __v: 1 },
+      },
       { returnDocument: "after", runValidators: true },
     );
     expect(sendSuccess).toHaveBeenCalledWith(
@@ -94,15 +99,25 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
   });
 
   it("returns deterministic success envelope for delete", async () => {
-    Appliance.findOneAndUpdate.mockResolvedValue({ _id: "a-1" });
+    Appliance.findOneAndUpdate.mockResolvedValue({ _id: "a-1", __v: 4 });
 
     const req = {
       params: { id: "a-1" },
       user: { _id: "user-1" },
+      body: { _expectedVersion: 3 },
     };
     const res = {};
 
     await applianceController.deleteAppliance(req, res, jest.fn());
+
+    expect(Appliance.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: "a-1", userId: "user-1", isActive: true, __v: 3 },
+      {
+        $set: expect.objectContaining({ isActive: false, lastUpdated: expect.any(Date) }),
+        $inc: { __v: 1 },
+      },
+      { returnDocument: "after", runValidators: true },
+    );
 
     expect(sendSuccess).toHaveBeenCalledWith(
       res,
@@ -113,11 +128,12 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
 
   it("returns 404 ApiError when patch target appliance does not exist", async () => {
     Appliance.findOneAndUpdate.mockResolvedValue(null);
+    Appliance.findOne.mockResolvedValue(null);
 
     const req = {
       params: { id: "missing-appliance" },
       user: { _id: "user-1" },
-      body: { title: "Missing" },
+      body: { title: "Missing", _expectedVersion: 0 },
     };
 
     await expect(
