@@ -4,13 +4,13 @@
 
 Phase numbering continues from prior milestone phases.
 
-| #   | Phase                              | Goal                                                                             | Requirements                                                   | Success Criteria |
-| --- | ---------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------- |
-| 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04 | 5                |
-| 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                    | APP-01, APP-02, APP-03, APP-04                                 | 5                |
-| 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh      | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
-| 10  | Support and Solar Workflows        | Ship durable support flow and Solar Calculator v1 behavior                       | SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04 | 6                |
-| 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                   | NFR-01, NFR-02, NFR-03                                         | 5                |
+| #   | Phase                              | Goal                                                                                                   | Requirements                                                   | Success Criteria |
+| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------- |
+| 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04                                 | 5                |
+| 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                                          | APP-01, APP-02, APP-03, APP-04                                 | 5                |
+| 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh                            | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
+| 10  | Support and Solar Workflows        | Ship durable support flow and Solar Calculator v1 behavior                                             | SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04 | 6                |
+| 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                                         | NFR-01, NFR-02, NFR-03                                         | 5                |
 
 ## Phase Details
 
@@ -42,7 +42,7 @@ Requirements: APP-01, APP-02, APP-03, APP-04
 
 Plans:
 
-- [ ] 08-01-PLAN.md - Freeze appliance mutation contracts, create Wave-0 tests, and define migration-safety guardrails.
+- [x] 08-01-PLAN.md - Freeze appliance mutation contracts, create Wave-0 tests, and define migration-safety guardrails.
 - [ ] 08-02-PLAN.md - Harden backend appliance create/patch/delete behavior with non-destructive and concurrency-safe mutations.
 - [ ] 08-03-PLAN.md - Wire Manage Appliances client delete/retry/conflict UX for deterministic recovery behavior.
 

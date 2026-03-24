@@ -14,10 +14,10 @@
 
 ### Appliances
 
-- [ ] **APP-01**: User can add an appliance with validated fields and receive success or error feedback.
-- [ ] **APP-02**: User can edit appliance details without losing unrelated appliance records.
+- [x] **APP-01**: User can add an appliance with validated fields and receive success or error feedback.
+- [x] **APP-02**: User can edit appliance details without losing unrelated appliance records.
 - [ ] **APP-03**: User can delete an appliance with confirmation and immediate list refresh.
-- [ ] **APP-04**: Appliance updates are concurrency-safe to avoid overwriting newer data from another session.
+- [x] **APP-04**: Appliance updates are concurrency-safe to avoid overwriting newer data from another session.
 
 ### Content Hub
 
@@ -71,10 +71,10 @@
 | PRO-02      | Phase 7  | Complete |
 | PRO-03      | Phase 7  | Complete |
 | PRO-04      | Phase 7  | Complete |
-| APP-01      | Phase 8  | Pending |
-| APP-02      | Phase 8  | Pending |
+| APP-01      | Phase 8  | Complete |
+| APP-02      | Phase 8  | Complete |
 | APP-03      | Phase 8  | Pending |
-| APP-04      | Phase 8  | Pending |
+| APP-04      | Phase 8  | Complete |
 | CNT-01      | Phase 9  | Pending |
 | CNT-02      | Phase 9  | Pending |
 | CNT-03      | Phase 9  | Pending |
