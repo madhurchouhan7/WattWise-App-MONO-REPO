@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T05:48:30.801Z"
+last_updated: "2026-03-24T05:55:40.616Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 8 (Appliance Domain Hardening) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -38,6 +38,9 @@ Plan: 2 of 3
 - [Phase 08]: Locked APP-02 and APP-04 as RED-first appliance contracts before runtime behavior changes.
 - [Phase 08]: Frozen POST/PATCH/DELETE and temporary POST /bulk contracts with deterministic envelope and 412 conflict semantics.
 - [Phase 08]: Kept Flutter manage-appliances retry/delete tests runnable with explicit skip markers until 08-02 wiring.
+- [Phase 08]: Required \_expectedVersion preconditions for PATCH and DELETE appliance mutations.
+- [Phase 08]: Standardized stale-write response envelope to PRECONDITION_FAILED with requestId and timestamp for client recovery.
+- [Phase 08]: Scoped /bulk deactivation to touched applianceId values to preserve unrelated active appliances.
 
 ### To Do List
 
@@ -51,9 +54,10 @@ Plan: 2 of 3
 | Phase 07 P01 | 10 min | 3 tasks  | 10 files |
 | Phase 07 P02 | 4 min  | 2 tasks  | 6 files  |
 | Phase 07 P03 | 4 min  | 3 tasks  | 9 files  |
-| Phase 08 P01 | 2 min | 2 tasks | 8 files |
+| Phase 08 P01 | 2 min  | 2 tasks  | 8 files  |
+| Phase 08 P02 | 13 min | 2 tasks  | 7 files  |
 
 ## Session Info
 
-- Last session: 2026-03-24T05:47:25Z
-- Stopped At: Completed 08-01-PLAN.md
+- Last session: 2026-03-24T05:55:10Z
+- Stopped At: Completed 08-02-PLAN.md
