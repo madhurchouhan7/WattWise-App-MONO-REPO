@@ -22,7 +22,7 @@ class ApiConstants {
   // Use 10.0.2.2 if testing on Android Emulator
   // Use your computer's IP (e.g., 192.168.1.X) if testing on a physical phone on the same WiFi
   //static const String _developmentUrl = 'http://10.0.2.2:5000';
-  static const String _developmentUrl = 'http://10.190.85.93:5000';
+  static const String _developmentUrl = 'http://10.56.21.93:5000';
 
   //  Automatically pick the base URL based on build mode!
   static String get _baseUrl {
@@ -50,7 +50,8 @@ class ApiConstants {
   static const String authLogout = '/auth/logout';
 
   // ── User Routes ───────────────────────────────────────────────────────────
-  static const String userProfile = '/users/profile';
+  static const String userMe = '/users/me';
+  static const String userProfile = userMe;
 
   // ── BBPS Routes ───────────────────────────────────────────────────────────
   static const String bbpsFetchBill = '/bbps/fetch-bill';
