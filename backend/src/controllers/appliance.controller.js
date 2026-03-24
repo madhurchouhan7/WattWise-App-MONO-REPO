@@ -54,10 +54,12 @@ exports.getAppliance = asyncHandler(async (req, res, _next) => {
 
 // ─── PATCH /api/v1/appliances/:id ─────────────────────────────────────────────────────
 exports.updateAppliance = asyncHandler(async (req, res, _next) => {
+    const { _expectedVersion, ...patch } = req.body;
+
     const appliance = await Appliance.findOneAndUpdate(
         { _id: req.params.id, userId: req.user._id, isActive: true },
         {
-            ...req.body,
+            ...patch,
             lastUpdated: new Date()
         },
         { returnDocument: 'after', runValidators: true }
@@ -93,9 +95,17 @@ exports.updateAppliancesBulk = asyncHandler(async (req, res, _next) => {
         throw new ApiError(400, 'Appliances must be an array.');
     }
 
+    const touchedApplianceIds = appliances
+        .map((appliance) => appliance.applianceId)
+        .filter(Boolean);
+
     // Deactivate existing appliances
     await Appliance.updateMany(
-        { userId: req.user._id, isActive: true },
+        {
+            userId: req.user._id,
+            isActive: true,
+            applianceId: { $in: touchedApplianceIds }
+        },
         { isActive: false }
     );
 

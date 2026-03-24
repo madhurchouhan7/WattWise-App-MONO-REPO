@@ -15,6 +15,34 @@ const commonSchemas = {
   positiveNumber: z.number().min(1, "Value must be positive"),
 };
 
+const applianceMutableFieldsSchema = {
+  applianceId: z.string().trim().min(1, "Appliance ID is required"),
+  title: z.string().trim().min(1, "Appliance name is required").max(100, "Appliance name too long"),
+  category: z
+    .enum([
+      "cooling",
+      "heating",
+      "lighting",
+      "entertainment",
+      "kitchen",
+      "laundry",
+      "cleaning",
+      "computing",
+      "charging",
+      "other",
+    ])
+    .or(z.string().trim().min(1, "Category is required")),
+  wattage: z.number().min(0, "Wattage cannot be negative").max(10000, "Wattage seems too high"),
+  starRating: z.string().trim().min(1, "Star rating is required"),
+  brand: z.string().trim().min(1, "Brand is required").max(50, "Brand name too long"),
+  model: z.string().trim().min(1, "Model is required").max(50, "Model name too long"),
+  usageHoursPerDay: z.number().min(0, "Usage hours cannot be negative").max(24, "Usage hours cannot exceed 24"),
+  usageLevel: z.enum(["Low", "Medium", "High"]),
+  count: z.number().int().min(1, "Count must be at least 1").max(100, "Count seems too high"),
+  selectedDropdowns: z.record(z.string()),
+  svgPath: z.string().trim().min(1, "SVG path is required"),
+};
+
 // Specific validation schemas
 const schemas = {
   // User validation
@@ -65,6 +93,47 @@ const schemas = {
       )
       .min(1, "At least one appliance is required"),
   }),
+
+  createAppliance: z
+    .object({
+      applianceId: applianceMutableFieldsSchema.applianceId,
+      title: applianceMutableFieldsSchema.title,
+      category: applianceMutableFieldsSchema.category,
+      usageLevel: applianceMutableFieldsSchema.usageLevel,
+      wattage: applianceMutableFieldsSchema.wattage.optional(),
+      starRating: applianceMutableFieldsSchema.starRating.optional(),
+      brand: applianceMutableFieldsSchema.brand.optional(),
+      model: applianceMutableFieldsSchema.model.optional(),
+      usageHoursPerDay: applianceMutableFieldsSchema.usageHoursPerDay.optional(),
+      count: applianceMutableFieldsSchema.count.optional(),
+      selectedDropdowns: applianceMutableFieldsSchema.selectedDropdowns.optional(),
+      svgPath: applianceMutableFieldsSchema.svgPath.optional(),
+    })
+    .strict(),
+
+  patchAppliance: z
+    .object({
+      applianceId: applianceMutableFieldsSchema.applianceId.optional(),
+      title: applianceMutableFieldsSchema.title.optional(),
+      category: applianceMutableFieldsSchema.category.optional(),
+      wattage: applianceMutableFieldsSchema.wattage.optional(),
+      starRating: applianceMutableFieldsSchema.starRating.optional(),
+      brand: applianceMutableFieldsSchema.brand.optional(),
+      model: applianceMutableFieldsSchema.model.optional(),
+      usageHoursPerDay: applianceMutableFieldsSchema.usageHoursPerDay.optional(),
+      usageLevel: applianceMutableFieldsSchema.usageLevel.optional(),
+      count: applianceMutableFieldsSchema.count.optional(),
+      selectedDropdowns: applianceMutableFieldsSchema.selectedDropdowns.optional(),
+      svgPath: applianceMutableFieldsSchema.svgPath.optional(),
+      _expectedVersion: z.number().int().min(0, "Expected version must be zero or greater"),
+    })
+    .strict(),
+
+  deleteAppliance: z
+    .object({
+      _expectedVersion: z.number().int().min(0, "Expected version must be zero or greater"),
+    })
+    .strict(),
 
   // Bill validation
   addBill: z.object({
