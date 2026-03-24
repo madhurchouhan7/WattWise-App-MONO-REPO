@@ -38,6 +38,14 @@ Success criteria:
 
 Goal: Ensure Manage Appliances operations are safe under real-world mutation and refresh conditions.
 Requirements: APP-01, APP-02, APP-03, APP-04
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 08-01-PLAN.md - Freeze appliance mutation contracts, create Wave-0 tests, and define migration-safety guardrails.
+- [ ] 08-02-PLAN.md - Harden backend appliance create/patch/delete behavior with non-destructive and concurrency-safe mutations.
+- [ ] 08-03-PLAN.md - Wire Manage Appliances client delete/retry/conflict UX for deterministic recovery behavior.
+
 Success criteria:
 
 1. Add/edit/delete appliance operations complete with deterministic success/error states.
