@@ -23,6 +23,243 @@ class _ManageAppliancesScreenState
     extends ConsumerState<ManageAppliancesScreen> {
   bool _isSaving = false;
 
+  String? _extractExpectedVersion(Map<String, dynamic>? baselineEntry) {
+    if (baselineEntry == null) {
+      return null;
+    }
+    final value =
+        baselineEntry['_expectedVersion'] ??
+        baselineEntry['expectedVersion'] ??
+        baselineEntry['version'];
+    if (value == null) {
+      return null;
+    }
+    return value.toString();
+  }
+
+  Map<String, dynamic> _buildDraftPayload(
+    ApplianceModel appliance,
+    ApplianceLocalState state,
+  ) {
+    return {
+      'applianceId': appliance.id,
+      'title': appliance.title,
+      'category': appliance.category,
+      'usageHours': appliance.usageHours,
+      'usageLevel': state.usageLevel,
+      'count': state.count,
+      'selectedDropdowns': state.selectedDropdowns,
+      'svgPath': appliance.svgPath,
+    };
+  }
+
+  Future<bool> _showDeleteConfirmation(String applianceTitle) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(
+            'Delete appliance?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Are you sure you want to delete $applianceTitle? This action can be retried if something goes wrong.',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('Cancel', style: GoogleFonts.poppins()),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              child: Text('Delete', style: GoogleFonts.poppins(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
+  }
+
+  Future<void> _saveChanges(
+    List<ApplianceModel> selectedAppliances,
+    OnBoardingPage5Notifier notifier,
+  ) async {
+    final mutationNotifier = ref.read(manageApplianceMutationProvider.notifier);
+    final baseline = ref.read(manageApplianceBaselineProvider);
+    final updatedBaseline = Map<String, Map<String, dynamic>>.from(baseline);
+
+    for (final appliance in selectedAppliances) {
+      final localState = notifier.getOrInitState(appliance);
+      final draft = _buildDraftPayload(appliance, localState);
+      final baselineEntry = baseline[appliance.id];
+      final saved = await mutationNotifier.saveApplianceDraft(
+        applianceId: baselineEntry == null ? null : appliance.id,
+        expectedVersion: _extractExpectedVersion(baselineEntry),
+        draft: draft,
+      );
+
+      if (!saved) {
+        final mutationState = ref.read(manageApplianceMutationProvider);
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(mutationState.retryHint, style: GoogleFonts.poppins()),
+            backgroundColor: Colors.redAccent,
+            action: mutationState.recoveryActionLabel.isEmpty
+                ? null
+                : SnackBarAction(
+                    label: mutationState.recoveryActionLabel,
+                    onPressed: () {
+                      mutationNotifier.retry();
+                    },
+                  ),
+          ),
+        );
+        return;
+      }
+
+      updatedBaseline[appliance.id] = {
+        ...?baselineEntry,
+        ...draft,
+      };
+    }
+
+    ref.read(manageApplianceBaselineProvider.notifier).state = updatedBaseline;
+    mutationNotifier.reset();
+
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Appliances updated successfully!',
+          style: GoogleFonts.poppins(),
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  Future<void> _retryDeleteAppliance({
+    required ApplianceModel appliance,
+    required ApplianceLocalState localState,
+    required String? expectedVersion,
+  }) async {
+    if (!mounted) {
+      return;
+    }
+
+    final selectedNotifier = ref.read(selectedAppliancesProvider.notifier);
+    final mutationNotifier = ref.read(manageApplianceMutationProvider.notifier);
+    final selected = ref.read(selectedAppliancesProvider);
+    if (selected.any((item) => item.id == appliance.id)) {
+      selectedNotifier.toggleAppliance(appliance);
+    }
+
+    final deleted = await mutationNotifier.deleteApplianceWithRecovery(
+      applianceId: appliance.id,
+      expectedVersion: expectedVersion,
+      draft: _buildDraftPayload(appliance, localState),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!deleted) {
+      final currentlySelected = ref.read(selectedAppliancesProvider);
+      if (!currentlySelected.any((item) => item.id == appliance.id)) {
+        selectedNotifier.toggleAppliance(appliance);
+      }
+    }
+  }
+
+  Future<void> _confirmAndDeleteAppliance(
+    ApplianceModel appliance,
+    OnBoardingPage5Notifier notifier,
+  ) async {
+    final confirmed = await _showDeleteConfirmation(appliance.title);
+    if (!confirmed || !mounted) {
+      return;
+    }
+
+    final baseline = ref.read(manageApplianceBaselineProvider);
+    final baselineEntry = baseline[appliance.id];
+    final expectedVersion = _extractExpectedVersion(baselineEntry);
+    final localState = notifier.getOrInitState(appliance);
+    final selectedNotifier = ref.read(selectedAppliancesProvider.notifier);
+    final mutationNotifier = ref.read(manageApplianceMutationProvider.notifier);
+
+    // Optimistic remove from list for immediate UI reconciliation.
+    selectedNotifier.toggleAppliance(appliance);
+
+    final deleted = await mutationNotifier.deleteApplianceWithRecovery(
+      applianceId: appliance.id,
+      expectedVersion: expectedVersion,
+      draft: _buildDraftPayload(appliance, localState),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (deleted) {
+      final updatedBaseline = Map<String, Map<String, dynamic>>.from(baseline)
+        ..remove(appliance.id);
+      ref.read(manageApplianceBaselineProvider.notifier).state = updatedBaseline;
+      mutationNotifier.reset();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Appliance deleted successfully.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
+
+    // Roll back the optimistic removal and keep draft values intact.
+    final currentlySelected = ref.read(selectedAppliancesProvider);
+    if (!currentlySelected.any((item) => item.id == appliance.id)) {
+      selectedNotifier.toggleAppliance(appliance);
+    }
+
+    final currentLocalStates =
+        Map<String, ApplianceLocalState>.from(ref.read(onBoardingPage5Provider).localStates)
+          ..[appliance.id] = localState;
+    notifier.preloadState(currentLocalStates);
+
+    final mutationState = ref.read(manageApplianceMutationProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mutationState.retryHint, style: GoogleFonts.poppins()),
+        backgroundColor: Colors.redAccent,
+        action: mutationState.recoveryActionLabel.isEmpty
+            ? null
+            : SnackBarAction(
+                label: mutationState.recoveryActionLabel,
+                onPressed: () {
+                  _retryDeleteAppliance(
+                    appliance: appliance,
+                    localState: localState,
+                    expectedVersion: expectedVersion,
+                  );
+                },
+              ),
+      ),
+    );
+  }
+
   Widget _buildLevelButton(
     WidgetRef ref,
     ApplianceModel app,
@@ -239,14 +476,11 @@ class _ManageAppliancesScreenState
                                           Icons.delete_outline,
                                           color: Colors.redAccent,
                                         ),
-                                        onPressed: () {
-                                          ref
-                                              .read(
-                                                selectedAppliancesProvider
-                                                    .notifier,
-                                              )
-                                              .toggleAppliance(app);
-                                        },
+                                        onPressed: () =>
+                                            _confirmAndDeleteAppliance(
+                                              app,
+                                              notifier,
+                                            ),
                                         tooltip: 'Remove',
                                       ),
                                     ],
@@ -539,19 +773,7 @@ class _ManageAppliancesScreenState
                                 _isSaving = true;
                               });
                               try {
-                                await notifier.finishSetup(selectedAppliances);
-                                if (!mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Appliances updated successfully!',
-                                        style: GoogleFonts.poppins(),
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                  Navigator.pop(context); // back to profile
-                                }
+                                await _saveChanges(selectedAppliances, notifier);
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
