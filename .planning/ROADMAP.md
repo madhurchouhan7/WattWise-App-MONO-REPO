@@ -6,7 +6,7 @@ Phase numbering continues from prior milestone phases.
 
 | #   | Phase                              | Goal                                                                             | Requirements                                                   | Success Criteria |
 | --- | ---------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------- |
-| 7   | Contract Freeze and Profile Wiring | 1/3 | In Progress|  |
+| 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04 | 5                |
 | 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                    | APP-01, APP-02, APP-03, APP-04                                 | 5                |
 | 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh      | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
 | 10  | Support and Solar Workflows        | Ship durable support flow and Solar Calculator v1 behavior                       | SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04 | 6                |
@@ -18,13 +18,13 @@ Phase numbering continues from prior milestone phases.
 
 Goal: Finalize profile and settings contracts, then connect profile screens to real providers and endpoints.
 Requirements: PRO-01, PRO-02, PRO-03, PRO-04
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans executed
 
 Plans:
 
 - [x] 07-01-PLAN.md - Freeze profile/settings contract matrix, route Edit Profile navigation, and create Wave-0 profile test scaffolding.
 - [x] 07-02-PLAN.md - Enforce backend profile update contract with route validation and inline-mappable field error details.
-- [ ] 07-03-PLAN.md - Wire Riverpod profile providers/screens with full async feedback and restart-safe persistence.
+- [x] 07-03-PLAN.md - Wire Riverpod profile providers/screens with full async feedback and restart-safe persistence.
 
 Success criteria:
 
