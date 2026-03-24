@@ -18,6 +18,14 @@ Phase numbering continues from prior milestone phases.
 
 Goal: Finalize profile and settings contracts, then connect profile screens to real providers and endpoints.
 Requirements: PRO-01, PRO-02, PRO-03, PRO-04
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 07-01-PLAN.md - Freeze profile/settings contract matrix, route Edit Profile navigation, and create Wave-0 profile test scaffolding.
+- [ ] 07-02-PLAN.md - Enforce backend profile update contract with route validation and inline-mappable field error details.
+- [ ] 07-03-PLAN.md - Wire Riverpod profile providers/screens with full async feedback and restart-safe persistence.
+
 Success criteria:
 
 1. Endpoint contract matrix exists for profile/settings load and save paths.
