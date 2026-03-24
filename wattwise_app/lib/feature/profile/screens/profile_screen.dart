@@ -96,7 +96,7 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.solar_power_outlined,
                     title: "Solar Calculator",
-                    onTap: () {},
+                    onTap: () => _showComingSoon(context, "Solar Calculator"),
                   ),
                 ],
               ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
@@ -109,17 +109,17 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.receipt_long_outlined,
                     title: "How to read bill",
-                    onTap: () {},
+                    onTap: () => _showComingSoon(context, "How to read bill"),
                   ),
                   MenuItemData(
                     icon: Icons.help_outline_rounded,
                     title: "FAQs",
-                    onTap: () {},
+                    onTap: () => _showComingSoon(context, "FAQs"),
                   ),
                   MenuItemData(
                     icon: Icons.support_agent_rounded,
                     title: "Contact Support",
-                    onTap: () {},
+                    onTap: () => _showComingSoon(context, "Contact Support"),
                   ),
                 ],
               ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
@@ -133,7 +133,7 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.gavel_rounded,
                     title: "Legal",
-                    onTap: () {},
+                    onTap: () => _showComingSoon(context, "Legal"),
                   ),
                 ],
               ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),
@@ -244,6 +244,19 @@ class ProfileScreen extends ConsumerWidget {
       // AppRouter is watching authStateProvider — it will automatically
       // redirect to WelcomeScreen once the stream emits null.
     }
+  }
+
+  void _showComingSoon(BuildContext context, String featureName) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$featureName is being connected and will be available soon.',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }
 
