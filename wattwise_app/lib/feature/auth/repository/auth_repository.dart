@@ -58,6 +58,40 @@ class AuthRepository {
     return await _fetchAndCacheUser(firebaseUser);
   }
 
+  Future<String?> currentUserId() async {
+    return FirebaseAuth.instance.currentUser?.uid;
+  }
+
+  Future<void> writeProfileCacheForCurrentUser(
+    Map<String, dynamic> profileData,
+  ) async {
+    final uid = await currentUserId();
+    if (uid == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_profile_$uid', jsonEncode(profileData));
+
+    final backendOnboarding = profileData['onboardingCompleted'] as bool?;
+    if (backendOnboarding != null) {
+      await prefs.setBool('${_kOnboardingCompleteKey}_$uid', backendOnboarding);
+    }
+  }
+
+  Future<Map<String, dynamic>?> readProfileCacheForCurrentUser() async {
+    final uid = await currentUserId();
+    if (uid == null) return null;
+
+    final prefs = await SharedPreferences.getInstance();
+    final profileStr = prefs.getString('user_profile_$uid');
+    if (profileStr == null) return null;
+
+    try {
+      return jsonDecode(profileStr) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ─── Private helpers ──────────────────────────────────────────────────────
 
   Future<UserModel?> _getCachedUser(User firebaseUser) async {
