@@ -23,7 +23,7 @@ Requirements: PRO-01, PRO-02, PRO-03, PRO-04
 Plans:
 
 - [x] 07-01-PLAN.md - Freeze profile/settings contract matrix, route Edit Profile navigation, and create Wave-0 profile test scaffolding.
-- [ ] 07-02-PLAN.md - Enforce backend profile update contract with route validation and inline-mappable field error details.
+- [x] 07-02-PLAN.md - Enforce backend profile update contract with route validation and inline-mappable field error details.
 - [ ] 07-03-PLAN.md - Wire Riverpod profile providers/screens with full async feedback and restart-safe persistence.
 
 Success criteria:

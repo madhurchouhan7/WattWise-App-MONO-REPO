@@ -8,8 +8,8 @@
 ### Profile Core
 
 - [x] **PRO-01**: User can view current profile details and settings with clear loading and error states.
-- [ ] **PRO-02**: User can edit profile fields (name, avatar, phone or equivalent supported fields) and save successfully.
-- [ ] **PRO-03**: User sees inline validation feedback for invalid profile inputs before submission.
+- [x] **PRO-02**: User can edit profile fields (name, avatar, phone or equivalent supported fields) and save successfully.
+- [x] **PRO-03**: User sees inline validation feedback for invalid profile inputs before submission.
 - [ ] **PRO-04**: Updated profile data persists and is reflected after app restart or screen revisit.
 
 ### Appliances
@@ -68,8 +68,8 @@
 | Requirement | Phase    | Status  |
 | ----------- | -------- | ------- |
 | PRO-01      | Phase 7  | Complete |
-| PRO-02      | Phase 7  | Pending |
-| PRO-03      | Phase 7  | Pending |
+| PRO-02      | Phase 7  | Complete |
+| PRO-03      | Phase 7  | Complete |
 | PRO-04      | Phase 7  | Pending |
 | APP-01      | Phase 8  | Pending |
 | APP-02      | Phase 8  | Pending |
