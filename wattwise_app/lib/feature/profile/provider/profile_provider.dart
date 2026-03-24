@@ -96,7 +96,6 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
           .read(profileRepositoryProvider)
           .updateProfile(name: draft.name, avatarUrl: draft.avatarUrl);
 
-      if (!ref.mounted) return;
       _hydrateDraft(updated);
       state = AsyncData(updated);
       ref
@@ -106,7 +105,6 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
         message: 'Profile updated successfully.',
       );
     } on ProfileValidationException catch (error) {
-      if (!ref.mounted) return;
       if (previous != null) {
         state = AsyncData(previous);
       }
@@ -116,7 +114,6 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
         fieldErrors: error.fieldErrors,
       );
     } on ProfileRequestException catch (error) {
-      if (!ref.mounted) return;
       if (previous != null) {
         state = AsyncData(previous);
       }
@@ -125,7 +122,6 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
         message: error.message,
       );
     } catch (_) {
-      if (!ref.mounted) return;
       if (previous != null) {
         state = AsyncData(previous);
       }

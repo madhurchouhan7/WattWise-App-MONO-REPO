@@ -20,7 +20,7 @@ class ProfileFormValidators {
     }
 
     final uri = Uri.tryParse(candidate);
-    if (uri == null || !uri.hasAbsolutePath) {
+    if (uri == null || !uri.hasAuthority) {
       return 'Enter a valid image URL.';
     }
 

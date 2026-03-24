@@ -39,7 +39,7 @@ class ProfileRequestException implements Exception {
 }
 
 class ProfileRepository implements IProfileRepository {
-  final AuthRepository _authRepository;
+  final AuthRepository? _authRepository;
   final Future<Map<String, dynamic>> Function()? _fetchProfileRequest;
   final Future<Map<String, dynamic>> Function(Map<String, dynamic> payload)?
   _updateProfileRequest;
@@ -53,7 +53,7 @@ class ProfileRepository implements IProfileRepository {
     updateProfileRequest,
     Future<void> Function(Map<String, dynamic> profile)? cacheWriter,
     Future<Map<String, dynamic>?> Function()? cacheReader,
-  }) : _authRepository = authRepository ?? AuthRepository(),
+  }) : _authRepository = authRepository,
        _fetchProfileRequest = fetchProfileRequest,
        _updateProfileRequest = updateProfileRequest,
        _cacheWriter = cacheWriter,
@@ -150,14 +150,17 @@ class ProfileRepository implements IProfileRepository {
       await _cacheWriter.call(profile);
       return;
     }
-    await _authRepository.writeProfileCacheForCurrentUser(profile);
+    await (_authRepository ?? AuthRepository()).writeProfileCacheForCurrentUser(
+      profile,
+    );
   }
 
   Future<Map<String, dynamic>?> _readProfileCache() async {
     if (_cacheReader != null) {
       return _cacheReader.call();
     }
-    return _authRepository.readProfileCacheForCurrentUser();
+    return (_authRepository ?? AuthRepository())
+        .readProfileCacheForCurrentUser();
   }
 
   Map<String, dynamic> _extractEnvelopeData(dynamic responseData) {
