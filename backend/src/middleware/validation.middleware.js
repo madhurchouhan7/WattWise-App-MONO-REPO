@@ -143,11 +143,30 @@ const validate = (schemaName, source = "body") => {
       const result = schema.safeParse(data);
 
       if (!result.success) {
-        const errorMessages = result.error.issues
-          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
-          .join(", ");
+        const details = result.error.issues.flatMap((issue) => {
+          if (issue.code === "unrecognized_keys" && Array.isArray(issue.keys)) {
+            return issue.keys.map((key) => ({
+              path: key,
+              message: "Unsupported field",
+            }));
+          }
 
-        throw new ApiError(400, `Validation failed: ${errorMessages}`);
+          return [
+            {
+              path: issue.path.join("."),
+              message: issue.message,
+            },
+          ];
+        });
+
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errorCode: "VALIDATION_ERROR",
+          timestamp: new Date().toISOString(),
+          requestId: req.id,
+          details,
+        });
       }
 
       // Attach validated data back to request
