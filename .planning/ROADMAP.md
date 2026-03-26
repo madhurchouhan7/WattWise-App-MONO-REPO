@@ -45,7 +45,7 @@ Plans:
 - [x] 08-01-PLAN.md - Freeze appliance mutation contracts, create Wave-0 tests, and define migration-safety guardrails.
 - [x] 08-02-PLAN.md - Harden backend appliance create/patch/delete behavior with non-destructive and concurrency-safe mutations.
 - [x] 08-03-PLAN.md - Wire Manage Appliances client delete/retry/conflict UX for deterministic recovery behavior.
-- [ ] 08-04-PLAN.md - Close verification gaps by aligning client payload/version/delete precondition mapping to backend mutation contracts.
+- [x] 08-04-PLAN.md - Close verification gaps by aligning client payload/version/delete precondition mapping to backend mutation contracts.
 
 Success criteria:
 

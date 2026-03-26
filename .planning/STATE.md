@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-24T06:06:28.918Z"
+last_updated: "2026-03-26T13:19:14.821Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 8 (Appliance Domain Hardening) — READY FOR VERIFICATION
-Plan: 3 of 3
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -43,6 +43,9 @@ Plan: 3 of 3
 - [Phase 08]: Scoped /bulk deactivation to touched applianceId values to preserve unrelated active appliances.
 - [Phase 08]: Manage Appliances mutations now use per-item create/update/delete with expected-version preconditions for conflict-safe writes.
 - [Phase 08]: Delete UX is now confirmation-gated with optimistic removal and deterministic rollback/retry guidance.
+- [Phase 08]: Mapped appliance draft usage hours to usageHoursPerDay to match backend create/patch schema.
+- [Phase 08]: DELETE mutations now send body._expectedVersion while preserving If-Match compatibility headers.
+- [Phase 08]: Expected-version extraction fallback now includes backend __v for deterministic stale-write handling.
 
 ### To Do List
 
@@ -58,9 +61,10 @@ Plan: 3 of 3
 | Phase 07 P03 | 4 min  | 3 tasks  | 9 files  |
 | Phase 08 P01 | 2 min  | 2 tasks  | 8 files  |
 | Phase 08 P02 | 13 min | 2 tasks  | 7 files  |
-| Phase 08 P03 | 39 min | 2 tasks | 5 files |
+| Phase 08 P03 | 39 min | 2 tasks  | 5 files  |
+| Phase 08 P04 | 9 min | 2 tasks | 4 files |
 
 ## Session Info
 
-- Last session: 2026-03-24T06:08:00Z
-- Stopped At: Completed 08-03-PLAN.md
+- Last session: 2026-03-26T13:19:14Z
+- Stopped At: Completed 08-04-PLAN.md
