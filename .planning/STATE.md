@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T14:17:18.350Z"
+last_updated: "2026-03-26T14:30:35.367Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # State
@@ -51,6 +51,9 @@ Plan: 3 of 3
 - [Phase 09]: Serve content from published UtilityContent documents with deterministic default fallbacks for missing records.
 - [Phase 09]: Use validator-safe ETag generation from kind/slug/locale plus revision metadata and enforce Cache-Control: no-cache.
 - [Phase 09]: Scope content cache keys by kind, slug, and locale to prevent cross-surface stale collisions.
+- [Phase 09]: Kept utility-content client state on Riverpod AsyncNotifier flows for deterministic loading/error/retry transitions.
+- [Phase 09]: Legal refresh now distinguishes 304 unchanged and 200 updated responses with explicit user feedback copy.
+- [Phase 09]: Aligned FAQ contract assertion to faq_screen.dart to match the planned production file path.
 
 ### To Do List
 
@@ -68,10 +71,11 @@ Plan: 3 of 3
 | Phase 08 P02 | 13 min | 2 tasks  | 7 files  |
 | Phase 08 P03 | 39 min | 2 tasks  | 5 files  |
 | Phase 08 P04 | 9 min  | 2 tasks  | 4 files  |
-| Phase 09 P01 | 24 min | 3 tasks | 6 files |
-| Phase 09 P02 | 34 min | 2 tasks | 8 files |
+| Phase 09 P01 | 24 min | 3 tasks  | 6 files  |
+| Phase 09 P02 | 34 min | 2 tasks  | 8 files  |
+| Phase 09 P03 | 9 min | 2 tasks | 8 files |
 
 ## Session Info
 
-- Last session: 2026-03-26T14:17:18Z
-- Stopped At: Completed 09-02-PLAN.md
+- Last session: 2026-03-26T14:31:22Z
+- Stopped At: Completed 09-03-PLAN.md
