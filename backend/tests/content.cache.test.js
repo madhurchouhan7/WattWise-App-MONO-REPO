@@ -6,6 +6,59 @@ const contentControllerPath = path.join(
   "../src/controllers/content.controller.js",
 );
 
+jest.mock("../src/models/UtilityContent.model", () => ({
+  findOne: jest.fn(() => ({
+    select: jest.fn().mockReturnThis(),
+    lean: jest.fn().mockResolvedValue(null),
+  })),
+}));
+
+const contentController = require("../src/controllers/content.controller");
+
+function createRes() {
+  const res = {
+    headers: {},
+    statusCode: 200,
+    body: null,
+    set(name, value) {
+      this.headers[name] = value;
+      return this;
+    },
+    get(name) {
+      return this.headers[name];
+    },
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+    end() {
+      this.ended = true;
+      return this;
+    },
+  };
+
+  return res;
+}
+
+async function runHandler(handler, req, res) {
+  return new Promise((resolve, reject) => {
+    handler(req, res, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+
+    setImmediate(resolve);
+  });
+}
+
 describe("Content Cache Contract - conditional refresh (CNT-05)", () => {
   it("provides a content controller implementation for conditional refresh", () => {
     expect(fs.existsSync(contentControllerPath)).toBe(true);
@@ -47,5 +100,43 @@ describe("Content Cache Contract - conditional refresh (CNT-05)", () => {
 
     expect(headers).toHaveProperty("If-None-Match");
     expect(headers["If-None-Match"]).toContain("content-v");
+  });
+
+  it("returns 200 with ETag and no-cache headers for initial faq fetch", async () => {
+    const req = {
+      query: { q: "", topic: "", limit: 20, offset: 0 },
+      get: () => undefined,
+    };
+    const res = createRes();
+
+    await runHandler(contentController.getFaqs, req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.get("ETag")).toBeDefined();
+    expect(res.get("Cache-Control")).toBe("no-cache");
+    expect(res.body).toHaveProperty("success", true);
+    expect(res.body).toHaveProperty("data.contentVersion");
+  });
+
+  it("returns 304 when If-None-Match matches current validator", async () => {
+    const warmReq = {
+      query: { q: "", topic: "", limit: 20, offset: 0 },
+      get: () => undefined,
+    };
+    const warmRes = createRes();
+
+    await runHandler(contentController.getFaqs, warmReq, warmRes);
+
+    const etag = warmRes.get("ETag");
+    const req = {
+      query: { q: "", topic: "", limit: 20, offset: 0 },
+      get: (name) => (name === "If-None-Match" ? etag : undefined),
+    };
+    const res = createRes();
+
+    await runHandler(contentController.getFaqs, req, res);
+
+    expect(res.statusCode).toBe(304);
+    expect(res.ended).toBe(true);
   });
 });
