@@ -394,6 +394,13 @@ class CacheService {
         return this.generateKey(`session:${sessionId}`, prefix, 'session');
     }
 
+    generateContentKey(kind, slug = 'default', locale = 'en-IN') {
+        const safeKind = String(kind || 'unknown').trim().toLowerCase();
+        const safeSlug = String(slug || 'default').trim().toLowerCase();
+        const safeLocale = String(locale || 'en-IN').trim().toLowerCase();
+        return this.generateKey('content', `${safeKind}:${safeSlug}:${safeLocale}`, 'app');
+    }
+
     // ─── Cache Warming and Preloading ─────────────────────────────────────────────
 
     async warmCache(dataLoader, keyPatterns, ttl = 3600) {
