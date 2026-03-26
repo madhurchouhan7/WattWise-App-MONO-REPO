@@ -2,6 +2,7 @@ import 'package:wattwise_app/feature/on_boarding/repository/appliance_repository
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
 import 'package:wattwise_app/feature/profile/provider/manage_appliances_provider.dart';
+import 'package:dio/dio.dart';
 
 void main() {
   group('Manage appliances retry and conflict states (APP-04)', () {
@@ -120,6 +121,41 @@ void main() {
       expect(controller.state.preservedDraft, isNull);
       expect(controller.state.retryHint, isEmpty);
     });
+
+    test(
+      'delete request sends body._expectedVersion when precondition token exists',
+      () async {
+        final client = _CapturingApiClient();
+        final repository = ApplianceRepository(apiClient: client);
+
+        await repository.deleteAppliance(
+          applianceId: 'ac-1',
+          expectedVersion: '7',
+        );
+
+        expect(client.lastRequestOptions?.method, 'DELETE');
+        expect(client.lastRequestOptions?.path, '/appliances/ac-1');
+        expect(client.lastRequestOptions?.data, {'_expectedVersion': '7'});
+      },
+    );
+
+    test('update expected-version fallback maps backend __v token', () async {
+      final client = _CapturingApiClient();
+      final repository = ApplianceRepository(apiClient: client);
+
+      await repository.updateAppliance(
+        applianceId: 'ac-1',
+        payload: {'applianceId': 'ac-1', 'title': 'Air Conditioner', '__v': 11},
+      );
+
+      expect(client.lastRequestOptions?.method, 'PATCH');
+      expect(
+        (client.lastRequestOptions?.data as Map<String, dynamic>?),
+        isNotNull,
+      );
+      final payload = (client.lastRequestOptions!.data as Map<String, dynamic>);
+      expect(payload['_expectedVersion'], '11');
+    });
   });
 }
 
@@ -176,4 +212,62 @@ bool _isRetryableConflict(Map<String, dynamic> response) {
 bool _shouldPreserveDraft(Map<String, dynamic> response) {
   final details = response['details'];
   return details is List && details.isNotEmpty;
+}
+
+class _CapturingApiClient implements ApiClient {
+  _CapturingApiClient() {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          lastRequestOptions = options;
+          handler.resolve(
+            Response<dynamic>(
+              requestOptions: options,
+              statusCode: 200,
+              data: const {'success': true},
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  final Dio _dio = Dio();
+
+  RequestOptions? lastRequestOptions;
+
+  @override
+  Dio get dio => _dio;
+
+  @override
+  Future<Response<T>> delete<T>(String path, {Options? options}) {
+    return _dio.delete<T>(path, options: options);
+  }
+
+  @override
+  Future<Response<T>> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParams,
+    Options? options,
+  }) {
+    return _dio.get<T>(path, queryParameters: queryParams, options: options);
+  }
+
+  @override
+  void init() {}
+
+  @override
+  Future<Response<T>> patch<T>(String path, {data, Options? options}) {
+    return _dio.patch<T>(path, data: data, options: options);
+  }
+
+  @override
+  Future<Response<T>> post<T>(String path, {data, Options? options}) {
+    return _dio.post<T>(path, data: data, options: options);
+  }
+
+  @override
+  Future<Response<T>> put<T>(String path, {data, Options? options}) {
+    return _dio.put<T>(path, data: data, options: options);
+  }
 }

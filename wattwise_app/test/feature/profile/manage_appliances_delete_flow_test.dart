@@ -48,7 +48,9 @@ void main() {
             selectedAppliancesProvider.overrideWith((ref) => selectedNotifier),
             onBoardingPage5Provider.overrideWith((ref) => pageNotifier),
             manageApplianceBaselineProvider.overrideWith(
-              (ref) => {'ac-1': {'applianceId': 'ac-1', 'version': 3}},
+              (ref) => {
+                'ac-1': {'applianceId': 'ac-1', 'version': 3},
+              },
             ),
           ],
           child: const MaterialApp(home: ManageAppliancesScreen()),
@@ -97,7 +99,9 @@ void main() {
             selectedAppliancesProvider.overrideWith((ref) => selectedNotifier),
             onBoardingPage5Provider.overrideWith((ref) => pageNotifier),
             manageApplianceBaselineProvider.overrideWith(
-              (ref) => {'ac-1': {'applianceId': 'ac-1', 'version': 5}},
+              (ref) => {
+                'ac-1': {'applianceId': 'ac-1', 'version': 5},
+              },
             ),
           ],
           child: const MaterialApp(home: ManageAppliancesScreen()),
@@ -120,6 +124,46 @@ void main() {
       );
       expect(find.text('Retry'), findsOneWidget);
     });
+
+    testWidgets('save flow sends usageHoursPerDay field to mutation payload', (
+      tester,
+    ) async {
+      final fakeRepository = _FakeApplianceRepository();
+      final selectedNotifier = SelectedAppliancesNotifier()
+        ..setAppliances([_sampleAppliance()]);
+      final pageNotifier = OnBoardingPage5Notifier(repository: fakeRepository)
+        ..preloadState({
+          'ac-1': const ApplianceLocalState(
+            usageLevel: 'Medium',
+            count: 1,
+            selectedDropdowns: {'STAR RATING': '5 Star'},
+          ),
+        });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            applianceRepositoryProvider.overrideWithValue(fakeRepository),
+            manageAppliancesInitProvider.overrideWith((ref) async => true),
+            selectedAppliancesProvider.overrideWith((ref) => selectedNotifier),
+            onBoardingPage5Provider.overrideWith((ref) => pageNotifier),
+            manageApplianceBaselineProvider.overrideWith((ref) => {}),
+          ],
+          child: const MaterialApp(home: ManageAppliancesScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save Changes'));
+      await tester.pumpAndSettle();
+
+      expect(fakeRepository.createCalls, 1);
+      expect(fakeRepository.lastCreatePayload?['usageHoursPerDay'], 8);
+      expect(
+        fakeRepository.lastCreatePayload?.containsKey('usageHours'),
+        isFalse,
+      );
+    });
   });
 }
 
@@ -138,7 +182,9 @@ class _FakeApplianceRepository extends ApplianceRepository {
   _FakeApplianceRepository() : super(apiClient: ApiClient.instance);
 
   int deleteCalls = 0;
+  int createCalls = 0;
   ApplianceMutationException? nextError;
+  Map<String, dynamic>? lastCreatePayload;
 
   @override
   Future<Map<String, dynamic>> deleteAppliance({
@@ -158,6 +204,8 @@ class _FakeApplianceRepository extends ApplianceRepository {
   Future<Map<String, dynamic>> createAppliance({
     required Map<String, dynamic> payload,
   }) async {
+    createCalls += 1;
+    lastCreatePayload = Map<String, dynamic>.from(payload);
     return {'success': true, 'data': payload};
   }
 
