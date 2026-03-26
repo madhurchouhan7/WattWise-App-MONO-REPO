@@ -12,6 +12,9 @@ import 'package:wattwise_app/feature/profile/provider/profile_provider.dart';
 import 'package:wattwise_app/feature/profile/screens/edit_profile_screen.dart';
 import 'package:wattwise_app/feature/profile/screens/manage_appliances_screen.dart';
 import 'package:wattwise_app/feature/profile/screens/settings_screen.dart';
+import 'package:wattwise_app/feature/content/screens/faq_screen.dart';
+import 'package:wattwise_app/feature/content/screens/bill_guide_screen.dart';
+import 'package:wattwise_app/feature/content/screens/legal_content_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -109,12 +112,26 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.receipt_long_outlined,
                     title: "How to read bill",
-                    onTap: () => _showComingSoon(context, "How to read bill"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BillGuideScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.help_outline_rounded,
                     title: "FAQs",
-                    onTap: () => _showComingSoon(context, "FAQs"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FaqScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.support_agent_rounded,
@@ -133,7 +150,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.gavel_rounded,
                     title: "Legal",
-                    onTap: () => _showComingSoon(context, "Legal"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LegalContentScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),

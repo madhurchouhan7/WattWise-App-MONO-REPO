@@ -45,9 +45,7 @@ void main() {
         isTrue,
       );
       expect(
-        File(
-          'lib/feature/content/screens/faq_content_screen.dart',
-        ).existsSync(),
+        File('lib/feature/content/screens/faq_screen.dart').existsSync(),
         isTrue,
       );
     });
