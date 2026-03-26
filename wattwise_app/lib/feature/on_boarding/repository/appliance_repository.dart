@@ -24,7 +24,8 @@ class ApplianceRepository {
     final candidate =
         appliance['_expectedVersion'] ??
         appliance['expectedVersion'] ??
-        appliance['version'];
+        appliance['version'] ??
+        appliance['__v'];
     if (candidate == null) {
       return null;
     }
@@ -187,9 +188,15 @@ class ApplianceRepository {
     required String applianceId,
     String? expectedVersion,
   }) async {
+    final requestPayload = <String, dynamic>{};
+    if (expectedVersion != null && expectedVersion.isNotEmpty) {
+      requestPayload['_expectedVersion'] = expectedVersion;
+    }
+
     try {
-      final response = await _apiClient.delete(
+      final response = await _apiClient.dio.delete(
         '/appliances/$applianceId',
+        data: requestPayload.isEmpty ? null : requestPayload,
         options: Options(
           headers: expectedVersion == null
               ? null

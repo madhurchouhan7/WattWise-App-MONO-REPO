@@ -30,7 +30,8 @@ class _ManageAppliancesScreenState
     final value =
         baselineEntry['_expectedVersion'] ??
         baselineEntry['expectedVersion'] ??
-        baselineEntry['version'];
+        baselineEntry['version'] ??
+        baselineEntry['__v'];
     if (value == null) {
       return null;
     }
@@ -45,7 +46,7 @@ class _ManageAppliancesScreenState
       'applianceId': appliance.id,
       'title': appliance.title,
       'category': appliance.category,
-      'usageHours': appliance.usageHours,
+      'usageHoursPerDay': appliance.usageHours,
       'usageLevel': state.usageLevel,
       'count': state.count,
       'selectedDropdowns': state.selectedDropdowns,
@@ -73,8 +74,13 @@ class _ManageAppliancesScreenState
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-              child: Text('Delete', style: GoogleFonts.poppins(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              child: Text(
+                'Delete',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -109,7 +115,10 @@ class _ManageAppliancesScreenState
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(mutationState.retryHint, style: GoogleFonts.poppins()),
+            content: Text(
+              mutationState.retryHint,
+              style: GoogleFonts.poppins(),
+            ),
             backgroundColor: Colors.redAccent,
             action: mutationState.recoveryActionLabel.isEmpty
                 ? null
@@ -124,10 +133,7 @@ class _ManageAppliancesScreenState
         return;
       }
 
-      updatedBaseline[appliance.id] = {
-        ...?baselineEntry,
-        ...draft,
-      };
+      updatedBaseline[appliance.id] = {...?baselineEntry, ...draft};
     }
 
     ref.read(manageApplianceBaselineProvider.notifier).state = updatedBaseline;
@@ -214,7 +220,8 @@ class _ManageAppliancesScreenState
     if (deleted) {
       final updatedBaseline = Map<String, Map<String, dynamic>>.from(baseline)
         ..remove(appliance.id);
-      ref.read(manageApplianceBaselineProvider.notifier).state = updatedBaseline;
+      ref.read(manageApplianceBaselineProvider.notifier).state =
+          updatedBaseline;
       mutationNotifier.reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -234,9 +241,9 @@ class _ManageAppliancesScreenState
       selectedNotifier.toggleAppliance(appliance);
     }
 
-    final currentLocalStates =
-        Map<String, ApplianceLocalState>.from(ref.read(onBoardingPage5Provider).localStates)
-          ..[appliance.id] = localState;
+    final currentLocalStates = Map<String, ApplianceLocalState>.from(
+      ref.read(onBoardingPage5Provider).localStates,
+    )..[appliance.id] = localState;
     notifier.preloadState(currentLocalStates);
 
     final mutationState = ref.read(manageApplianceMutationProvider);
@@ -773,7 +780,10 @@ class _ManageAppliancesScreenState
                                 _isSaving = true;
                               });
                               try {
-                                await _saveChanges(selectedAppliances, notifier);
+                                await _saveChanges(
+                                  selectedAppliances,
+                                  notifier,
+                                );
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
