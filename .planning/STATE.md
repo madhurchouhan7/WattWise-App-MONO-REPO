@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-26T13:58:52.095Z"
+last_updated: "2026-03-26T14:17:18.350Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 9 (Utility Content Platform) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -48,6 +48,9 @@ Plan: 2 of 3
 - [Phase 08]: Expected-version extraction fallback now includes backend \_\_v for deterministic stale-write handling.
 - [Phase 09]: Locked Phase 09 content routes to /content/faqs, /content/bill-guide, and /content/legal/:slug before wiring implementation.
 - [Phase 09]: Kept Wave-0 tests RED by asserting production wiring file presence while preserving compile-clean deterministic test logic.
+- [Phase 09]: Serve content from published UtilityContent documents with deterministic default fallbacks for missing records.
+- [Phase 09]: Use validator-safe ETag generation from kind/slug/locale plus revision metadata and enforce Cache-Control: no-cache.
+- [Phase 09]: Scope content cache keys by kind, slug, and locale to prevent cross-surface stale collisions.
 
 ### To Do List
 
@@ -66,6 +69,7 @@ Plan: 2 of 3
 | Phase 08 P03 | 39 min | 2 tasks  | 5 files  |
 | Phase 08 P04 | 9 min  | 2 tasks  | 4 files  |
 | Phase 09 P01 | 24 min | 3 tasks | 6 files |
+| Phase 09 P02 | 34 min | 2 tasks | 8 files |
 
 ## Session Info
 
