@@ -59,6 +59,14 @@ Success criteria:
 
 Goal: Power FAQ, bill-reading education, and legal surfaces from backend-delivered content.
 Requirements: CNT-01, CNT-02, CNT-03, CNT-04, CNT-05
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 09-01-PLAN.md - Freeze utility content contracts and create Wave-0 backend/Flutter test scaffolding.
+- [ ] 09-02-PLAN.md - Implement backend utility content model/routes/controllers with deterministic filter and conditional refresh behavior.
+- [ ] 09-03-PLAN.md - Wire Flutter content screens/providers/repository and profile navigation to backend-powered utility content flows.
+
 Success criteria:
 
 1. FAQ list/topics load from backend and render in app.
