@@ -79,6 +79,14 @@ Success criteria:
 
 Goal: Deliver complete support request handling and dynamic Solar Calculator v1.
 Requirements: SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 10-01-PLAN.md - Implement backend support ticket contracts, durable reference IDs, and consent traceability.
+- [ ] 10-02-PLAN.md - Implement backend solar estimate contracts with transparent ranges, assumptions, and limitations.
+- [ ] 10-03-PLAN.md - Integrate Flutter Contact Support and Solar Calculator flows with profile navigation and focused tests.
+
 Success criteria:
 
 1. Contact Support submission captures required fields and posts successfully.
