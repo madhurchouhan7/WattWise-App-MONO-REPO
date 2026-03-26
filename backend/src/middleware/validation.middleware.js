@@ -17,7 +17,11 @@ const commonSchemas = {
 
 const applianceMutableFieldsSchema = {
   applianceId: z.string().trim().min(1, "Appliance ID is required"),
-  title: z.string().trim().min(1, "Appliance name is required").max(100, "Appliance name too long"),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Appliance name is required")
+    .max(100, "Appliance name too long"),
   category: z
     .enum([
       "cooling",
@@ -32,13 +36,31 @@ const applianceMutableFieldsSchema = {
       "other",
     ])
     .or(z.string().trim().min(1, "Category is required")),
-  wattage: z.number().min(0, "Wattage cannot be negative").max(10000, "Wattage seems too high"),
+  wattage: z
+    .number()
+    .min(0, "Wattage cannot be negative")
+    .max(10000, "Wattage seems too high"),
   starRating: z.string().trim().min(1, "Star rating is required"),
-  brand: z.string().trim().min(1, "Brand is required").max(50, "Brand name too long"),
-  model: z.string().trim().min(1, "Model is required").max(50, "Model name too long"),
-  usageHoursPerDay: z.number().min(0, "Usage hours cannot be negative").max(24, "Usage hours cannot exceed 24"),
+  brand: z
+    .string()
+    .trim()
+    .min(1, "Brand is required")
+    .max(50, "Brand name too long"),
+  model: z
+    .string()
+    .trim()
+    .min(1, "Model is required")
+    .max(50, "Model name too long"),
+  usageHoursPerDay: z
+    .number()
+    .min(0, "Usage hours cannot be negative")
+    .max(24, "Usage hours cannot exceed 24"),
   usageLevel: z.enum(["Low", "Medium", "High"]),
-  count: z.number().int().min(1, "Count must be at least 1").max(100, "Count seems too high"),
+  count: z
+    .number()
+    .int()
+    .min(1, "Count must be at least 1")
+    .max(100, "Count seems too high"),
   selectedDropdowns: z.record(z.string()),
   svgPath: z.string().trim().min(1, "SVG path is required"),
 };
@@ -104,9 +126,11 @@ const schemas = {
       starRating: applianceMutableFieldsSchema.starRating.optional(),
       brand: applianceMutableFieldsSchema.brand.optional(),
       model: applianceMutableFieldsSchema.model.optional(),
-      usageHoursPerDay: applianceMutableFieldsSchema.usageHoursPerDay.optional(),
+      usageHoursPerDay:
+        applianceMutableFieldsSchema.usageHoursPerDay.optional(),
       count: applianceMutableFieldsSchema.count.optional(),
-      selectedDropdowns: applianceMutableFieldsSchema.selectedDropdowns.optional(),
+      selectedDropdowns:
+        applianceMutableFieldsSchema.selectedDropdowns.optional(),
       svgPath: applianceMutableFieldsSchema.svgPath.optional(),
     })
     .strict(),
@@ -120,18 +144,26 @@ const schemas = {
       starRating: applianceMutableFieldsSchema.starRating.optional(),
       brand: applianceMutableFieldsSchema.brand.optional(),
       model: applianceMutableFieldsSchema.model.optional(),
-      usageHoursPerDay: applianceMutableFieldsSchema.usageHoursPerDay.optional(),
+      usageHoursPerDay:
+        applianceMutableFieldsSchema.usageHoursPerDay.optional(),
       usageLevel: applianceMutableFieldsSchema.usageLevel.optional(),
       count: applianceMutableFieldsSchema.count.optional(),
-      selectedDropdowns: applianceMutableFieldsSchema.selectedDropdowns.optional(),
+      selectedDropdowns:
+        applianceMutableFieldsSchema.selectedDropdowns.optional(),
       svgPath: applianceMutableFieldsSchema.svgPath.optional(),
-      _expectedVersion: z.number().int().min(0, "Expected version must be zero or greater"),
+      _expectedVersion: z
+        .number()
+        .int()
+        .min(0, "Expected version must be zero or greater"),
     })
     .strict(),
 
   deleteAppliance: z
     .object({
-      _expectedVersion: z.number().int().min(0, "Expected version must be zero or greater"),
+      _expectedVersion: z
+        .number()
+        .int()
+        .min(0, "Expected version must be zero or greater"),
     })
     .strict(),
 
@@ -191,6 +223,37 @@ const schemas = {
     billerId: z.string().min(1, "Biller ID is required"),
     consumerNumber: z.string().min(1, "Consumer number is required"),
   }),
+
+  getFaqContent: z
+    .object({
+      q: z.string().trim().min(1).max(120).optional(),
+      topic: z.string().trim().min(1).max(80).optional(),
+      limit: z.preprocess(
+        (value) => (value === undefined ? 20 : Number(value)),
+        z.number().int().min(1).max(100),
+      ),
+      offset: z.preprocess(
+        (value) => (value === undefined ? 0 : Number(value)),
+        z.number().int().min(0),
+      ),
+      locale: z.string().trim().min(2).max(20).optional(),
+    })
+    .strict(),
+
+  getBillGuideContent: z
+    .object({
+      locale: z.string().trim().min(2).max(20).optional(),
+    })
+    .strict(),
+
+  getLegalContent: z
+    .object({
+      slug: z
+        .string()
+        .trim()
+        .regex(/^[a-z0-9-]{2,100}$/, "Invalid legal content slug"),
+    })
+    .strict(),
 };
 
 /**

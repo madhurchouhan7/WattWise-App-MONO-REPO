@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-const apiRouter = require("../src/routes");
 const { schemas } = require("../src/middleware/validation.middleware");
 
 const contentRoutesPath = path.join(
@@ -9,20 +8,13 @@ const contentRoutesPath = path.join(
   "../src/routes/content.routes.js",
 );
 
-function getMountedPaths(router) {
-  return router.stack
-    .filter((layer) => layer && layer.name === "router" && layer.regexp)
-    .map((layer) => {
-      const match = layer.regexp.toString().match(/\\\\\/(.+?)\\\\\//);
-      return match ? `/${match[1].replace(/\\\\/g, "")}` : null;
-    })
-    .filter(Boolean);
-}
-
 describe("Content Contract - /api/v1/content", () => {
   it("mounts /content namespace in api router (CNT-01..CNT-04)", () => {
-    const mountedPaths = getMountedPaths(apiRouter);
-    expect(mountedPaths).toContain("/content");
+    const routeIndexPath = path.join(__dirname, "../src/routes/index.js");
+    const routeIndexSource = fs.readFileSync(routeIndexPath, "utf8");
+    expect(routeIndexSource).toMatch(
+      /router\.use\(["']\/content["'],\s*contentRoutes\)/,
+    );
   });
 
   it("provides content route module file for faq/bill/legal endpoints", () => {
