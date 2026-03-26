@@ -21,11 +21,11 @@
 
 ### Content Hub
 
-- [ ] **CNT-01**: User can open FAQs and browse topics from backend-delivered content.
-- [ ] **CNT-02**: User can search or filter FAQ content and see relevant results.
-- [ ] **CNT-03**: User can open How to Read Bill guidance with structured sections and glossary support.
-- [ ] **CNT-04**: User can access Legal documents (terms/privacy or equivalents) with visible version metadata.
-- [ ] **CNT-05**: Content views can refresh to newer content versions without stale-cache confusion.
+- [x] **CNT-01**: User can open FAQs and browse topics from backend-delivered content.
+- [x] **CNT-02**: User can search or filter FAQ content and see relevant results.
+- [x] **CNT-03**: User can open How to Read Bill guidance with structured sections and glossary support.
+- [x] **CNT-04**: User can access Legal documents (terms/privacy or equivalents) with visible version metadata.
+- [x] **CNT-05**: Content views can refresh to newer content versions without stale-cache confusion.
 
 ### Support Flow
 
@@ -75,11 +75,11 @@
 | APP-02      | Phase 8  | Complete |
 | APP-03      | Phase 8  | Complete |
 | APP-04      | Phase 8  | Complete |
-| CNT-01      | Phase 9  | Pending |
-| CNT-02      | Phase 9  | Pending |
-| CNT-03      | Phase 9  | Pending |
-| CNT-04      | Phase 9  | Pending |
-| CNT-05      | Phase 9  | Pending |
+| CNT-01      | Phase 9  | Complete |
+| CNT-02      | Phase 9  | Complete |
+| CNT-03      | Phase 9  | Complete |
+| CNT-04      | Phase 9  | Complete |
+| CNT-05      | Phase 9  | Complete |
 | SUP-01      | Phase 10 | Pending |
 | SUP-02      | Phase 10 | Pending |
 | SUP-03      | Phase 10 | Pending |
