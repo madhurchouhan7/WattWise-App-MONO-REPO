@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const apiRouter = require("../src/routes");
+const { schemas } = require("../src/middleware/validation.middleware");
 
 const contentRoutesPath = path.join(
   __dirname,
@@ -44,6 +45,12 @@ describe("Content Contract - /api/v1/content", () => {
     expect(routes).toContain("/faqs");
     expect(routes).toContain("/bill-guide");
     expect(routes).toContain("/legal/:slug");
+  });
+
+  it("exposes validation schema contracts for faq and legal surfaces", () => {
+    expect(schemas).toHaveProperty("getFaqContent");
+    expect(schemas).toHaveProperty("getBillGuideContent");
+    expect(schemas).toHaveProperty("getLegalContent");
   });
 
   it("freezes expected metadata envelope contract for all content payloads", () => {
