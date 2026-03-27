@@ -9,7 +9,7 @@ Phase numbering continues from prior milestone phases.
 | 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04                                 | 5                |
 | 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                                          | APP-01, APP-02, APP-03, APP-04                                 | 5                |
 | 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh                            | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
-| 10  | Support and Solar Workflows        | 2/3 | In Progress|  |
+| 10  | Support and Solar Workflows        | 3/3 | Complete   | 2026-03-27 |
 | 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                                         | NFR-01, NFR-02, NFR-03                                         | 5                |
 
 ## Phase Details
@@ -79,13 +79,13 @@ Success criteria:
 
 Goal: Deliver complete support request handling and dynamic Solar Calculator v1.
 Requirements: SUP-01, SUP-02, SUP-03, SUP-04, SOL-01, SOL-02, SOL-03, SOL-04
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 
 - [x] 10-01-PLAN.md - Implement backend support ticket contracts, durable reference IDs, and consent traceability.
 - [x] 10-02-PLAN.md - Implement backend solar estimate contracts with transparent ranges, assumptions, and limitations.
-- [ ] 10-03-PLAN.md - Integrate Flutter Contact Support and Solar Calculator flows with profile navigation and focused tests.
+- [x] 10-03-PLAN.md - Integrate Flutter Contact Support and Solar Calculator flows with profile navigation and focused tests.
 
 Success criteria:
 

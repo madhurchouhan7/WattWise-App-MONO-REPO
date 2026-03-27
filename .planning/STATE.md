@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-27T05:44:48.221Z"
+last_updated: "2026-03-27T06:02:38.190Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # State
@@ -59,6 +59,8 @@ Plan: 3 of 3
 - [Phase 10]: Support consent snapshot and trace.requestId/submittedAt are persisted in SupportTicket for auditability.
 - [Phase 10]: Solar estimate endpoint returns deterministic low/base/high generation and savings ranges.
 - [Phase 10]: Solar contract now always includes assumptions, limitations, confidenceLabel, and disclaimer metadata.
+- [Phase 10]: Profile menu entries now route directly to production Contact Support and Solar Calculator screens.
+- [Phase 10]: Support and solar Flutter flows are contract-aligned with deterministic validation, retry guidance, and transparent range assumptions/disclaimer UX.
 
 ### To Do List
 
@@ -81,8 +83,9 @@ Plan: 3 of 3
 | Phase 09 P03 | 9 min  | 2 tasks  | 8 files  |
 | Phase 10 P01 | 2 min | 2 tasks | 9 files |
 | Phase 10 P02 | 8 min | 2 tasks | 8 files |
+| Phase 10 P03 | metadata-only | 3 tasks | 17 files |
 
 ## Session Info
 
-- Last session: 2026-03-27T05:45:02Z
-- Stopped At: Completed 10-02-PLAN.md
+- Last session: 2026-03-27T06:02:38Z
+- Stopped At: Completed 10-03-PLAN.md
