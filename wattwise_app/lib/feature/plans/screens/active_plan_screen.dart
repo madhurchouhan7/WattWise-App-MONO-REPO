@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
+import 'package:wattwise_app/feature/notifications/screens/notification_list_screen.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
+
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
+import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_sheet.dart';
 
 class ActivePlanScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> activePlan;
@@ -17,20 +23,83 @@ class ActivePlanScreen extends ConsumerStatefulWidget {
 }
 
 class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
-  // Mock Toggle states for daily actions
+  // Toggle states: false = not completed today
   List<bool> actionToggles = [];
+  bool _isDeleting = false;
+
+  // SharedPreferences key prefix for toggle persistence
+  static const _kTogglePrefix = 'daily_action_toggle_';
+  static const _kLastResetDate = 'daily_action_last_reset_date';
 
   @override
   void initState() {
     super.initState();
-    // Initialize toggles as true since it's freshly generated
     final actions = widget.activePlan['keyActions'] as List<dynamic>? ?? [];
-    actionToggles = List.generate(actions.length, (index) => true);
+    // Initialise with falsy defaults until prefs are loaded
+    actionToggles = List.filled(actions.length, false);
+    // Load persisted state + handle daily reset
+    _loadToggles();
+  }
+
+  // ── Persistence helpers ──────────────────────────────────────────────────────
+
+  /// Returns today's date as "YYYY-MM-DD" (local time, not UTC, so the reset
+  /// aligns with the user's midnight rather than server midnight).
+  String get _todayKey {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Loads saved toggle states and resets them if it's a new day.
+  Future<void> _loadToggles() async {
+    final prefs = await SharedPreferences.getInstance();
+    final actions = widget.activePlan['keyActions'] as List<dynamic>? ?? [];
+    final savedDate = prefs.getString(_kLastResetDate) ?? '';
+    final today = _todayKey;
+
+    if (savedDate != today) {
+      // ── New day: reset ALL toggles to false ──────────────────────────────────
+      final newToggles = List.filled(actions.length, false);
+      await _saveToggles(newToggles, prefs);
+      await prefs.setString(_kLastResetDate, today);
+      if (mounted) setState(() => actionToggles = newToggles);
+    } else {
+      // ── Same day: restore previous state ────────────────────────────────────
+      final restored = List<bool>.generate(
+        actions.length,
+        (i) => prefs.getBool('$_kTogglePrefix$i') ?? false,
+      );
+      if (mounted) setState(() => actionToggles = restored);
+    }
+
+    // Sync heatmap intensity with restored state (background only)
+    await _recordHeatmap();
+  }
+
+  /// Persists the toggle list to SharedPreferences.
+  Future<void> _saveToggles(List<bool> toggles, [SharedPreferences? p]) async {
+    final prefs = p ?? await SharedPreferences.getInstance();
+    for (int i = 0; i < toggles.length; i++) {
+      await prefs.setBool('$_kTogglePrefix$i', toggles[i]);
+    }
+  }
+
+  /// Computes the current intensity and sends it to the heatmap notifier.
+  Future<void> _recordHeatmap() async {
+    final completed = actionToggles.where((v) => v).length;
+    final total = actionToggles.length;
+    // Fire-and-forget; errors are caught inside the notifier
+    ref
+        .read(heatmapNotifierProvider.notifier)
+        .recordIntensity(completedCount: completed, totalCount: total);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authStateProvider).value;
+    final streakState = ref.watch(streakStateProvider);
+    final streak = streakState.streak;
+    final checkedInToday = streakState.checkedInToday;
     final plan = widget.activePlan;
 
     // Fallback UI mapping
@@ -72,108 +141,256 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              try {
-                await ref.read(userRepositoryProvider).saveActivePlan(null);
-                await ref.read(aiPlanProvider.notifier).clearPlan();
-                if (context.mounted) {
-                  ref.invalidate(authStateProvider);
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to delete plan: $e')),
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Delete Plan?',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
+                      ),
+                    ),
+                    content: Text(
+                      'Are you sure you want to delete the current plan? This action cannot be undone.',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(
+                          'Delete',
+                          style: GoogleFonts.poppins(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
+                },
+              );
+
+              if (confirm == true) {
+                setState(() => _isDeleting = true);
+                try {
+                  await ref.read(userRepositoryProvider).saveActivePlan(null);
+                  await ref.read(aiPlanProvider.notifier).clearPlan();
+                  if (context.mounted) {
+                    ref.invalidate(authStateProvider);
+                    // No need to pushReplacement to DesignPlanScreen.
+                    // Invalidating authProvider causes PlansScreen to organically render DesignPlanScreen
+                    // while naturally keeping the BottomNavigationBar visible.
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    setState(() => _isDeleting = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to delete plan: $e')),
+                    );
+                  }
                 }
               }
             },
             icon: const Icon(Icons.delete_outline, color: Colors.red),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.primaryBlue,
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationListScreen(),
+                ),
+              );
+            },
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFF334155),
+                size: 22,
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, left: 8.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: user?.photoUrl != null
-                  ? NetworkImage(user!.photoUrl!)
-                  : null,
-              child: user?.photoUrl == null
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+          //   child: CircleAvatar(
+          //     radius: 18,
+          //     backgroundColor: Colors.grey.shade200,
+          //     backgroundImage: user?.photoUrl != null
+          //         ? NetworkImage(user!.photoUrl!)
+          //         : null,
+          //     child: user?.photoUrl == null
+          //         ? const Icon(Icons.person, color: Colors.grey)
+          //         : null,
+          //   ),
+          // ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildPrimaryCard(plan).animate().fade().slideY(
-                begin: 0.1,
-                end: 0,
-                duration: 400.ms,
-                curve: Curves.easeOutCubic,
+      body: _isDeleting
+          ? _buildShimmerLoading()
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildPrimaryCard(plan).animate().fade().slideY(
+                      begin: 0.1,
+                      end: 0,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildMetricsRow(
+                          savingsRupees,
+                          savingsPercent,
+                          streak,
+                          checkedInToday,
+                        )
+                        .animate()
+                        .fade(delay: 100.ms)
+                        .slideY(
+                          begin: 0.1,
+                          end: 0,
+                          duration: 400.ms,
+                          curve: Curves.easeOutCubic,
+                        ),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader(
+                      'Daily Actions',
+                      'Manage',
+                    ).animate().fade(delay: 200.ms),
+                    const SizedBox(height: 16),
+                    ...List.generate(actions.length, (index) {
+                      final action = actions[index] as Map<String, dynamic>;
+                      return _buildActionTile(action, index)
+                          .animate()
+                          .fade(delay: (250 + (index * 50)).ms)
+                          .slideX(begin: 0.1, end: 0, duration: 400.ms);
+                    }),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader(
+                      'Previous Plans',
+                      'View All',
+                    ).animate().fade(delay: 350.ms),
+                    const SizedBox(height: 16),
+                    _buildPreviousPlanTile(
+                      icon: Icons.local_fire_department,
+                      title: 'Winter Heating',
+                      subtitle: 'Ended Mar 30 • ',
+                      highlight: '92% Adherence',
+                      highlightColor: Colors.green,
+                    ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 12),
+                    _buildPreviousPlanTile(
+                      icon: Icons.bolt,
+                      title: 'Spring Baseline',
+                      subtitle: 'Ended May 30 • ',
+                      highlight: '78% Adherence',
+                      highlightColor: Colors.orange,
+                    ).animate().fade(delay: 450.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(
+                      height: 100,
+                    ), // padding for invisible bottom nav
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              _buildMetricsRow(savingsRupees, savingsPercent)
-                  .animate()
-                  .fade(delay: 100.ms)
-                  .slideY(
-                    begin: 0.1,
-                    end: 0,
-                    duration: 400.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
-              const SizedBox(height: 32),
-              _buildSectionHeader(
-                'Daily Actions',
-                'Manage',
-              ).animate().fade(delay: 200.ms),
-              const SizedBox(height: 16),
-              ...List.generate(actions.length, (index) {
-                final action = actions[index] as Map<String, dynamic>;
-                return _buildActionTile(action, index)
-                    .animate()
-                    .fade(delay: (250 + (index * 50)).ms)
-                    .slideX(begin: 0.1, end: 0, duration: 400.ms);
-              }),
-              const SizedBox(height: 32),
-              _buildSectionHeader(
-                'Previous Plans',
-                'View All',
-              ).animate().fade(delay: 350.ms),
-              const SizedBox(height: 16),
-              _buildPreviousPlanTile(
-                icon: Icons.local_fire_department,
-                title: 'Winter Heating',
-                subtitle: 'Ended Mar 30 • ',
-                highlight: '92% Adherence',
-                highlightColor: Colors.green,
-              ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
-              const SizedBox(height: 12),
-              _buildPreviousPlanTile(
-                icon: Icons.bolt,
-                title: 'Spring Baseline',
-                subtitle: 'Ended May 30 • ',
-                highlight: '78% Adherence',
-                highlightColor: Colors.orange,
-              ).animate().fade(delay: 450.ms).slideY(begin: 0.1, end: 0),
-              const SizedBox(height: 100), // padding for invisible bottom nav
-            ],
-          ),
-        ),
-      ),
+            ),
     );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  height: 24,
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...List.generate(
+                  3,
+                  (index) => Container(
+                    height: 80,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate(onPlay: (controller) => controller.repeat())
+        .shimmer(duration: 1200.ms, color: Colors.white54);
   }
 
   Widget _buildPrimaryCard(Map<String, dynamic> plan) {
@@ -308,7 +525,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () => showQuickCheckInBottomSheet(context),
               icon: const Icon(
                 Icons.check_circle_outline,
                 color: AppColors.primaryBlue,
@@ -335,7 +552,12 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
     );
   }
 
-  Widget _buildMetricsRow(String savingsRupees, String savingsPercent) {
+  Widget _buildMetricsRow(
+    String savingsRupees,
+    String savingsPercent,
+    int streak,
+    bool checkedInToday,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -374,15 +596,19 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade50,
+                        color: checkedInToday
+                            ? Colors.green.shade50
+                            : Colors.orange.shade50,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'ON TRACK',
+                        checkedInToday ? '✅ TODAY' : 'ON TRACK',
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
+                          color: checkedInToday
+                              ? Colors.green.shade700
+                              : Colors.orange.shade700,
                         ),
                       ),
                     ),
@@ -393,7 +619,7 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: '14',
+                        text: streak.toString(),
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -413,19 +639,24 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Days Followed',
+                  streak == 1 ? '1 Day Streak' : '$streak Days Streak',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 16),
-                LinearProgressIndicator(
-                  value: 14 / 30,
-                  backgroundColor: Colors.grey.shade100,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-                  borderRadius: BorderRadius.circular(10),
-                  minHeight: 6,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  child: LinearProgressIndicator(
+                    value: (streak / 30).clamp(0.0, 1.0),
+                    backgroundColor: Colors.grey.shade100,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      checkedInToday ? Colors.green : Colors.orange.shade400,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    minHeight: 6,
+                  ),
                 ),
               ],
             ),
@@ -599,14 +830,31 @@ class _ActivePlanScreenState extends ConsumerState<ActivePlanScreen> {
               ],
             ),
           ),
-          Switch(
-            value: actionToggles[index],
-            activeThumbColor: AppColors.primaryBlue,
-            onChanged: (val) {
-              setState(() {
-                actionToggles[index] = val;
-              });
-            },
+          // Styled switch with active tick
+          SizedBox(
+            width: 50,
+            height: 30,
+            child: Switch(
+              value: actionToggles[index],
+              activeThumbColor: Colors.white,
+              activeTrackColor: AppColors.primaryBlue,
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: Colors.grey.shade300,
+              trackOutlineColor: WidgetStateProperty.resolveWith<Color>(
+                (states) => states.contains(WidgetState.selected)
+                    ? AppColors.primaryBlue
+                    : Colors.grey.shade300,
+              ),
+              onChanged: (val) {
+                setState(() {
+                  actionToggles[index] = val;
+                });
+                // Persist to SharedPreferences
+                _saveToggles(actionToggles);
+                // Update heatmap intensity (optimistic + background API call)
+                _recordHeatmap();
+              },
+            ),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/feature/bill/screen/add_bill_screen.dart';
 import 'package:wattwise_app/feature/dashboard/providers/dashboard_provider.dart';
 import 'package:wattwise_app/feature/insights/widgets/appliance_breakdown_card.dart';
 import 'package:wattwise_app/feature/insights/widgets/daily_intensity_card.dart';
@@ -21,7 +22,9 @@ class InsightsScreen extends ConsumerWidget {
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(child: hasBills ? _DataView() : _EmptyView()),
+        body: SafeArea(
+          child: hasBills ? const _DataView() : const _EmptyView(),
+        ),
       ),
     );
   }
@@ -63,7 +66,19 @@ class _EmptyView extends StatelessWidget {
         Expanded(
           child: NoInsightsEmptyState(
             onAddBill: () {
-              // TODO: navigate to add bill screen
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  child: AddBillScreen(),
+                ),
+              );
             },
           ),
         ),

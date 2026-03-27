@@ -8,14 +8,23 @@ import 'package:wattwise_app/feature/profile/widgets/logout_button.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_header.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_menu_section.dart';
 import 'package:wattwise_app/feature/profile/widgets/profile_stats_card.dart';
+import 'package:wattwise_app/feature/profile/provider/profile_provider.dart';
+import 'package:wattwise_app/feature/profile/screens/edit_profile_screen.dart';
 import 'package:wattwise_app/feature/profile/screens/manage_appliances_screen.dart';
 import 'package:wattwise_app/feature/profile/screens/settings_screen.dart';
+import 'package:wattwise_app/feature/profile/screens/contact_support_screen.dart';
+import 'package:wattwise_app/feature/solar/screens/solar_calculator_screen.dart';
+import 'package:wattwise_app/feature/content/screens/faq_screen.dart';
+import 'package:wattwise_app/feature/content/screens/bill_guide_screen.dart';
+import 'package:wattwise_app/feature/content/screens/legal_content_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -25,6 +34,8 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: Column(
             children: [
+              _ProfileFeedbackBanner(profileAsync: profileAsync),
+              const SizedBox(height: 24),
               const ProfileHeader().animate().fade().scale(
                 begin: const Offset(0.9, 0.9),
                 duration: 400.ms,
@@ -46,7 +57,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.person_outline_rounded,
                     title: "Edit Profile",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.kitchen_rounded,
@@ -83,7 +101,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.solar_power_outlined,
                     title: "Solar Calculator",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SolarCalculatorScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
@@ -96,17 +121,38 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.receipt_long_outlined,
                     title: "How to read bill",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BillGuideScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.help_outline_rounded,
                     title: "FAQs",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FaqScreen(),
+                        ),
+                      );
+                    },
                   ),
                   MenuItemData(
                     icon: Icons.support_agent_rounded,
                     title: "Contact Support",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ContactSupportScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0),
@@ -120,7 +166,14 @@ class ProfileScreen extends ConsumerWidget {
                   MenuItemData(
                     icon: Icons.gavel_rounded,
                     title: "Legal",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LegalContentScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ).animate().fade(delay: 500.ms).slideY(begin: 0.1, end: 0),
@@ -231,5 +284,97 @@ class ProfileScreen extends ConsumerWidget {
       // AppRouter is watching authStateProvider — it will automatically
       // redirect to WelcomeScreen once the stream emits null.
     }
+  }
+}
+
+class _ProfileFeedbackBanner extends ConsumerWidget {
+  final AsyncValue<Map<String, dynamic>> profileAsync;
+
+  const _ProfileFeedbackBanner({required this.profileAsync});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (profileAsync.isLoading) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEFF6FF),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFBFDBFE)),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Loading your profile details...',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (profileAsync.hasError) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF1F2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFECACA)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Profile data not available',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFB91C1C),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pull to refresh or tap Retry to load your latest profile details.',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFFB91C1C),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => ref.read(profileProvider.notifier).retryFetch(),
+              child: Text(
+                'Retry',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF2563EB),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }

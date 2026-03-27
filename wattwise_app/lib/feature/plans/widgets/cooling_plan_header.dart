@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
 
-class CoolingPlanHeader extends StatelessWidget {
+class CoolingPlanHeader extends ConsumerWidget {
   const CoolingPlanHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.valueOrNull;
+    final planName = user?.activePlan?['name'] ?? "Summer Cooling";
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
@@ -29,7 +35,7 @@ class CoolingPlanHeader extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      "Summer Cooling",
+                      planName,
                       style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

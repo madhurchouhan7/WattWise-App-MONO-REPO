@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
+import 'package:wattwise_app/feature/insights/models/insights_data_model.dart';
+import 'package:wattwise_app/feature/insights/services/pdf_export_service.dart';
 
 class InsightsHeader extends ConsumerWidget {
   const InsightsHeader({super.key});
@@ -10,6 +12,21 @@ class InsightsHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMonth = ref.watch(selectedMonthProvider);
+    final score = ref.watch(efficiencyScoreProvider);
+    final breakdownData = ref.watch(applianceBreakdownProvider);
+
+    final topAppliances = breakdownData.map((item) {
+      return ApplianceUsageModel(
+        name: item['name'] as String,
+        percentage: item['percentage'] as int,
+      );
+    }).toList();
+
+    final topApplianceName = breakdownData.isNotEmpty
+        ? breakdownData.first['name']
+        : 'Appliance';
+    final aiInsightText =
+        "Your $topApplianceName usage is higher than AI models predict for local weather conditions. Try shifting its operational hours. Check Upgrade Options?";
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -64,7 +81,18 @@ class InsightsHeader extends ConsumerWidget {
                     color: AppColors.primaryBlue,
                     size: 26,
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    final exportData = InsightsDataModel(
+                      reportMonth: selectedMonth,
+                      efficiencyScore: score,
+                      betterThanPercentage:
+                          score, // Assuming betterThan is proportional to score as in the app mock
+                      topAppliances: topAppliances,
+                      aiInsightText: aiInsightText,
+                    );
+
+                    await PdfExportService.exportInsightsToPdf(exportData);
+                  },
                 ),
               ],
             ),

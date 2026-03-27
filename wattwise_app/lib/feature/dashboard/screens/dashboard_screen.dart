@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,10 @@ import 'package:wattwise_app/feature/dashboard/widgets/quick_check_in_bottom_she
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 import 'package:wattwise_app/feature/profile/screens/profile_screen.dart';
+import 'package:wattwise_app/feature/insights/widgets/streak_card.dart';
+import 'package:wattwise_app/feature/bill/screen/add_bill_screen.dart';
+import 'package:wattwise_app/feature/notifications/screens/notification_list_screen.dart';
+import 'package:wattwise_app/feature/insights/providers/heatmap_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -43,48 +48,77 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 // ─── Empty State (no bills added) ─────────────────────────────────────────────
-class _EmptyView extends StatelessWidget {
+class _EmptyView extends ConsumerWidget {
   final String displayName;
   final UserModel? user;
   const _EmptyView({required this.displayName, this.user});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.sizeOf(context).width;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // ── App bar ──────────────────────────────────────────
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.06,
-            vertical: width * 0.04,
-          ),
-          child: DashboardAppBar(
-            user: user,
-            displayName: displayName,
-            onNotificationTap: () {
-              // TODO: navigate to notifications
-            },
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(authRepositoryProvider).refreshUserData();
+        ref.invalidate(authStateProvider);
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── App bar ──────────────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * 0.06,
+                    vertical: width * 0.04,
+                  ),
+                  child: DashboardAppBar(
+                    user: user,
+                    displayName: displayName,
+                    onNotificationTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
-        // ── Empty state centred in remaining space ────────────
-        Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(vertical: width * 0.04),
-              child: NoBillsEmptyState(
-                onAddBill: () {
-                  // TODO: navigate to add bill screen
-                  // Navigator.push(context, MaterialPageRoute(...))
-                },
-              ),
+                // ── Empty state centred in remaining space ────────────
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(vertical: width * 0.04),
+                      child: NoBillsEmptyState(
+                        onAddBill: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
+                              ),
+                              child: AddBillScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -98,43 +132,60 @@ class _DataView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DashboardAppBar(
-              displayName: displayName,
-              user: user,
-              onNotificationTap: () {
-                // TODO: Navigate to notifications
-              },
-              onProfileTap: () {
-                // TODO: Navigate to profile
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            _buildStatCards(ref),
-            const SizedBox(height: 28),
-            _buildSectionTitle('Active Plan', showIndicator: true),
-            const SizedBox(height: 16),
-            _buildActivePlanCard(context, user),
-            const SizedBox(height: 28),
-            _buildSectionTitle('Action Items'),
-            const SizedBox(height: 16),
-            _buildActionItems(user),
-            const SizedBox(height: 28),
-            _buildSectionTitleWithAction('Recent Activity', 'View All'),
-            const SizedBox(height: 16),
-            _buildRecentActivity(ref),
-            const SizedBox(height: 24),
-          ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(authRepositoryProvider).refreshUserData();
+          ref.invalidate(authStateProvider);
+          final now = DateTime.now();
+          await ref
+              .read(heatmapNotifierProvider.notifier)
+              .refreshFromServer(year: now.year, month: now.month);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DashboardAppBar(
+                displayName: displayName,
+                user: user,
+                onNotificationTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationListScreen(),
+                    ),
+                  );
+                },
+                onProfileTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+              _buildStatCards(ref),
+
+              const SizedBox(height: 28),
+              _buildSectionTitle('Active Plan', showIndicator: true),
+              const SizedBox(height: 16),
+              _buildActivePlanCard(context, ref, user),
+              const SizedBox(height: 28),
+              const StreakCard(),
+              const SizedBox(height: 28),
+              _buildSectionTitle('Action Items'),
+              const SizedBox(height: 16),
+              _buildActionItems(user),
+              const SizedBox(height: 28),
+              _buildSectionTitleWithAction('Recent Activity', 'View All'),
+              const SizedBox(height: 16),
+              _buildRecentActivity(ref),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -145,17 +196,33 @@ class _DataView extends ConsumerWidget {
     final currentBillAmount = savedBill?['amountExact'];
     String currentBillStr;
     if (currentBillAmount != null) {
-      if (currentBillAmount is int) {
-        currentBillStr = currentBillAmount.toString();
-      } else if (currentBillAmount is double) {
-        currentBillStr = currentBillAmount.toStringAsFixed(2);
+      // amountExact can be int, double, or String (from OCR/text fields)
+      final parsed = double.tryParse(currentBillAmount.toString());
+      if (parsed != null) {
+        currentBillStr = parsed == parsed.truncateToDouble()
+            ? parsed.toInt().toString()
+            : parsed.toStringAsFixed(2);
       } else {
-        currentBillStr = '--';
+        currentBillStr = currentBillAmount.toString();
       }
     } else {
       currentBillStr = '--';
     }
     final hasBill = savedBill != null;
+
+    final rawSubsidy = savedBill?['subsidyAmount'];
+    String? subsidyStr;
+    if (rawSubsidy != null &&
+        rawSubsidy.toString() != '0.00' &&
+        rawSubsidy.toString().isNotEmpty) {
+      if (rawSubsidy is int) {
+        subsidyStr = rawSubsidy.toString();
+      } else if (rawSubsidy is double) {
+        subsidyStr = rawSubsidy.toStringAsFixed(2);
+      } else {
+        subsidyStr = rawSubsidy.toString();
+      }
+    }
 
     return Row(
       children: [
@@ -186,9 +253,13 @@ class _DataView extends ConsumerWidget {
               size: 20,
             ),
             iconBg: const Color(0xFFECFDF5),
-            label: 'Last Paid',
-            value: hasBill ? '₹--' : '--',
-            subLabel: hasBill ? 'Checking history...' : 'No local history',
+            label: subsidyStr != null ? 'Subsidy Saved' : 'Last Paid',
+            value: subsidyStr != null
+                ? '₹$subsidyStr'
+                : (hasBill ? '₹--' : '--'),
+            subLabel: subsidyStr != null
+                ? 'Govt Subsidy Applied!'
+                : (hasBill ? 'Checking history...' : 'No local history'),
           ),
         ),
       ],
@@ -238,7 +309,11 @@ class _DataView extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivePlanCard(BuildContext context, UserModel? user) {
+  Widget _buildActivePlanCard(
+    BuildContext context,
+    WidgetRef ref,
+    UserModel? user,
+  ) {
     if (user?.activePlan == null) {
       return Container(
         width: double.infinity,
@@ -282,24 +357,28 @@ class _DataView extends ConsumerWidget {
     }
 
     final p = user!.activePlan!;
-    final planName = 'AI Efficiency Plan';
+    final planName = p['planName']?.toString() ?? 'AI Efficiency Plan';
     final estSavingsObj = p['estimatedSavingsIfFollowed'];
     final pct = estSavingsObj?['percentage'] ?? 0;
     final tierDesc = 'Targeting $pct% savings';
 
+    final savedBill = ref.watch(savedBillProvider);
+    final currentSpend =
+        double.tryParse(savedBill?['amountExact']?.toString() ?? '0') ?? 0;
+
     var usageTarget = 'Optimizing...';
-    double fillRatio = 0.6; // fallback 60%
+    double fillRatio = 0.0;
 
     if (p['estimatedCurrentMonthlyCost'] != null &&
         estSavingsObj?['rupees'] != null) {
       final targetRupees =
           (p['estimatedCurrentMonthlyCost'] - estSavingsObj['rupees'])
               .toDouble();
+
       if (targetRupees > 0) {
-        usageTarget = '₹${targetRupees.toInt()} Target';
-        if (p['estimatedCurrentMonthlyCost'] > 0) {
-          fillRatio = targetRupees / p['estimatedCurrentMonthlyCost'];
-        }
+        usageTarget =
+            '₹${currentSpend.toInt()} / ₹${targetRupees.toInt()} Limit';
+        fillRatio = currentSpend / targetRupees;
       }
     }
 
@@ -633,6 +712,7 @@ class _DataView extends ConsumerWidget {
         'status': 'Pending',
         'isPaid': false,
         'isGrey': false,
+        'imageBase64': savedBill['imageBase64'],
       });
     }
 
@@ -702,17 +782,36 @@ class _DataView extends ConsumerWidget {
                         color: isGrey
                             ? const Color(0xFFF1F5F9)
                             : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(32),
+                        borderRadius: BorderRadius.circular(
+                          item['imageBase64'] != null ? 8 : 32,
+                        ),
+                        image:
+                            item['imageBase64'] != null &&
+                                item['imageBase64'].toString().isNotEmpty
+                            ? DecorationImage(
+                                image: MemoryImage(
+                                  base64Decode(item['imageBase64']),
+                                ),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: Icon(
-                        isGrey
-                            ? Icons.build_outlined
-                            : Icons.description_outlined,
-                        color: isGrey
-                            ? const Color(0xFF64748B)
-                            : const Color(0xFF1E60F2),
-                        size: 20,
-                      ),
+                      child:
+                          item['imageBase64'] != null &&
+                              item['imageBase64'].toString().isNotEmpty
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                            ) // Empty space to respect image size
+                          : Icon(
+                              isGrey
+                                  ? Icons.build_outlined
+                                  : Icons.description_outlined,
+                              color: isGrey
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF1E60F2),
+                              size: 20,
+                            ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(

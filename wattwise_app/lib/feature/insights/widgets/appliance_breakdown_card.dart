@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'dart:math';
 import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
+import 'package:wattwise_app/feature/insights/screens/appliance_report_screen.dart';
+import 'package:wattwise_app/feature/insights/screens/upgrade_screen.dart';
 
 class ApplianceBreakdownCard extends ConsumerWidget {
   const ApplianceBreakdownCard({super.key});
@@ -36,22 +38,36 @@ class ApplianceBreakdownCard extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Appliance Breakdown",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                  Expanded(
+                    child: Text(
+                      "Appliance Breakdown",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
                     children: [
-                      Text(
-                        "Full Report",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const ApplianceReportScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Full Report",
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryBlue,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -99,6 +115,7 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                               breakdownData.isNotEmpty
                                   ? breakdownData[0]['name'] as String
                                   : '--',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -122,27 +139,33 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color: Color(item['colorHex'] as int),
-                                      shape: BoxShape.circle,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: Color(item['colorHex'] as int),
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    item['name'] as String,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.textPrimary,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        item['name'] as String,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 "${item['percentage']}%",
                                 style: GoogleFonts.poppins(
@@ -186,7 +209,7 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Your ${breakdownData[0]['name']} usage is 12% higher than AI models predict for local weather conditions. Try shifting its operational hours.",
+                              "Your ${breakdownData[0]['name']} usage is higher than AI models predict for local weather conditions. Try shifting its operational hours.",
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -195,12 +218,21 @@ class ApplianceBreakdownCard extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              "Check Upgrade Options?",
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryBlue,
+                            InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const UpgradeScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Check Upgrade Options?",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue,
+                                ),
                               ),
                             ),
                           ],

@@ -2,8 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const bbpsController = require('../controllers/bbps.controller');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Public endpoint testing Setu BBPS directly
-router.post('/fetch-bill', bbpsController.fetchBill);
+// Protected: BBPS bill fetch must be tied to an authenticated user context
+router.post('/fetch-bill', authMiddleware, bbpsController.fetchBill);
 
 module.exports = router;

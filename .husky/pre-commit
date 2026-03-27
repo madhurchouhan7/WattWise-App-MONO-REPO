@@ -1,0 +1,23 @@
+echo "🛑 BOUNCER CHECK: Running local checks before committing..."
+
+# 1. Check the Node.js Backend
+echo "👉 Checking Node.js Backend..."
+cd backend
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ Backend Linting Failed! Please fix the ESLint errors above."
+  exit 1
+fi
+cd ..
+
+# 2. Check the Flutter App
+echo "👉 Formatting Flutter Code..."
+cd wattwise_app
+dart format --set-exit-if-changed lib/ test/
+if [ $? -ne 0 ]; then
+  echo "❌ Flutter code is not formatted! I just formatted it for you. Please 'git add' the files again and re-commit."
+  exit 1
+fi
+cd ..
+
+echo "✅ ALL CHECKS PASSED! Committing your code..."

@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
 
-class PerformanceMapWidget extends StatelessWidget {
+class PerformanceMapWidget extends ConsumerWidget {
   const PerformanceMapWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final streak = ref.watch(streakProvider);
     final days = ["M", "T", "W", "T", "F", "S", "S"];
-    final statusColors = [
-      const Color(0xFF34D399), // Emerald
-      const Color(0xFF34D399),
-      const Color(0xFFFBBF24), // Amber
-      const Color(0xFF34D399),
-      const Color(0xFFF87171), // Red
-      const Color(0xFF34D399),
-      Colors.white, // Today
-    ];
+
+    // Status colors based on streak: green for fulfilled days, amber/grey for missed
+    // We mock the status for the past 7 days based on current streak count
+    final statusColors = List.generate(7, (index) {
+      if (index == 6) return Colors.white; // Today
+
+      final reverseIndex = 5 - index; // 0 is yesterday, 5 is 6 days ago
+      if (reverseIndex < streak) {
+        return const Color(0xFF34D399); // Emerald (Success)
+      } else if (reverseIndex == streak) {
+        return const Color(0xFFFBBF24); // Amber (Missed recently)
+      }
+      return const Color(0xFFE2E8F0); // Grey (Inactive)
+    });
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate dynamic cell size based on screen width
-        final availableWidth = constraints.maxWidth;
-        // 7 blocks + 6 gaps (let's say 8px gap)
         final double spacing = 8.0;
-        final double cellSize = (availableWidth - (spacing * 6)) / 7;
+        final double cellSize = (constraints.maxWidth - (spacing * 6)) / 7;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +59,7 @@ class PerformanceMapWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(7, (index) {
-                final isToday = index == 6; // Sunday
+                final isToday = index == 6;
 
                 return Column(
                   children: [
@@ -92,7 +97,7 @@ class PerformanceMapWidget extends StatelessWidget {
                     const SizedBox(height: 8),
                     Container(
                       width: cellSize,
-                      height: cellSize, // Make it square
+                      height: cellSize,
                       decoration: BoxDecoration(
                         color: statusColors[index],
                         borderRadius: BorderRadius.circular(8),

@@ -28,6 +28,20 @@ class OnBoardingPage3State {
 class OnBoardingPage3Notifier extends StateNotifier<OnBoardingPage3State> {
   final UserRepository _repository;
 
+  // Maps UI-friendly display labels → exact MongoDB enum values
+  static const _familyTypeMap = {
+    'Just Me': 'Just Me',
+    'Small Family': 'Small',
+    'Large Family': 'Large',
+    'Joint Family': 'Joint',
+  };
+
+  static const _houseTypeMap = {
+    'Apartment': 'Apartment',
+    'Bungalow': 'Bungalow',
+    'Independent House': 'Independent',
+  };
+
   OnBoardingPage3Notifier({required UserRepository repository})
     : _repository = repository,
       super(const OnBoardingPage3State());
@@ -51,10 +65,18 @@ class OnBoardingPage3Notifier extends StateNotifier<OnBoardingPage3State> {
   }
 
   Future<void> saveDetails() async {
+    // Translate UI display labels to the exact MongoDB enum values
+    final backendFamilyType = state.selectedFamilyType != null
+        ? _familyTypeMap[state.selectedFamilyType]
+        : null;
+    final backendHouseType = state.selectedHouseType != null
+        ? _houseTypeMap[state.selectedHouseType]
+        : null;
+
     await _repository.saveHouseholdDetails(
       peopleCount: state.peopleCount,
-      familyType: state.selectedFamilyType,
-      houseType: state.selectedHouseType,
+      familyType: backendFamilyType,
+      houseType: backendHouseType,
     );
   }
 }

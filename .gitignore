@@ -52,3 +52,36 @@ backend/.env
 backend/logs/
 backend/*.log
 backend/config/wattwise-firebase-adminsdk.json
+
+node_modules/
+
+
+wattwise_app/windows/flutter/generated_plugins.cmake
+wattwise_app/windows/flutter/generated_plugins.cmake
+wattwise_app/macos/Flutter/GeneratedPluginRegistrant.swift
+wattwise_app/linux/flutter/generated_plugin_registrant.cc
+
+.agent/
+.gemini/
+# .gsd/ (Removed from ignore to track project documentation)
+# .gsd/ 
+adapters/
+docs/
+scripts/
+PROJECT_RULES.md
+CHANGELOG.md
+GSD-STYLE.md
+LICENSES
+VERSION
+model_capabilities.yaml
+.claude/
+.codex/
+.cursor/
+.opencode/
+
+.github/agents/
+.github/skills/
+.github/get-shit-done/
+.github/copilot-instructions.md
+.github/gsd-file-manifest.json
+wattwise_app/devtools_options.yaml

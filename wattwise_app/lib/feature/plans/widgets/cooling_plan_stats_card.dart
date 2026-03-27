@@ -1,13 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
 import 'dart:math';
 
-class CoolingPlanStatsCard extends StatelessWidget {
+class CoolingPlanStatsCard extends ConsumerWidget {
   const CoolingPlanStatsCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.valueOrNull;
+    final score = ref.watch(efficiencyScoreProvider);
+    final activePlan = user?.activePlan;
+
+    // Calculate days remaining (mocking cycle progress based on date)
+    final now = DateTime.now();
+    final dayInCycle = now.day; // Simplistic: use day of month
+    final totalDays = 30;
+
+    final estSavings =
+        (activePlan?['estimatedSavingsIfFollowed']?['rupees'] as num?)
+            ?.toInt() ??
+        1200;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -21,7 +39,6 @@ class CoolingPlanStatsCard extends StatelessWidget {
                 offset: const Offset(0, 4),
               ),
             ],
-            // Adds small light blue accent to top right matching design
             gradient: const LinearGradient(
               colors: [Colors.white, Color(0xFFF8FAFC)],
               begin: Alignment.bottomLeft,
@@ -53,7 +70,7 @@ class CoolingPlanStatsCard extends StatelessWidget {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                "Day 18",
+                                "Day $dayInCycle",
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -62,7 +79,7 @@ class CoolingPlanStatsCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                "/ 30",
+                                "/ $totalDays",
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -79,9 +96,7 @@ class CoolingPlanStatsCard extends StatelessWidget {
                                 height: 6,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFFF1F5F9,
-                                  ), // light grey background
+                                  color: const Color(0xFFF1F5F9),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -89,7 +104,9 @@ class CoolingPlanStatsCard extends StatelessWidget {
                                 builder: (context, boxConstraints) {
                                   return Container(
                                     height: 6,
-                                    width: boxConstraints.maxWidth * (18 / 30),
+                                    width:
+                                        boxConstraints.maxWidth *
+                                        (dayInCycle / totalDays).clamp(0, 1),
                                     decoration: BoxDecoration(
                                       color: AppColors.primaryBlue,
                                       borderRadius: BorderRadius.circular(4),
@@ -116,17 +133,17 @@ class CoolingPlanStatsCard extends StatelessWidget {
                                 double.infinity,
                               ),
                               painter: DashedCircularProgressPainter(
-                                progress: 0.88,
+                                progress: score / 100,
                                 color: AppColors.primaryBlue,
                                 strokeWidth: 8.0,
-                                gapSize: 0.15, // Creates large gaps in arc
+                                gapSize: 0.15,
                               ),
                             ),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  "88%",
+                                  "$score%",
                                   style: GoogleFonts.poppins(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -154,7 +171,7 @@ class CoolingPlanStatsCard extends StatelessWidget {
               Container(
                 height: 1,
                 width: double.infinity,
-                color: const Color(0xFFF1F5F9), // Divider line
+                color: const Color(0xFFF1F5F9),
                 margin: const EdgeInsets.symmetric(horizontal: 24),
               ),
               Padding(
@@ -177,7 +194,7 @@ class CoolingPlanStatsCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "₹1,200",
+                          "₹${estSavings.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -192,15 +209,19 @@ class CoolingPlanStatsCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7), // Light green bg
+                        color: score > 70
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        "On Track",
+                        score > 70 ? "On Track" : "Needs Review",
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF16A34A), // Text Green
+                          color: score > 70
+                              ? const Color(0xFF16A34A)
+                              : AppColors.alertRed,
                         ),
                       ),
                     ),

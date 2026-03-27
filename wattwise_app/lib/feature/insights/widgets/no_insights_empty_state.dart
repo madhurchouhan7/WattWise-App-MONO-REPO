@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wattwise_app/core/widgets/primary_button.dart';
 
 /// A single step in the "unlock insights" funnel.
 class _Step {
@@ -120,27 +121,11 @@ class NoInsightsEmptyState extends StatelessWidget {
             width * 0.058,
             MediaQuery.paddingOf(context).bottom + 16,
           ),
-          child: SizedBox(
+          child: PrimaryButton(
+            label: 'Start by Adding Bill',
+            icon: Icons.add_circle_outline_rounded,
+            onPressed: onAddBill,
             height: 56,
-            child: ElevatedButton.icon(
-              onPressed: onAddBill,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
-              label: Text(
-                'Start by Adding Bill',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
           ),
         ),
       ],

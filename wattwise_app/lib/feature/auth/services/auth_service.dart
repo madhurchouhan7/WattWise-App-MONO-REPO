@@ -7,12 +7,7 @@ class AuthService {
 
   AuthService({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-      _googleSignIn =
-          googleSignIn ??
-          GoogleSignIn(
-            serverClientId:
-                '3925576112-77ekjd4v5f3gt3npueunsna3ttpufbcn.apps.googleusercontent.com',
-          );
+      _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   /// Stream of [User] which will emit the current user when
   /// the authentication state changes.

@@ -5,6 +5,7 @@ import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/plans/provider/ai_plan_provider.dart';
 import 'package:wattwise_app/feature/auth/repository/user_repository.dart';
 import 'package:wattwise_app/feature/auth/providers/auth_provider.dart';
+import 'package:wattwise_app/feature/plans/screens/active_plan_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class PlanReadyScreen extends ConsumerStatefulWidget {
@@ -72,11 +73,15 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                               Icons.arrow_back,
                               color: AppColors.textPrimary,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (Navigator.of(context).canPop()) {
+                                // If overlay, just pop to reveal the tab version underneath
                                 Navigator.of(context).pop();
                               } else {
-                                ref.read(aiPlanProvider.notifier).clearPlan();
+                                // If already in tab, clearing plan takes us back to DesignPlanScreen
+                                await ref
+                                    .read(aiPlanProvider.notifier)
+                                    .clearPlan();
                               }
                             },
                           ),
@@ -407,15 +412,24 @@ class _PlanReadyScreenState extends ConsumerState<PlanReadyScreen> {
                                       await ref
                                           .read(userRepositoryProvider)
                                           .saveActivePlan(payload);
-                                      // Refreshes global app state natively back to PlansScreen -> ActivePlanScreen branch
-                                      if (context.mounted) {
-                                        ref.invalidate(authStateProvider);
-                                        if (Navigator.of(context).canPop()) {
-                                          Navigator.of(
-                                            context,
-                                          ).popUntil((route) => route.isFirst);
-                                        }
+
+                                      if (!context.mounted) return;
+
+                                      // 1. Pop the overlay FIRST if we are currently a pushed route.
+                                      // This reveals the RootScreen (PlansScreen tab) immediately.
+                                      if (Navigator.of(context).canPop()) {
+                                        Navigator.of(context).pop();
                                       }
+
+                                      // 2. Invalidate auth state to reflect the new active plan.
+                                      // RootScreen will now rebuild and fetch the updated user with activePlan.
+                                      ref.invalidate(authStateProvider);
+
+                                      // 3. Finally, clear the staging plan after activation.
+                                      // This will cause the PlansScreen tab to transition to ActivePlanScreen.
+                                      await ref
+                                          .read(aiPlanProvider.notifier)
+                                          .clearPlan();
                                     } catch (e) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(

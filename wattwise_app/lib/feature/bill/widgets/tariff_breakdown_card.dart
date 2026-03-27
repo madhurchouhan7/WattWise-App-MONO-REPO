@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wattwise_app/core/colors.dart';
+import 'package:wattwise_app/feature/insights/providers/insights_provider.dart';
 
-class TariffBreakdownCard extends StatefulWidget {
+class TariffBreakdownCard extends ConsumerStatefulWidget {
   const TariffBreakdownCard({super.key});
 
   @override
-  State<TariffBreakdownCard> createState() => _TariffBreakdownCardState();
+  ConsumerState<TariffBreakdownCard> createState() =>
+      _TariffBreakdownCardState();
 }
 
-class _TariffBreakdownCardState extends State<TariffBreakdownCard> {
+class _TariffBreakdownCardState extends ConsumerState<TariffBreakdownCard> {
   bool _isExpanded = true;
 
   @override
   Widget build(BuildContext context) {
+    final totalUnits = ref.watch(totalConsumptionProvider);
+
+    // Perform dynamic calculations for typical progressive utility slabs
+    double unitsRemaining = totalUnits;
+
+    double slab1Units = unitsRemaining > 100 ? 100 : unitsRemaining;
+    unitsRemaining -= slab1Units;
+    double slab1Cost = slab1Units * 3.5;
+
+    double slab2Units = unitsRemaining > 200 ? 200 : unitsRemaining;
+    unitsRemaining -= slab2Units;
+    double slab2Cost = slab2Units * 5.0;
+
+    double slab3Units = unitsRemaining > 0 ? unitsRemaining : 0;
+    double slab3Cost = slab3Units * 7.5;
+
+    const double fixedCharges = 200.00; // Simplified realistic fixed cost
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -84,13 +105,32 @@ class _TariffBreakdownCardState extends State<TariffBreakdownCard> {
                       children: [
                         _buildHeaderRow(),
                         const SizedBox(height: 16),
-                        _buildRow("0-100 units", "₹3.5", "₹350.00"),
+                        _buildRow(
+                          "0-100 units",
+                          "\u20B93.5/u",
+                          "\u20B9${slab1Cost.toStringAsFixed(2)}",
+                        ),
+                        if (slab2Units > 0) ...[
+                          const SizedBox(height: 16),
+                          _buildRow(
+                            "101-300 units",
+                            "\u20B95.0/u",
+                            "\u20B9${slab2Cost.toStringAsFixed(2)}",
+                          ),
+                        ],
+                        if (slab3Units > 0) ...[
+                          const SizedBox(height: 16),
+                          _buildRow(
+                            "301+ units",
+                            "\u20B97.5/u",
+                            "\u20B9${slab3Cost.toStringAsFixed(2)}",
+                          ),
+                        ],
                         const SizedBox(height: 16),
-                        _buildRow("101-300 units", "₹5.0", "₹1,000.00"),
-                        const SizedBox(height: 16),
-                        _buildRow("301+ units", "₹7.5", "₹900.00"),
-                        const SizedBox(height: 16),
-                        _buildFooterRow("Fixed Charges", "₹1,200.00"),
+                        _buildFooterRow(
+                          "Fixed Charges",
+                          "\u20B9${fixedCharges.toStringAsFixed(2)}",
+                        ),
                       ],
                     ),
                   ),

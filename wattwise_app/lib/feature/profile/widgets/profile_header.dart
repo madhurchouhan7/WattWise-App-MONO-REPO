@@ -37,21 +37,20 @@ class ProfileHeader extends ConsumerWidget {
                     backgroundColor: const Color(
                       0xFFEFF6FF,
                     ), // blue.shade50 equivalent
-                    backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                    foregroundImage: photoUrl != null && photoUrl.isNotEmpty
                         ? NetworkImage(photoUrl)
                         : null,
-                    child: photoUrl == null || photoUrl.isEmpty
-                        ? Text(
-                            displayName.isNotEmpty
-                                ? displayName[0].toUpperCase()
-                                : 'U',
-                            style: GoogleFonts.poppins(
-                              color: AppColors.primaryBlue,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
+                    onForegroundImageError: (_, __) {},
+                    child: Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : 'U',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.primaryBlue,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(

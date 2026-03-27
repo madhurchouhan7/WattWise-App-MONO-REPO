@@ -1,8 +1,15 @@
+import 'dart:developer';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:wattwise_app/core/app_theme.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
+import 'package:wattwise_app/core/notifications/notification_service.dart';
 import 'package:wattwise_app/core/router/app_router.dart';
+import 'package:wattwise_app/feature/dashboard/services/streak_local_service.dart';
+import 'package:wattwise_app/feature/insights/services/heatmap_local_service.dart';
 import 'package:wattwise_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +24,22 @@ void main() async {
   // Initialise the Dio API client (sets base URL, interceptors, etc.)
   ApiClient.instance.init();
 
+  // Initialise FCM + device token registration
+  await NotificationService.instance.init();
+
   sharedPrefs = await SharedPreferences.getInstance();
+
+  // Initialise Hive (local database) and open the streak + heatmap cache boxes
+  await Hive.initFlutter();
+  await StreakLocalService.instance.init();
+  await HeatmapLocalService.instance.init();
+
+  Future<void> logFCMToken() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
+      log('FCM Token: $token');
+    }
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

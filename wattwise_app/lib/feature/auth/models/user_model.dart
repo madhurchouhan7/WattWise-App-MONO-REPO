@@ -4,6 +4,8 @@ class UserModel {
   final String? displayName;
   final String? photoUrl;
   final Map<String, dynamic>? activePlan;
+  final int streak;
+  final DateTime? lastCheckIn;
   final bool isOnboardingComplete;
 
   const UserModel({
@@ -12,6 +14,8 @@ class UserModel {
     this.displayName,
     this.photoUrl,
     this.activePlan,
+    this.streak = 0,
+    this.lastCheckIn,
     this.isOnboardingComplete = false,
   });
 
@@ -21,6 +25,8 @@ class UserModel {
     String? displayName,
     String? photoUrl,
     Map<String, dynamic>? activePlan,
+    int? streak,
+    DateTime? lastCheckIn,
     bool? isOnboardingComplete,
   }) {
     return UserModel(
@@ -29,6 +35,8 @@ class UserModel {
       displayName: displayName ?? this.displayName,
       photoUrl: photoUrl ?? this.photoUrl,
       activePlan: activePlan ?? this.activePlan,
+      streak: streak ?? this.streak,
+      lastCheckIn: lastCheckIn ?? this.lastCheckIn,
       isOnboardingComplete: isOnboardingComplete ?? this.isOnboardingComplete,
     );
   }
@@ -40,6 +48,8 @@ class UserModel {
       'displayName': displayName,
       'photoUrl': photoUrl,
       'activePlan': activePlan,
+      'streak': streak,
+      'lastCheckIn': lastCheckIn?.toIso8601String(),
       'isOnboardingComplete': isOnboardingComplete,
     };
   }
@@ -51,12 +61,16 @@ class UserModel {
       displayName: map['displayName'] as String?,
       photoUrl: map['photoUrl'] as String?,
       activePlan: map['activePlan'] as Map<String, dynamic>?,
+      streak: (map['streak'] as num?)?.toInt() ?? 0,
+      lastCheckIn: map['lastCheckIn'] != null
+          ? DateTime.tryParse(map['lastCheckIn'] as String)
+          : null,
       isOnboardingComplete: map['isOnboardingComplete'] as bool? ?? false,
     );
   }
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, activePlan: ${activePlan != null}, isOnboardingComplete: $isOnboardingComplete)';
+    return 'UserModel(uid: $uid, email: $email, streak: $streak, lastCheckIn: $lastCheckIn, activePlan: ${activePlan != null}, isOnboardingComplete: $isOnboardingComplete)';
   }
 }

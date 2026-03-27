@@ -4,18 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/bill/providers/fetch_bill_provider.dart';
 
+import 'package:wattwise_app/feature/dashboard/providers/streak_provider.dart';
+
 class ProfileStatsCard extends ConsumerWidget {
   const ProfileStatsCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final savedBill = ref.watch(savedBillProvider);
+    final streak = ref.watch(streakProvider);
     final hasBills = savedBill != null;
 
     final String billsCount = hasBills ? "1" : "0";
-    final String savings = hasBills
-        ? "₹${(savedBill['amountExact'] ?? 0) * 0.1 > 100 ? 120 : 0}"
-        : "₹0";
+    double amount = 0;
+    if (hasBills && savedBill['amountExact'] != null) {
+      amount = double.tryParse(savedBill['amountExact'].toString()) ?? 0;
+    }
+    double subsidy = 0;
+    if (hasBills && savedBill['subsidyAmount'] != null) {
+      subsidy = double.tryParse(savedBill['subsidyAmount'].toString()) ?? 0;
+    }
+    double totalSaved = subsidy > 0 ? subsidy : (amount * 0.1 > 100 ? 120 : 0);
+    final String savings = hasBills ? "₹${totalSaved.toInt()}" : "₹0";
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -37,7 +47,7 @@ class ProfileStatsCard extends ConsumerWidget {
               _buildDivider(),
               _buildStatColumn(savings, "Saved"),
               _buildDivider(),
-              _buildStatColumn(hasBills ? "1" : "0", "Streak"),
+              _buildStatColumn(streak.toString(), "Streak"),
             ],
           ),
         );

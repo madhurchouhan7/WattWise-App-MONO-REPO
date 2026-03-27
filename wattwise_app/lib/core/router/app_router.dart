@@ -16,6 +16,8 @@ class AppRouter extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       // While Firebase is initialising — show the splash.
       loading: () => const SplashScreen(),
 

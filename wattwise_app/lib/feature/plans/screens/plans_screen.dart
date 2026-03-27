@@ -20,22 +20,33 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
   @override
   Widget build(BuildContext context) {
     final aiPlanState = ref.watch(aiPlanProvider);
-    final authUser = ref.watch(authStateProvider).value;
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
 
     return aiPlanState.when(
       data: (plan) {
-        // 1. If user has an already active AI Plan persisting in the backend, show Dashboard
-        if (authUser?.activePlan != null) {
-          return ActivePlanScreen(activePlan: authUser!.activePlan!);
+        // Prevent flickering when authState is loading (e.g. after activation/invalidation)
+        if (authState.isLoading) {
+          // While loading, if we don't have an active plan in hand yet, show shimmer.
+          if (user?.activePlan == null) {
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: _buildLoadingShimmer(),
+            );
+          }
         }
 
-        // 2. If plan hasn't been generated yet, show the design flow
+        // 1. If user has an already active AI Plan persisting in the backend, show it.
+        if (user != null && user.activePlan != null) {
+          return ActivePlanScreen(activePlan: user.activePlan!);
+        }
+
+        // 2. If plan hasn't been generated yet, show the design flow.
         if (plan == null) {
-          // 1. If plan hasn't been generated yet, show the design flow
           return const DesignPlanScreen();
         }
 
-        // 3. If plan is generated but NOT active to the backend yet, show the staging PlanReadyScreen preview
+        // 3. If plan is generated but NOT active to the backend yet, show the staging preview.
         return const PlanReadyScreen();
       },
       loading: () =>
