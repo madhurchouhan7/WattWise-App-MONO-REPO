@@ -1,10 +1,19 @@
 import 'package:dio/dio.dart';
+import 'dart:async';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
 import 'package:wattwise_app/core/network/api_exception.dart';
 import 'package:wattwise_app/feature/auth/repository/auth_repository.dart';
 
 abstract class IProfileRepository {
   Future<Map<String, dynamic>> fetchProfile({bool allowCacheFallback = true});
+
+  Future<String> uploadAvatarFromFile({
+    required String filePath,
+    void Function(double progress)? onProgress,
+  });
 
   Future<Map<String, dynamic>> updateProfile({
     required String name,
@@ -143,6 +152,69 @@ class ProfileRepository implements IProfileRepository {
   ) async {
     final response = await ApiClient.instance.put('/users/me', data: payload);
     return _extractEnvelopeData(response.data);
+  }
+
+  @override
+  Future<String> uploadAvatarFromFile({
+    required String filePath,
+    void Function(double progress)? onProgress,
+  }) async {
+    final authRepository = _authRepository ?? AuthRepository();
+    final uid = await authRepository.currentUserId();
+    if (uid == null) {
+      throw const ProfileRequestException(
+        message: 'Please sign in again to upload your avatar.',
+        isRetryable: false,
+      );
+    }
+
+    final extension = filePath.split('.').last.toLowerCase();
+    final safeExt = extension.isEmpty ? 'jpg' : extension;
+    final storagePath =
+        'avatars/$uid/${DateTime.now().millisecondsSinceEpoch}.$safeExt';
+
+    try {
+      final ref = FirebaseStorage.instance.ref().child(storagePath);
+      final task = ref.putFile(File(filePath));
+      StreamSubscription<TaskSnapshot>? progressSub;
+      if (onProgress != null) {
+        progressSub = task.snapshotEvents.listen(
+          (snapshot) {
+            final total = snapshot.totalBytes;
+            final transferred = snapshot.bytesTransferred;
+            if (total <= 0) {
+              return;
+            }
+            final progress = (transferred / total).clamp(0.0, 1.0);
+            onProgress(progress);
+          },
+          onError: (_) {
+            // Upload task errors are handled by await task below.
+          },
+          cancelOnError: false,
+        );
+      }
+
+      try {
+        await task;
+      } finally {
+        await progressSub?.cancel();
+      }
+      onProgress?.call(1.0);
+      return await ref.getDownloadURL();
+    } on PlatformException {
+      throw const ProfileRequestException(
+        message:
+            'Upload service is not ready on this device session. Please restart the app and try again.',
+        isRetryable: true,
+      );
+    } on FirebaseException {
+      throw const ProfileRequestException(
+        message:
+            'We could not upload your avatar right now. Please check your connection and try again.',
+        isRetryable: true,
+      );
+    }
   }
 
   Future<void> _writeProfileCache(Map<String, dynamic> profile) async {

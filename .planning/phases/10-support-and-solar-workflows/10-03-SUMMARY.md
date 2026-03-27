@@ -15,10 +15,26 @@ provides:
 affects: [phase-11, reliability, milestone-uat, flutter-client]
 tech-stack:
   added: [none]
-  patterns: [contract-aligned repository/provider/screen layering, deterministic async mutation states, transparent range-first estimate UX]
+  patterns:
+    [
+      contract-aligned repository/provider/screen layering,
+      deterministic async mutation states,
+      transparent range-first estimate UX,
+    ]
 key-files:
   created: [none]
-  modified: [wattwise_app/lib/feature/profile/models/contact_support_models.dart, wattwise_app/lib/feature/profile/repository/support_repository.dart, wattwise_app/lib/feature/profile/provider/contact_support_provider.dart, wattwise_app/lib/feature/profile/screens/contact_support_screen.dart, wattwise_app/lib/feature/solar/models/solar_models.dart, wattwise_app/lib/feature/solar/repository/solar_repository.dart, wattwise_app/lib/feature/solar/provider/solar_provider.dart, wattwise_app/lib/feature/solar/screens/solar_calculator_screen.dart, wattwise_app/lib/feature/profile/screens/profile_screen.dart]
+  modified:
+    [
+      wattwise_app/lib/feature/profile/models/contact_support_models.dart,
+      wattwise_app/lib/feature/profile/repository/support_repository.dart,
+      wattwise_app/lib/feature/profile/provider/contact_support_provider.dart,
+      wattwise_app/lib/feature/profile/screens/contact_support_screen.dart,
+      wattwise_app/lib/feature/solar/models/solar_models.dart,
+      wattwise_app/lib/feature/solar/repository/solar_repository.dart,
+      wattwise_app/lib/feature/solar/provider/solar_provider.dart,
+      wattwise_app/lib/feature/solar/screens/solar_calculator_screen.dart,
+      wattwise_app/lib/feature/profile/screens/profile_screen.dart,
+    ]
 key-decisions:
   - "Kept support submit state deterministic with retry taxonomy and preserved draft values on non-success responses."
   - "Rendered solar outputs as low/base/high ranges with assumptions and disclaimer always visible to avoid precision overstatement."
@@ -112,5 +128,6 @@ PASSED
 - Verified referenced task commits exist in git history: `3828634`, `7c5854d`, `803f980`.
 
 ---
-*Phase: 10-support-and-solar-workflows*
-*Completed: 2026-03-27*
+
+_Phase: 10-support-and-solar-workflows_
+_Completed: 2026-03-27_

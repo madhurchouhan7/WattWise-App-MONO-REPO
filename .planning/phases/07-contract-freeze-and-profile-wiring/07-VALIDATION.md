@@ -15,13 +15,13 @@ created: 2026-03-23
 
 ## Test Infrastructure
 
-| Property | Value |
-|----------|-------|
-| **Framework** | jest 30.x + flutter test |
-| **Config file** | backend/package.json, wattwise_app/pubspec.yaml |
-| **Quick run command** | `npm --prefix backend test -- --runInBand --testPathPatterns profile` |
+| Property               | Value                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| **Framework**          | jest 30.x + flutter test                                                      |
+| **Config file**        | backend/package.json, wattwise_app/pubspec.yaml                               |
+| **Quick run command**  | `npm --prefix backend test -- --runInBand --testPathPatterns profile`         |
 | **Full suite command** | `npm --prefix backend test -- --runInBand && cd wattwise_app && flutter test` |
-| **Estimated runtime** | ~180 seconds |
+| **Estimated runtime**  | ~180 seconds                                                                  |
 
 ---
 
@@ -36,14 +36,14 @@ created: 2026-03-23
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 1 | PRO-01 | integration | `npm --prefix backend test -- --runInBand --testPathPatterns profile` | ⚠️ W0 | ⬜ pending |
-| 07-01-02 | 01 | 1 | PRO-02 | integration | `npm --prefix backend test -- --runInBand --testPathPatterns profile` | ⚠️ W0 | ⬜ pending |
-| 07-02-01 | 02 | 1 | PRO-03 | unit | `cd wattwise_app && flutter test test/feature/profile` | ⚠️ W0 | ⬜ pending |
-| 07-02-02 | 02 | 1 | PRO-04 | integration | `npm --prefix backend test -- --runInBand && cd wattwise_app && flutter test` | ⚠️ W0 | ⬜ pending |
+| Task ID  | Plan | Wave | Requirement | Test Type   | Automated Command                                                             | File Exists | Status     |
+| -------- | ---- | ---- | ----------- | ----------- | ----------------------------------------------------------------------------- | ----------- | ---------- |
+| 07-01-01 | 01   | 1    | PRO-01      | integration | `npm --prefix backend test -- --runInBand --testPathPatterns profile`         | ⚠️ W0       | ⬜ pending |
+| 07-01-02 | 01   | 1    | PRO-02      | integration | `npm --prefix backend test -- --runInBand --testPathPatterns profile`         | ⚠️ W0       | ⬜ pending |
+| 07-02-01 | 02   | 1    | PRO-03      | unit        | `cd wattwise_app && flutter test test/feature/profile`                        | ⚠️ W0       | ⬜ pending |
+| 07-02-02 | 02   | 1    | PRO-04      | integration | `npm --prefix backend test -- --runInBand && cd wattwise_app && flutter test` | ⚠️ W0       | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+_Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
 ---
 
@@ -58,10 +58,10 @@ created: 2026-03-23
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Profile menu routes to Edit Profile flow from ProfileScreen | PRO-01 | Navigation + animation timing is UX-sensitive in-device | Launch app, open Profile, tap Edit Profile, confirm route opens and initial data appears |
-| Successful profile save reflects after app restart | PRO-04 | Requires device lifecycle and persisted auth context | Edit profile, save, restart app, re-open profile, verify persisted values |
+| Behavior                                                    | Requirement | Why Manual                                              | Test Instructions                                                                        |
+| ----------------------------------------------------------- | ----------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Profile menu routes to Edit Profile flow from ProfileScreen | PRO-01      | Navigation + animation timing is UX-sensitive in-device | Launch app, open Profile, tap Edit Profile, confirm route opens and initial data appears |
+| Successful profile save reflects after app restart          | PRO-04      | Requires device lifecycle and persisted auth context    | Edit profile, save, restart app, re-open profile, verify persisted values                |
 
 ---
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wattwise_app/core/colors.dart';
 import 'package:wattwise_app/feature/profile/provider/profile_form_validators.dart';
 import 'package:wattwise_app/feature/profile/provider/profile_provider.dart';
@@ -14,6 +15,7 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _picker = ImagePicker();
   late final TextEditingController _nameController;
   late final TextEditingController _avatarController;
 
@@ -35,8 +37,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
     final operationState = ref.watch(profileOperationProvider);
+    final uploadProgress = ref.watch(avatarUploadProgressProvider);
     final draft = ref.watch(profileDraftProvider);
     final notifier = ref.read(profileProvider.notifier);
+    final isUploading = uploadProgress != null;
 
     if (_nameController.text != draft.name) {
       _nameController.text = draft.name;
@@ -127,6 +131,77 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Center(
+                            child: CircleAvatar(
+                              radius: 34,
+                              backgroundColor: const Color(0xFFEFF6FF),
+                              foregroundImage: draft.avatarUrl.isNotEmpty
+                                  ? NetworkImage(draft.avatarUrl)
+                                  : null,
+                              onForegroundImageError: (_, __) {},
+                              child: const Icon(
+                                Icons.person,
+                                color: Color(0xFF94A3B8),
+                                size: 34,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: OutlinedButton.icon(
+                              onPressed: isUploading
+                                  ? null
+                                  : () async {
+                                      final file = await _picker.pickImage(
+                                        source: ImageSource.gallery,
+                                        imageQuality: 85,
+                                        maxWidth: 1200,
+                                      );
+                                      if (file == null) {
+                                        return;
+                                      }
+
+                                      await notifier.uploadAvatarFile(
+                                        file.path,
+                                      );
+                                      if (!mounted) return;
+
+                                      final latestOperation = ref.read(
+                                        profileOperationProvider,
+                                      );
+                                      if (!latestOperation.hasSaveError) {
+                                        ScaffoldMessenger.of(context)
+                                          ..hideCurrentSnackBar()
+                                          ..showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Avatar uploaded. Tap Save Profile to apply changes.',
+                                              ),
+                                            ),
+                                          );
+                                      }
+                                    },
+                              icon: isUploading
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                                    )
+                                  : const Icon(Icons.photo_library_outlined),
+                              label: Text(
+                                isUploading
+                                    ? 'Uploading ${(uploadProgress * 100).toStringAsFixed(0)}%'
+                                    : 'Upload from Gallery',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             'Name',
                             style: GoogleFonts.poppins(
@@ -193,7 +268,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: operationState.isSaving
+                        onPressed: operationState.isSaving || isUploading
                             ? null
                             : () async {
                                 final isValid =

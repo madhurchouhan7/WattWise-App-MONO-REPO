@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wattwise_app/core/network/api_exception.dart';
 import 'package:wattwise_app/feature/auth/models/user_model.dart';
 import 'package:wattwise_app/feature/auth/services/auth_service.dart';
 import 'package:wattwise_app/core/network/api_client.dart';
@@ -36,6 +38,12 @@ class AuthRepository {
         final freshUser = await _fetchAndCacheUser(firebaseUser);
         yield freshUser;
       } catch (e) {
+        if (_isUnauthorizedError(e)) {
+          await signOut();
+          yield null;
+          continue;
+        }
+
         // If network fails, and we didn't have a cache, yield a basic user
         if (cachedUser == null) {
           yield UserModel(
@@ -55,7 +63,18 @@ class AuthRepository {
   Future<UserModel?> refreshUserData() async {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser == null) return null;
-    return await _fetchAndCacheUser(firebaseUser);
+
+    try {
+      return await _fetchAndCacheUser(firebaseUser);
+    } catch (e) {
+      if (_isUnauthorizedError(e)) {
+        await signOut();
+        return null;
+      }
+
+      // Keep the app usable during transient backend failures.
+      return await _getCachedUser(firebaseUser);
+    }
   }
 
   Future<String?> currentUserId() async {
@@ -118,12 +137,22 @@ class AuthRepository {
       final isOnboarding =
           prefs.getBool('${_kOnboardingCompleteKey}_${firebaseUser.uid}') ??
           false;
+      final profileName = (userData['name'] as String?)?.trim();
+      final profileAvatar = (userData['avatarUrl'] as String?)?.trim();
+      final effectiveDisplayName =
+          (profileName != null && profileName.isNotEmpty)
+          ? profileName
+          : firebaseUser.displayName;
+      final effectivePhotoUrl =
+          (profileAvatar != null && profileAvatar.isNotEmpty)
+          ? profileAvatar
+          : firebaseUser.photoURL;
 
       return UserModel(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
-        displayName: firebaseUser.displayName,
-        photoUrl: firebaseUser.photoURL,
+        displayName: effectiveDisplayName,
+        photoUrl: effectivePhotoUrl,
         activePlan: activePlan,
         streak: streak,
         lastCheckIn: lastCheckIn,
@@ -140,6 +169,8 @@ class AuthRepository {
         prefs.getBool('${_kOnboardingCompleteKey}_${firebaseUser.uid}') ??
         false;
 
+    String? profileName;
+    String? profileAvatar;
     Map<String, dynamic>? activePlan;
     int streak = 0;
     DateTime? lastCheckIn;
@@ -148,6 +179,8 @@ class AuthRepository {
     final response = await ApiClient.instance.get('/users/me');
     if (response.statusCode == 200 && response.data['data'] != null) {
       final userData = response.data['data'];
+      profileName = (userData['name'] as String?)?.trim();
+      profileAvatar = (userData['avatarUrl'] as String?)?.trim();
       streak = (userData['streak'] as num?)?.toInt() ?? 0;
       final lastCheckInStr = userData['lastCheckIn'] as String?;
       if (lastCheckInStr != null) {
@@ -211,11 +244,19 @@ class AuthRepository {
       throw Exception('Failed to fetch user profile');
     }
 
+    final effectiveDisplayName = (profileName != null && profileName.isNotEmpty)
+        ? profileName
+        : firebaseUser.displayName;
+    final effectivePhotoUrl =
+        (profileAvatar != null && profileAvatar.isNotEmpty)
+        ? profileAvatar
+        : firebaseUser.photoURL;
+
     return UserModel(
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? '',
-      displayName: firebaseUser.displayName,
-      photoUrl: firebaseUser.photoURL,
+      displayName: effectiveDisplayName,
+      photoUrl: effectivePhotoUrl,
       activePlan: activePlan,
       streak: streak,
       lastCheckIn: lastCheckIn,
@@ -292,5 +333,23 @@ class AuthRepository {
   Future<bool> isOnboardingComplete(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('${_kOnboardingCompleteKey}_$uid') ?? false;
+  }
+
+  bool _isUnauthorizedError(Object error) {
+    if (error is ApiException) {
+      return error.isUnauthorised;
+    }
+
+    if (error is DioException) {
+      if (error.response?.statusCode == 401) {
+        return true;
+      }
+      final inner = error.error;
+      if (inner is ApiException) {
+        return inner.isUnauthorised;
+      }
+    }
+
+    return false;
   }
 }

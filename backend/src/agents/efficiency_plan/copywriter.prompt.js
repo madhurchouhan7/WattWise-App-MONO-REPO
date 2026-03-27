@@ -13,6 +13,17 @@ RULES:
    - Calculate a rough "efficiencyScore" (0-100) based on how many anomalies were found (fewer anomalies = higher score).
    - Provide 2-3 general "quickWins" (short strings).
    - Provide a "monthlyTip" relevant to the current Weather Context.
+4. COVERAGE GUARANTEE: keyActions must contain exactly 4 or 5 items.
+5. PRESERVE STRATEGY COVERAGE: Do not drop strategist actions unless they are duplicates. If strategist returns fewer than 4 actions, synthesize additional appliance-specific actions from anomalies and weather context to reach 4-5.
+6. NO GENERIC ACTION TEXT: Never output placeholders like "Appliance Name", "Follow this action", "General Household", or vague one-liners.
+7. ACTION QUALITY: Each keyAction must contain:
+  - appliance: explicit appliance/category name
+  - action: concrete behavior change
+  - impact: why it matters in practical terms
+  - estimatedSaving: numeric string amount, no currency symbols
+8. DAILY USABILITY: Favor low-friction, same-day changes (setpoint, runtime cap, schedule shift, standby reduction) over long-term capital advice.
+9. QUICKWINS QUALITY: quickWins should be distinct and immediately actionable, not repeats of keyActions.
+10. CONSISTENCY: estimatedSavingsIfFollowed.rupees should roughly align with aggregate keyAction savings.
 
 OUTPUT SCHEMA:
 {
@@ -30,7 +41,7 @@ OUTPUT SCHEMA:
   "keyActions": [
     {
       "priority": "high", 
-      "appliance": "Appliance Name",
+      "appliance": "Air Conditioner",
       "action": "The blunt strategy action",
       "impact": "Why this matters",
       "estimatedSaving": "150"

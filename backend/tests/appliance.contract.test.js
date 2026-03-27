@@ -85,7 +85,10 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
     expect(Appliance.findOneAndUpdate).toHaveBeenCalledWith(
       { _id: "a-1", userId: "user-1", isActive: true, __v: 2 },
       {
-        $set: expect.objectContaining({ title: "AC Bedroom", lastUpdated: expect.any(Date) }),
+        $set: expect.objectContaining({
+          title: "AC Bedroom",
+          lastUpdated: expect.any(Date),
+        }),
         $inc: { __v: 1 },
       },
       { returnDocument: "after", runValidators: true },
@@ -113,7 +116,10 @@ describe("Appliance Contract - create/update/delete envelopes", () => {
     expect(Appliance.findOneAndUpdate).toHaveBeenCalledWith(
       { _id: "a-1", userId: "user-1", isActive: true, __v: 3 },
       {
-        $set: expect.objectContaining({ isActive: false, lastUpdated: expect.any(Date) }),
+        $set: expect.objectContaining({
+          isActive: false,
+          lastUpdated: expect.any(Date),
+        }),
         $inc: { __v: 1 },
       },
       { returnDocument: "after", runValidators: true },

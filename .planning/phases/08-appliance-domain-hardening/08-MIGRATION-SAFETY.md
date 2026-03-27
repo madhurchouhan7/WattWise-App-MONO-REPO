@@ -58,9 +58,11 @@ Use this procedure if release health degrades.
 2. Keep compatibility `bulk` endpoint online in guarded mode.
 3. Restore previous mutation handler code path for canonical endpoints.
 4. Replay audit logs to verify APP-02 integrity:
-  - no unrelated appliance deactivations,
-  - no hard deletes,
-  - per-user active appliance counts within expected deltas.
+
+- no unrelated appliance deactivations,
+- no hard deletes,
+- per-user active appliance counts within expected deltas.
+
 5. If anomaly found, run targeted restore from pre-deploy snapshot for impacted users only.
 6. Publish incident note with request correlation IDs and timeline.
 

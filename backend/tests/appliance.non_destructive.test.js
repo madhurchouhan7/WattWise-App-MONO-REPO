@@ -17,8 +17,13 @@ const Appliance = require("../src/models/Appliance.model");
 describe("Appliance Non-Destructive Contract (APP-02)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Appliance.updateMany.mockResolvedValue({ acknowledged: true, modifiedCount: 1 });
-    Appliance.insertMany.mockResolvedValue([{ applianceId: "ac-1", title: "Updated AC" }]);
+    Appliance.updateMany.mockResolvedValue({
+      acknowledged: true,
+      modifiedCount: 1,
+    });
+    Appliance.insertMany.mockResolvedValue([
+      { applianceId: "ac-1", title: "Updated AC" },
+    ]);
   });
 
   it("bulk update must scope deactivation to touched appliance IDs only", async () => {

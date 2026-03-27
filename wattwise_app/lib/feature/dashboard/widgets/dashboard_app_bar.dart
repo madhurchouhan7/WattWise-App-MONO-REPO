@@ -80,19 +80,18 @@ class DashboardAppBar extends StatelessWidget {
           child: CircleAvatar(
             radius: 22,
             backgroundColor: const Color(0xFF1E60F2).withOpacity(0.1),
-            backgroundImage:
+            foregroundImage:
                 user?.photoUrl != null && user!.photoUrl!.isNotEmpty
                 ? NetworkImage(user!.photoUrl!)
                 : null,
-            child: user?.photoUrl == null || user!.photoUrl!.isEmpty
-                ? Text(
-                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1E60F2),
-                    ),
-                  )
-                : null,
+            onForegroundImageError: (_, __) {},
+            child: Text(
+              displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1E60F2),
+              ),
+            ),
           ),
         ),
       ],

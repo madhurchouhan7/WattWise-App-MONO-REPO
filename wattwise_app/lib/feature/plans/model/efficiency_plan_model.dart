@@ -16,8 +16,30 @@ abstract class EfficiencyPlanModel with _$EfficiencyPlanModel {
     required String monthlyTip,
   }) = _EfficiencyPlanModel;
 
-  factory EfficiencyPlanModel.fromJson(Map<String, dynamic> json) =>
-      _$EfficiencyPlanModelFromJson(json);
+  factory EfficiencyPlanModel.fromJson(Map<String, dynamic> json) {
+    final rawActions = json['keyActions'];
+    final actions = rawActions is List
+        ? rawActions
+              .whereType<Map<String, dynamic>>()
+              .map(KeyAction.fromJson)
+              .toList()
+        : <KeyAction>[];
+
+    return EfficiencyPlanModel(
+      summary: _asString(json['summary'], fallback: ''),
+      estimatedCurrentMonthlyCost: _asDouble(
+        json['estimatedCurrentMonthlyCost'],
+      ),
+      estimatedSavingsIfFollowed: EstimatedSavings.fromJson(
+        _asMap(json['estimatedSavingsIfFollowed']),
+      ),
+      efficiencyScore: _asDouble(json['efficiencyScore']),
+      keyActions: actions,
+      slabAlert: SlabAlert.fromJson(_asMap(json['slabAlert'])),
+      quickWins: _asStringList(json['quickWins']),
+      monthlyTip: _asString(json['monthlyTip'], fallback: ''),
+    );
+  }
 }
 
 @freezed
@@ -28,8 +50,13 @@ abstract class EstimatedSavings with _$EstimatedSavings {
     required double percentage,
   }) = _EstimatedSavings;
 
-  factory EstimatedSavings.fromJson(Map<String, dynamic> json) =>
-      _$EstimatedSavingsFromJson(json);
+  factory EstimatedSavings.fromJson(Map<String, dynamic> json) {
+    return EstimatedSavings(
+      units: _asDouble(json['units']),
+      rupees: _asDouble(json['rupees']),
+      percentage: _asDouble(json['percentage']),
+    );
+  }
 }
 
 @freezed
@@ -42,8 +69,15 @@ abstract class KeyAction with _$KeyAction {
     required String estimatedSaving,
   }) = _KeyAction;
 
-  factory KeyAction.fromJson(Map<String, dynamic> json) =>
-      _$KeyActionFromJson(json);
+  factory KeyAction.fromJson(Map<String, dynamic> json) {
+    return KeyAction(
+      priority: _asString(json['priority'], fallback: 'medium'),
+      appliance: _asString(json['appliance'], fallback: 'General Household'),
+      action: _asString(json['action'], fallback: ''),
+      impact: _asString(json['impact'], fallback: ''),
+      estimatedSaving: _asString(json['estimatedSaving'], fallback: '0'),
+    );
+  }
 }
 
 @freezed
@@ -56,6 +90,73 @@ abstract class SlabAlert with _$SlabAlert {
     String? warning,
   }) = _SlabAlert;
 
-  factory SlabAlert.fromJson(Map<String, dynamic> json) =>
-      _$SlabAlertFromJson(json);
+  factory SlabAlert.fromJson(Map<String, dynamic> json) {
+    return SlabAlert(
+      isInDangerZone: _asBool(json['isInDangerZone']),
+      currentSlab: _asString(json['currentSlab'], fallback: 'unknown'),
+      nextSlabAt: _asNullableDouble(json['nextSlabAt']),
+      unitsToNextSlab: _asNullableDouble(json['unitsToNextSlab']),
+      warning: json['warning'] == null ? null : _asString(json['warning']),
+    );
+  }
+}
+
+Map<String, dynamic> _asMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  return <String, dynamic>{};
+}
+
+double _asDouble(dynamic value, {double fallback = 0}) {
+  if (value is num) {
+    return value.toDouble();
+  }
+  if (value is String) {
+    final parsed = double.tryParse(value.trim());
+    return parsed ?? fallback;
+  }
+  return fallback;
+}
+
+double? _asNullableDouble(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  return _asDouble(value);
+}
+
+String _asString(dynamic value, {String fallback = ''}) {
+  if (value == null) {
+    return fallback;
+  }
+  return value.toString();
+}
+
+bool _asBool(dynamic value, {bool fallback = false}) {
+  if (value is bool) {
+    return value;
+  }
+  if (value is String) {
+    const truthy = {'true', '1', 'yes'};
+    const falsy = {'false', '0', 'no'};
+    final normalized = value.trim().toLowerCase();
+    if (truthy.contains(normalized)) {
+      return true;
+    }
+    if (falsy.contains(normalized)) {
+      return false;
+    }
+  }
+  if (value is num) {
+    return value != 0;
+  }
+  return fallback;
+}
+
+List<String> _asStringList(dynamic value) {
+  if (value is List) {
+    return value.map((item) => _asString(item)).toList();
+  }
+  return <String>[];
 }

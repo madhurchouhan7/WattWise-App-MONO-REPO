@@ -13,12 +13,22 @@ const {
 const { sendSuccess } = require("../utils/ApiResponse");
 const ApiError = require("../utils/ApiError");
 
+function logAgenticPlan(event, payload) {
+  console.info(`[AGENTIC_PLAN] ${event} ${JSON.stringify(payload)}`);
+}
+
 /**
  * @desc    Generate AI Efficiency Plan via Multi-Agent LangGraph Workflow
  * @route   POST /api/v1/ai/generate-plan
  * @access  Private
  */
 const getEfficiencyPlan = async (req, res, next) => {
+  let requestedMode = "unspecified";
+  let executionPath = "unknown";
+  let runId = null;
+  let threadId = null;
+  const startTime = Date.now();
+
   try {
     const userData = req.body;
 
@@ -60,15 +70,20 @@ const getEfficiencyPlan = async (req, res, next) => {
       weatherContext: weatherContext,
     };
 
-    const { requestedMode, executionPath } = resolveOrchestrationMode(req);
+    ({ requestedMode, executionPath } = resolveOrchestrationMode(req));
     const selectedApp =
       executionPath === "collaborative"
         ? collaborativePlanApp
         : efficiencyPlanApp;
 
-    const runId = userData.runId || `run-${req.id || Date.now()}`;
-    const threadId = req.get("x-thread-id") || userData.threadId || req.id;
-    const tenantId = req.user?.tenantId || userData.user?.tenantId;
+    runId = userData.runId || `run-${req.id || Date.now()}`;
+    threadId = req.get("x-thread-id") || userData.threadId || req.id;
+    const tenantId =
+      req.user?.tenantId ||
+      userData.user?.tenantId ||
+      req.user?.firebaseUid ||
+      (req.user?._id ? String(req.user._id) : undefined) ||
+      req.user?.id;
     const memoryUserId =
       req.user?.id ||
       req.user?._id ||
@@ -83,6 +98,20 @@ const getEfficiencyPlan = async (req, res, next) => {
         );
       }
     }
+
+    logAgenticPlan("start", {
+      requestId: req.id,
+      userId: memoryUserId,
+      tenantId,
+      requestedMode,
+      executionPath,
+      runId,
+      threadId,
+      hasWeatherContext: Boolean(weatherContext),
+      applianceCount: Array.isArray(userData.appliances)
+        ? userData.appliances.length
+        : 0,
+    });
 
     const resultState = await selectedApp.invoke({
       ...initialState,
@@ -150,6 +179,21 @@ const getEfficiencyPlan = async (req, res, next) => {
       degradationEvents: resultState.degradationEvents,
     });
 
+    const metadata = responseEnvelope?.metadata || {};
+    logAgenticPlan("complete", {
+      requestId: req.id,
+      runId: metadata?.memoryTrace?.runId || runId,
+      threadId: metadata?.memoryTrace?.threadId || threadId,
+      requestedMode: metadata.requestedMode || requestedMode,
+      executionPath: metadata.executionPath || executionPath,
+      durationMs: Date.now() - startTime,
+      qualityScore: metadata.qualityScore,
+      debateRounds: metadata.debateRounds,
+      phase4: metadata.phase4 || null,
+      phase5: metadata.phase5 || null,
+      phase6: metadata.phase6 || null,
+    });
+
     return sendSuccess(
       res,
       200,
@@ -157,6 +201,15 @@ const getEfficiencyPlan = async (req, res, next) => {
       responseEnvelope,
     );
   } catch (error) {
+    logAgenticPlan("error", {
+      requestId: req.id,
+      runId,
+      threadId,
+      requestedMode,
+      executionPath,
+      durationMs: Date.now() - startTime,
+      message: error.message,
+    });
     console.error("AI Plan Generation Error:", error.message);
     next(error);
   }

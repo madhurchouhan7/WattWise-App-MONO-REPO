@@ -5,6 +5,35 @@
 const { ChatOpenAI } = require("@langchain/openai");
 const { getStrategistPrompt } = require("./strategist.prompt");
 
+function buildDefaultStrategies() {
+    return [
+        {
+            id: "fallback_strategy_1",
+            actionSummary: "Optimize AC + fan combination",
+            fullDescription: "Set AC to 24-25C and use fan circulation to reduce compressor duty cycles.",
+            projectedSavings: 450,
+        },
+        {
+            id: "fallback_strategy_2",
+            actionSummary: "Shift washer and heater usage",
+            fullDescription: "Run washing machine and water heater during off-peak periods when possible.",
+            projectedSavings: 300,
+        },
+        {
+            id: "fallback_strategy_3",
+            actionSummary: "Eliminate standby consumption",
+            fullDescription: "Turn off idle entertainment devices, chargers, and kitchen plug loads nightly.",
+            projectedSavings: 220,
+        },
+        {
+            id: "fallback_strategy_4",
+            actionSummary: "Cap daily high-load runtime",
+            fullDescription: "Reduce one major appliance runtime by 15-20 minutes each day.",
+            projectedSavings: 180,
+        },
+    ];
+}
+
 // Initialize LangChain OpenAI client specifically targeting x.ai API.
 const llm = new ChatOpenAI({
     model: "x-ai/grok-4.1-fast",
@@ -36,7 +65,7 @@ ${state.anomalies && state.anomalies.length > 0 ? JSON.stringify(state.anomalies
             content: contextString
         };
 
-        if (process.env.XAI_API_KEY) {
+        if (process.env.OPENROUTER_API_KEY) {
             const response = await llm.invoke([systemMessage, userMessage]);
 
             // Basic JSON extraction and sanitization
@@ -54,16 +83,9 @@ ${state.anomalies && state.anomalies.length > 0 ? JSON.stringify(state.anomalies
                 strategies: parsedStrategies
             };
         } else {
-            console.log("--> [Node] Strategist using mock fallback (no XAI_API_KEY found).");
+            console.log("--> [Node] Strategist using mock fallback (no OPENROUTER_API_KEY found).");
             return {
-                strategies: [
-                    {
-                        id: "mock_strategy_1",
-                        actionSummary: "Delay Washing Machine to Off-Peak",
-                        fullDescription: "Since it is sunny and dry, run your 8-hour load during mid-day solar peak hours or late night.",
-                        projectedSavings: 450
-                    }
-                ]
+                strategies: buildDefaultStrategies()
             };
         }
 
@@ -71,14 +93,7 @@ ${state.anomalies && state.anomalies.length > 0 ? JSON.stringify(state.anomalies
         console.error("Strategist Node Error:", error.message);
         // Fail gracefully with mock data
         return {
-            strategies: [
-                {
-                    id: "mock_error_strategy",
-                    actionSummary: "Optimize AC & Fan Usage",
-                    fullDescription: "Raise AC temp to 25°C and use ceiling fan instead of running AC at 18°C.",
-                    projectedSavings: 1250
-                }
-            ]
+            strategies: buildDefaultStrategies()
         };
     }
 }

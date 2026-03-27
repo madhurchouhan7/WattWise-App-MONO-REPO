@@ -37,7 +37,7 @@ completed: 2026-03-26
 
 # Phase 8 Plan 04: Gap Closure Summary
 
-**Manage Appliances client contract drift was fully closed by normalizing payload field names, delete precondition transport, and __v token extraction with targeted regression coverage.**
+**Manage Appliances client contract drift was fully closed by normalizing payload field names, delete precondition transport, and \_\_v token extraction with targeted regression coverage.**
 
 ## Performance
 
@@ -48,6 +48,7 @@ completed: 2026-03-26
 - **Files modified:** 4
 
 ## Accomplishments
+
 - Added RED regression tests that reproduced all three verification blockers from 08-VERIFICATION.
 - Updated Manage Appliances payload and version-token mapping to align with backend create/patch/delete contracts.
 - Verified closure with both Flutter client tests and backend appliance contract tests.
@@ -60,13 +61,15 @@ Each task was committed atomically:
 2. **Task 2: Implement client contract alignment for create/patch/delete and stale-write tokens** - `bc59ee9` (feat)
 
 ## Files Created/Modified
+
 - `.planning/phases/08-appliance-domain-hardening/08-04-SUMMARY.md` - Plan execution record, decisions, and verification evidence.
-- `wattwise_app/test/feature/profile/manage_appliances_retry_states_test.dart` - Regression tests for delete precondition body and __v expected-version fallback mapping.
+- `wattwise_app/test/feature/profile/manage_appliances_retry_states_test.dart` - Regression tests for delete precondition body and \_\_v expected-version fallback mapping.
 - `wattwise_app/test/feature/profile/manage_appliances_delete_flow_test.dart` - Regression widget test proving save flow sends usageHoursPerDay contract field.
-- `wattwise_app/lib/feature/profile/screens/manage_appliances_screen.dart` - usageHoursPerDay payload mapping and __v-aware version extraction.
-- `wattwise_app/lib/feature/on_boarding/repository/appliance_repository.dart` - DELETE body._expectedVersion transport and __v fallback in expected-version derivation.
+- `wattwise_app/lib/feature/profile/screens/manage_appliances_screen.dart` - usageHoursPerDay payload mapping and \_\_v-aware version extraction.
+- `wattwise_app/lib/feature/on_boarding/repository/appliance_repository.dart` - DELETE body.\_expectedVersion transport and \_\_v fallback in expected-version derivation.
 
 ## Decisions Made
+
 - Keep delete precondition in `If-Match` header for backward compatibility while adding required `body._expectedVersion` to satisfy backend validator contract.
 - Enforce backend contract naming at payload source (`usageHoursPerDay`) rather than patching downstream to prevent future drift.
 - Apply `__v` fallback in both UI baseline extraction and repository envelope parsing so stale-write retries remain deterministic across entry points.
@@ -76,6 +79,7 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 - Initial verification command used an incorrect nested working directory (`cd wattwise_app` while already in that directory). Re-ran from correct directory and proceeded without code changes.
 
 ## User Setup Required
@@ -83,6 +87,7 @@ None - plan executed exactly as written.
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - All three Phase 8 verification blockers listed in 08-VERIFICATION are closed with test coverage and passing automation.
 - Manage Appliances add/edit/delete and stale-write token paths now match backend request/validation contracts.
 
@@ -93,5 +98,6 @@ None - no external service configuration required.
 - FOUND_COMMIT: bc59ee9
 
 ---
-*Phase: 08-appliance-domain-hardening*
-*Completed: 2026-03-26*
+
+_Phase: 08-appliance-domain-hardening_
+_Completed: 2026-03-26_

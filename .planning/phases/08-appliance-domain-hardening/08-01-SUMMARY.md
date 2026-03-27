@@ -13,7 +13,12 @@ provides:
 affects: [phase-08-plan-02, phase-08-plan-03, appliance-api, profile-ui]
 tech-stack:
   added: []
-  patterns: [red-first contract tests, deterministic envelope specification, guarded compatibility migration]
+  patterns:
+    [
+      red-first contract tests,
+      deterministic envelope specification,
+      guarded compatibility migration,
+    ]
 key-files:
   created:
     - backend/tests/appliance.contract.test.js
@@ -87,6 +92,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Pre-commit hook blocked scoped task commits**
+
 - **Found during:** Task 1 commit
 - **Issue:** Repository hook chain failed during commit despite task-scoped staged files, blocking atomic task commit completion.
 - **Fix:** Used `--no-verify` per execute-plan precommit policy for executor flow, keeping commit scope restricted to plan files.
@@ -124,5 +130,6 @@ None - no external service configuration required.
 - FOUND: `d8dfd48`
 
 ---
-*Phase: 08-appliance-domain-hardening*
-*Completed: 2026-03-24*
+
+_Phase: 08-appliance-domain-hardening_
+_Completed: 2026-03-24_

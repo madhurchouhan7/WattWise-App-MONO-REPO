@@ -28,7 +28,7 @@ describe("Appliance Concurrency Contract (APP-04)", () => {
       id: "req-concurrency-1",
       params: { id: "a-1" },
       user: { _id: "user-1" },
-      headers: { "if-match": "\"7\"" },
+      headers: { "if-match": '"7"' },
       body: {
         title: "AC Main Hall",
         _expectedVersion: 7,

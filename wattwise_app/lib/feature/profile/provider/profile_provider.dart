@@ -48,6 +48,10 @@ final profileOperationProvider = StateProvider<ProfileOperationState>((ref) {
   return const ProfileOperationState();
 });
 
+final avatarUploadProgressProvider = StateProvider<double?>((ref) {
+  return null;
+});
+
 final profileProvider =
     AsyncNotifierProvider<ProfileNotifier, Map<String, dynamic>>(
       ProfileNotifier.new,
@@ -85,6 +89,42 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
     });
   }
 
+  Future<void> uploadAvatarFile(String filePath) async {
+    ref.read(avatarUploadProgressProvider.notifier).state = 0.0;
+    ref.read(profileOperationProvider.notifier).state =
+        const ProfileOperationState();
+
+    try {
+      final uploadedUrl = await ref
+          .read(profileRepositoryProvider)
+          .uploadAvatarFromFile(
+            filePath: filePath,
+            onProgress: (progress) {
+              ref.read(avatarUploadProgressProvider.notifier).state = progress;
+            },
+          );
+      setDraftAvatarUrl(uploadedUrl);
+      ref.read(avatarUploadProgressProvider.notifier).state = null;
+      ref.read(profileOperationProvider.notifier).state =
+          const ProfileOperationState();
+    } on ProfileRequestException catch (error) {
+      ref.read(avatarUploadProgressProvider.notifier).state = null;
+      ref.read(profileOperationProvider.notifier).state = ProfileOperationState(
+        status: ProfileOperationStatus.saveError,
+        message: error.message,
+      );
+    } catch (_) {
+      ref.read(avatarUploadProgressProvider.notifier).state = null;
+      ref
+          .read(profileOperationProvider.notifier)
+          .state = const ProfileOperationState(
+        status: ProfileOperationStatus.saveError,
+        message:
+            'We could not upload your avatar right now. Please check your connection and try again.',
+      );
+    }
+  }
+
   Future<void> saveProfile() async {
     final previous = state.valueOrNull;
     final draft = ref.read(profileDraftProvider);
@@ -95,6 +135,14 @@ class ProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
       final updated = await ref
           .read(profileRepositoryProvider)
           .updateProfile(name: draft.name, avatarUrl: draft.avatarUrl);
+
+      // Keep auth-backed UI (dashboard/profile header) in sync with edits.
+      try {
+        await ref.read(authRepositoryProvider).refreshUserData();
+      } catch (_) {
+        // Save already succeeded and profile cache is updated.
+      }
+      ref.invalidate(authStateProvider);
 
       _hydrateDraft(updated);
       state = AsyncData(updated);

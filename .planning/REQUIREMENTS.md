@@ -43,8 +43,8 @@
 
 ### Non-Functional
 
-- [ ] **NFR-01**: Each new profile utility screen handles loading, empty, error, and retry states consistently.
-- [ ] **NFR-02**: API responses for new utility endpoints follow a normalized success/error envelope.
+- [x] **NFR-01**: Each new profile utility screen handles loading, empty, error, and retry states consistently.
+- [x] **NFR-02**: API responses for new utility endpoints follow a normalized success/error envelope.
 - [ ] **NFR-03**: End-to-end flows for profile, appliances, content, support, and solar pass milestone UAT.
 
 ## Future Requirements (v2.2+)
@@ -65,32 +65,32 @@
 
 ## Traceability
 
-| Requirement | Phase    | Status  |
-| ----------- | -------- | ------- |
-| PRO-01      | Phase 7  | Complete |
-| PRO-02      | Phase 7  | Complete |
-| PRO-03      | Phase 7  | Complete |
-| PRO-04      | Phase 7  | Complete |
-| APP-01      | Phase 8  | Complete |
-| APP-02      | Phase 8  | Complete |
-| APP-03      | Phase 8  | Complete |
-| APP-04      | Phase 8  | Complete |
-| CNT-01      | Phase 9  | Complete |
-| CNT-02      | Phase 9  | Complete |
-| CNT-03      | Phase 9  | Complete |
-| CNT-04      | Phase 9  | Complete |
-| CNT-05      | Phase 9  | Complete |
-| SUP-01      | Phase 10 | Complete |
-| SUP-02      | Phase 10 | Complete |
-| SUP-03      | Phase 10 | Complete |
-| SUP-04      | Phase 10 | Complete |
-| SOL-01      | Phase 10 | Complete |
-| SOL-02      | Phase 10 | Complete |
-| SOL-03      | Phase 10 | Complete |
-| SOL-04      | Phase 10 | Complete |
-| NFR-01      | Phase 11 | Pending |
-| NFR-02      | Phase 11 | Pending |
-| NFR-03      | Phase 11 | Pending |
+| Requirement | Phase    | Status                 |
+| ----------- | -------- | ---------------------- |
+| PRO-01      | Phase 7  | Complete               |
+| PRO-02      | Phase 7  | Complete               |
+| PRO-03      | Phase 7  | Complete               |
+| PRO-04      | Phase 7  | Complete               |
+| APP-01      | Phase 8  | Complete               |
+| APP-02      | Phase 8  | Complete               |
+| APP-03      | Phase 8  | Complete               |
+| APP-04      | Phase 8  | Complete               |
+| CNT-01      | Phase 9  | Complete               |
+| CNT-02      | Phase 9  | Complete               |
+| CNT-03      | Phase 9  | Complete               |
+| CNT-04      | Phase 9  | Complete               |
+| CNT-05      | Phase 9  | Complete               |
+| SUP-01      | Phase 10 | Complete               |
+| SUP-02      | Phase 10 | Complete               |
+| SUP-03      | Phase 10 | Complete               |
+| SUP-04      | Phase 10 | Complete               |
+| SOL-01      | Phase 10 | Complete               |
+| SOL-02      | Phase 10 | Complete               |
+| SOL-03      | Phase 10 | Complete               |
+| SOL-04      | Phase 10 | Complete               |
+| NFR-01      | Phase 11 | Complete               |
+| NFR-02      | Phase 11 | Complete               |
+| NFR-03      | Phase 11 | Human sign-off pending |
 
 **Coverage:**
 

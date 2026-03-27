@@ -100,13 +100,13 @@ Success criteria:
 
 Goal: Validate end-to-end resilience and finalize v2.1 verification evidence.
 Requirements: NFR-01, NFR-02, NFR-03
-**Plans:** 3 plans
+**Plans:** 3/3 plans executed
 
 Plans:
 
-- [ ] 11-01-PLAN.md - Build reliability matrix and endpoint envelope conformance baseline.
-- [ ] 11-02-PLAN.md - Execute integrated negative-path backend/flutter reliability runs and capture evidence.
-- [ ] 11-03-PLAN.md - Consolidate UAT and milestone closure artifacts and synchronize planning state.
+- [x] 11-01-PLAN.md - Build reliability matrix and endpoint envelope conformance baseline.
+- [x] 11-02-PLAN.md - Execute integrated negative-path backend/flutter reliability runs and capture evidence.
+- [x] 11-03-PLAN.md - Consolidate UAT and milestone closure artifacts and synchronize planning state.
       Success criteria:
 
 1. All new utility screens handle loading/empty/error/retry consistently.
@@ -114,6 +114,8 @@ Plans:
 3. Negative-path tests pass for profile, appliances, content, support, and solar flows.
 4. Milestone UAT checklist is completed with no critical open gaps.
 5. Verification artifacts are documented for milestone closure.
+
+Status note: Automated verification is complete; final manual UAT sign-off remains pending in Phase 11 closure artifacts.
 
 ## Requirement Coverage Matrix
 

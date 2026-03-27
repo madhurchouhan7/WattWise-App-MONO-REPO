@@ -4,22 +4,22 @@ Purpose: Freeze Phase 09 utility-content API and client expectations before runt
 
 ## Canonical Routes
 
-| Requirement | Method | Route | Purpose |
-| --- | --- | --- | --- |
-| CNT-01, CNT-02 | GET | /content/faqs | Fetch FAQ topics/items with optional search and topic filtering |
-| CNT-03 | GET | /content/bill-guide | Fetch structured bill guide sections and glossary |
-| CNT-04, CNT-05 | GET | /content/legal/:slug | Fetch legal content by slug with visible freshness metadata |
+| Requirement    | Method | Route                | Purpose                                                         |
+| -------------- | ------ | -------------------- | --------------------------------------------------------------- |
+| CNT-01, CNT-02 | GET    | /content/faqs        | Fetch FAQ topics/items with optional search and topic filtering |
+| CNT-03         | GET    | /content/bill-guide  | Fetch structured bill guide sections and glossary               |
+| CNT-04, CNT-05 | GET    | /content/legal/:slug | Fetch legal content by slug with visible freshness metadata     |
 
 ## Request Contracts
 
 ### GET /content/faqs
 
-| Field | Location | Type | Required | Notes |
-| --- | --- | --- | --- | --- |
-| q | query | string | no | Full-text style keyword search over FAQ question and answer |
-| topic | query | string | no | Exact topic key filter |
-| limit | query | integer string | no | Page size; defaults to server standard |
-| offset | query | integer string | no | Pagination offset |
+| Field  | Location | Type           | Required | Notes                                                       |
+| ------ | -------- | -------------- | -------- | ----------------------------------------------------------- |
+| q      | query    | string         | no       | Full-text style keyword search over FAQ question and answer |
+| topic  | query    | string         | no       | Exact topic key filter                                      |
+| limit  | query    | integer string | no       | Page size; defaults to server standard                      |
+| offset | query    | integer string | no       | Pagination offset                                           |
 
 ### GET /content/bill-guide
 
@@ -27,9 +27,9 @@ No query or path parameters in Phase 09 contract.
 
 ### GET /content/legal/:slug
 
-| Field | Location | Type | Required | Notes |
-| --- | --- | --- | --- | --- |
-| slug | param | string | yes | Allowed values are terms and privacy |
+| Field | Location | Type   | Required | Notes                                |
+| ----- | -------- | ------ | -------- | ------------------------------------ |
+| slug  | param    | string | yes      | Allowed values are terms and privacy |
 
 ## Response Envelope
 
@@ -55,9 +55,7 @@ Error responses follow existing platform error envelope conventions (`success: f
 
 ```json
 {
-  "topics": [
-    { "id": "billing-basics", "label": "Billing Basics" }
-  ],
+  "topics": [{ "id": "billing-basics", "label": "Billing Basics" }],
   "items": [
     {
       "id": "faq-1",
@@ -131,13 +129,13 @@ Reference flow:
 
 ## Requirement Traceability
 
-| Requirement | Route(s) | Contract Guarantee |
-| --- | --- | --- |
-| CNT-01 | /content/faqs | FAQ topics and item list served by backend contract |
-| CNT-02 | /content/faqs?q=&topic= | Search and filter semantics frozen in query contract |
-| CNT-03 | /content/bill-guide | Structured sections and glossary payload contract |
-| CNT-04 | /content/legal/:slug | Legal metadata fields (`contentVersion`, `effectiveFrom`, `lastUpdatedAt`) are mandatory |
-| CNT-05 | all content routes | Conditional refresh via `ETag`, `If-None-Match`, and `304` behavior |
+| Requirement | Route(s)                | Contract Guarantee                                                                       |
+| ----------- | ----------------------- | ---------------------------------------------------------------------------------------- |
+| CNT-01      | /content/faqs           | FAQ topics and item list served by backend contract                                      |
+| CNT-02      | /content/faqs?q=&topic= | Search and filter semantics frozen in query contract                                     |
+| CNT-03      | /content/bill-guide     | Structured sections and glossary payload contract                                        |
+| CNT-04      | /content/legal/:slug    | Legal metadata fields (`contentVersion`, `effectiveFrom`, `lastUpdatedAt`) are mandatory |
+| CNT-05      | all content routes      | Conditional refresh via `ETag`, `If-None-Match`, and `304` behavior                      |
 
 ## Integration Order (Deterministic)
 

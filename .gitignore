@@ -84,3 +84,4 @@ model_capabilities.yaml
 .github/get-shit-done/
 .github/copilot-instructions.md
 .github/gsd-file-manifest.json
+wattwise_app/devtools_options.yaml

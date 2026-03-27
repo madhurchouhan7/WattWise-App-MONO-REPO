@@ -1,6 +1,40 @@
 const { z } = require("zod");
 
 const MAX_REVISION_ATTEMPTS = 2;
+const MIN_STRATEGY_COUNT = 4;
+
+const DEFAULT_STRATEGY_TEMPLATES = [
+  {
+    id: "baseline_strategy_1",
+    actionSummary: "Optimize cooling runtime windows",
+    fullDescription:
+      "Run AC in shorter cycles and pair with fan circulation to reduce compressor load.",
+  },
+  {
+    id: "baseline_strategy_2",
+    actionSummary: "Shift heavy appliances to off-peak",
+    fullDescription:
+      "Use washing machine and water heater during lower-demand windows to flatten daily peaks.",
+  },
+  {
+    id: "baseline_strategy_3",
+    actionSummary: "Cut standby and idle loads",
+    fullDescription:
+      "Switch off set-top boxes, chargers, and kitchen devices when inactive to avoid passive draw.",
+  },
+  {
+    id: "baseline_strategy_4",
+    actionSummary: "Tune thermostat and fan settings",
+    fullDescription:
+      "Increase thermostat by 1-2C and maintain fan speed for comfort with lower total energy use.",
+  },
+  {
+    id: "baseline_strategy_5",
+    actionSummary: "Improve daily usage discipline",
+    fullDescription:
+      "Track one high-consumption appliance daily and cap unnecessary runtime by 15-20 minutes.",
+  },
+];
 
 const AnomalySchema = z.object({
   id: z.string().min(1),
@@ -101,22 +135,41 @@ function normalizeStrategies(input = [], anomalies = []) {
     }))
     .filter((item) => item.actionSummary.length > 0);
 
-  if (normalized.length === 0) {
-    return [
-      {
-        id: "baseline_strategy",
-        actionSummary: "Trim standby and idle consumption",
-        fullDescription:
-          "Switch off idle appliances and avoid extended standby behavior.",
-        projectedSavings: Math.round(anomalyBudget * 0.25),
-      },
-    ];
-  }
-
-  return normalized.map((item) => ({
+  const bounded = normalized.map((item) => ({
     ...item,
     projectedSavings: Math.min(item.projectedSavings, anomalyBudget * 1.2),
   }));
+
+  const minRequired = Math.min(
+    MIN_STRATEGY_COUNT,
+    DEFAULT_STRATEGY_TEMPLATES.length,
+  );
+  if (bounded.length >= minRequired) {
+    return bounded;
+  }
+
+  const fallbackSavings = Math.max(50, Math.round(anomalyBudget * 0.15));
+  const existingSummaries = new Set(
+    bounded.map((item) => item.actionSummary.toLowerCase()),
+  );
+  const supplemented = [...bounded];
+
+  for (const template of DEFAULT_STRATEGY_TEMPLATES) {
+    if (supplemented.length >= minRequired) {
+      break;
+    }
+    if (existingSummaries.has(template.actionSummary.toLowerCase())) {
+      continue;
+    }
+    supplemented.push({
+      id: `${template.id}_${supplemented.length + 1}`,
+      actionSummary: template.actionSummary,
+      fullDescription: template.fullDescription,
+      projectedSavings: fallbackSavings,
+    });
+  }
+
+  return supplemented;
 }
 
 function buildFallbackFinalPlan(strategies = []) {

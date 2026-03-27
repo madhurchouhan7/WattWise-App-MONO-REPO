@@ -4,6 +4,7 @@
  */
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
 const { getCopywriterPrompt } = require("./copywriter.prompt");
+const { normalizeStrategies } = require("./shared/phase4Contracts");
 
 // Initialize LangChain Gemini Client
 const llm = new ChatGoogleGenerativeAI({
@@ -16,6 +17,10 @@ async function runCopywriter(state) {
     console.log("--> [Node] Copywriter Executing");
     
     try {
+        const normalizedStrategies = normalizeStrategies(
+            state.strategies || [],
+            state.anomalies || [],
+        );
         const systemMessage = getCopywriterPrompt();
         
         // Construct the prompt context
@@ -62,7 +67,7 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
                         percentage: 22
                      },
                      efficiencyScore: 78,
-                     keyActions: (state.strategies && state.strategies.length > 0 ? state.strategies : [{ actionSummary: "Follow this action", fullDescription: "Save money effortlessly", projectedSavings: 0 }]).map((s, _i) => ({
+                            keyActions: normalizedStrategies.map((s, _i) => ({
                          priority: "high",
                          appliance: "Appliance",
                          action: s.actionSummary || "Follow this action",
@@ -82,6 +87,14 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
 
     } catch (error) {
         console.error("Copywriter Node Error:", error.message);
+        const normalizedStrategies = normalizeStrategies(
+            state.strategies || [],
+            state.anomalies || [],
+        );
+        const fallbackRupees = normalizedStrategies.reduce(
+            (sum, item) => sum + Number(item.projectedSavings || 0),
+            0,
+        );
         // Fail gracefully
         return { 
             finalPlan: {
@@ -90,11 +103,15 @@ Strategies Generated (Strategist): ${JSON.stringify(state.strategies || [], null
                  status: "draft",
                  summary: "Hello! We noticed a few areas where you can save significantly on your energy bill this month. (Generated via fallback due to API limits).",
                  estimatedCurrentMonthlyCost: 2000,
-                 estimatedSavingsIfFollowed: { units: 50, rupees: 450, percentage: 22 },
+                 estimatedSavingsIfFollowed: { units: 50, rupees: Math.max(450, fallbackRupees), percentage: 22 },
                  efficiencyScore: 78,
-                 keyActions: [
-                     { priority: "high", appliance: "General Household", action: "Review energy consumption patterns", impact: "General awareness", estimatedSaving: "₹100/month" }
-                 ],
+                 keyActions: normalizedStrategies.map((s, _i) => ({
+                     priority: _i === 0 ? "high" : "medium",
+                     appliance: "General Household",
+                     action: s.actionSummary,
+                     impact: s.fullDescription,
+                     estimatedSaving: String(s.projectedSavings ?? 0),
+                 })),
                  slabAlert: { isInDangerZone: false, currentSlab: "Generic", warning: "" },
                  quickWins: ["Turn off lights", "Use natural ventilation"],
                  monthlyTip: "Keep your AC filters clean for peak performance."

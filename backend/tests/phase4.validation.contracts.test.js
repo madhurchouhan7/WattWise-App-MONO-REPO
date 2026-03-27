@@ -24,6 +24,27 @@ describe("phase4 validation contracts", () => {
     expect(validateFinalPlan(finalPlan).ok).toBe(true);
   });
 
+  it("ensures a minimum strategy floor for actionable plans", () => {
+    const anomalies = normalizeAnomalies([
+      { id: "a1", item: "AC", description: "high usage", rupeeCostImpact: 600 },
+    ]);
+    const strategies = normalizeStrategies(
+      [
+        {
+          id: "s1",
+          actionSummary: "Raise AC setpoint",
+          fullDescription: "Keep AC at 24-25C for most hours.",
+          projectedSavings: 180,
+        },
+      ],
+      anomalies,
+    );
+    const finalPlan = buildFallbackFinalPlan(strategies);
+
+    expect(strategies.length).toBeGreaterThanOrEqual(4);
+    expect(finalPlan.keyActions.length).toBeGreaterThanOrEqual(4);
+  });
+
   it("detects hallucination risk when savings envelope is exceeded", () => {
     const anomalies = normalizeAnomalies([{ id: "a1", item: "Fridge", description: "spike", rupeeCostImpact: 100 }]);
     const strategies = [

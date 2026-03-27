@@ -57,9 +57,7 @@ describe("Appliance Validation Contract", () => {
       }),
     );
     expect(payload.details).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: "appliances" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ path: "appliances" })]),
     );
   });
 
@@ -79,7 +77,10 @@ describe("Appliance Validation Contract", () => {
     expect(payload.errorCode).toBe("VALIDATION_ERROR");
     expect(payload.details).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: "unsupportedField", message: "Unsupported field" }),
+        expect.objectContaining({
+          path: "unsupportedField",
+          message: "Unsupported field",
+        }),
       ]),
     );
   });

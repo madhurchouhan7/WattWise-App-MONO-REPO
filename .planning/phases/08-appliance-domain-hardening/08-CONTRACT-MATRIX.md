@@ -40,12 +40,12 @@ For non-validation failures where field-level guidance is not available, `detail
 
 ## Endpoint Matrix
 
-| Endpoint | Purpose | Success | Deterministic error contract | Requirement trace |
-| --- | --- | --- | --- | --- |
-| `POST /api/v1/appliances` | Add one appliance | `201` + `success=true` + created appliance in `data` | `400 VALIDATION_ERROR` with `details[]`; `401` auth; `409 DUPLICATE_ERROR` when uniqueness guard is introduced | APP-01 |
-| `PATCH /api/v1/appliances/:id` | Edit one appliance | `200` + updated appliance in `data` | `400 VALIDATION_ERROR` + `details[]`; `404` not found; `412 PRECONDITION_FAILED` on stale write with recovery guidance | APP-01, APP-04 |
-| `DELETE /api/v1/appliances/:id` | Soft delete one appliance | `200` + deterministic message `Appliance deleted successfully.` | `404` not found; `401` auth | APP-01 |
-| `POST /api/v1/appliances/bulk` (compatibility) | Temporary bridge for legacy client saves | `200` + resulting appliance list in `data` | `400 VALIDATION_ERROR` + `details[]`; MUST NOT silently remove unrelated records | APP-02 |
+| Endpoint                                       | Purpose                                  | Success                                                         | Deterministic error contract                                                                                           | Requirement trace |
+| ---------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `POST /api/v1/appliances`                      | Add one appliance                        | `201` + `success=true` + created appliance in `data`            | `400 VALIDATION_ERROR` with `details[]`; `401` auth; `409 DUPLICATE_ERROR` when uniqueness guard is introduced         | APP-01            |
+| `PATCH /api/v1/appliances/:id`                 | Edit one appliance                       | `200` + updated appliance in `data`                             | `400 VALIDATION_ERROR` + `details[]`; `404` not found; `412 PRECONDITION_FAILED` on stale write with recovery guidance | APP-01, APP-04    |
+| `DELETE /api/v1/appliances/:id`                | Soft delete one appliance                | `200` + deterministic message `Appliance deleted successfully.` | `404` not found; `401` auth                                                                                            | APP-01            |
+| `POST /api/v1/appliances/bulk` (compatibility) | Temporary bridge for legacy client saves | `200` + resulting appliance list in `data`                      | `400 VALIDATION_ERROR` + `details[]`; MUST NOT silently remove unrelated records                                       | APP-02            |
 
 ## Conflict Semantics (APP-04)
 

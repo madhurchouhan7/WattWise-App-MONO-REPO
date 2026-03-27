@@ -8,16 +8,16 @@
 
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| SUP-01 | User can submit a support request with category, message, and contact details. | Contract-first `POST /api/v1/support/tickets` with strict Zod schema and required fields (`category`, `message`, `preferredContact`). |
-| SUP-02 | User receives a durable support reference ID after successful submission. | Server-generated immutable `ticketRef` using UUID + date prefix; returned in success envelope and persisted in SupportTicket document. |
-| SUP-03 | User gets clear retry guidance when support submission fails. | Error taxonomy (`VALIDATION_ERROR`, `RATE_LIMITED`, `TEMPORARY_UNAVAILABLE`) with retry hint + optional `Retry-After`; Flutter state machine preserves draft and exposes retry action. |
-| SUP-04 | Support submissions and legal consent events are logged with traceable metadata. | Consent snapshot (`consentVersion`, `acceptedAt`, `policySlug`) stored in ticket + activity/audit event with `requestId`, userId, endpoint, and consent hash. |
-| SOL-01 | User can input required home and consumption fields to calculate a solar estimate. | Dedicated solar input schema and DTO (`monthlyUnits`, `roofAreaSqFt`, `gridType`, `state/discom`, optional shading). |
-| SOL-02 | User sees estimate output as a transparent range with stated assumptions. | Deterministic assumptions model returns low/base/high bands and explicit assumption block (CUF, system losses, tariff basis). |
-| SOL-03 | User can adjust key inputs and instantly recalculate updated estimates. | Stateless calculator endpoint + Flutter `AsyncNotifier` recompute path with debounced local edits and immediate recalculation call. |
-| SOL-04 | Calculator clearly communicates limits and avoids implying financing-grade precision. | Response includes `confidenceLabel`, `limitations[]`, and disclaimer text; UI always renders uncertainty banner and “informational estimate only.” |
+| ID     | Description                                                                           | Research Support                                                                                                                                                                       |
+| ------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SUP-01 | User can submit a support request with category, message, and contact details.        | Contract-first `POST /api/v1/support/tickets` with strict Zod schema and required fields (`category`, `message`, `preferredContact`).                                                  |
+| SUP-02 | User receives a durable support reference ID after successful submission.             | Server-generated immutable `ticketRef` using UUID + date prefix; returned in success envelope and persisted in SupportTicket document.                                                 |
+| SUP-03 | User gets clear retry guidance when support submission fails.                         | Error taxonomy (`VALIDATION_ERROR`, `RATE_LIMITED`, `TEMPORARY_UNAVAILABLE`) with retry hint + optional `Retry-After`; Flutter state machine preserves draft and exposes retry action. |
+| SUP-04 | Support submissions and legal consent events are logged with traceable metadata.      | Consent snapshot (`consentVersion`, `acceptedAt`, `policySlug`) stored in ticket + activity/audit event with `requestId`, userId, endpoint, and consent hash.                          |
+| SOL-01 | User can input required home and consumption fields to calculate a solar estimate.    | Dedicated solar input schema and DTO (`monthlyUnits`, `roofAreaSqFt`, `gridType`, `state/discom`, optional shading).                                                                   |
+| SOL-02 | User sees estimate output as a transparent range with stated assumptions.             | Deterministic assumptions model returns low/base/high bands and explicit assumption block (CUF, system losses, tariff basis).                                                          |
+| SOL-03 | User can adjust key inputs and instantly recalculate updated estimates.               | Stateless calculator endpoint + Flutter `AsyncNotifier` recompute path with debounced local edits and immediate recalculation call.                                                    |
+| SOL-04 | Calculator clearly communicates limits and avoids implying financing-grade precision. | Response includes `confidenceLabel`, `limitations[]`, and disclaimer text; UI always renders uncertainty banner and “informational estimate only.”                                     |
 
 </phase_requirements>
 
@@ -35,30 +35,30 @@ For solar, the main risk is false precision. The phase should avoid “single-nu
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| express | 5.2.1 | Support/solar route orchestration | Existing backend routing foundation in this repo. |
-| mongoose | 9.3.3 (repo currently 9.2.3) | Ticket persistence + optional solar assumptions snapshot model | Existing datastore and schema/index strategy. |
-| zod | 4.3.6 | Input validation for support and solar contracts | Existing deterministic validation envelope pattern. |
-| uuid | 13.0.0 (repo currently 9.0.1) | Durable support reference ID generation | Already used for request IDs; avoids hand-rolled ID generation. |
-| flutter_riverpod | workspace dependency | Support/solar async state and retry orchestration | Existing app state pattern in profile/content flows. |
-| dio | 5.9.1 | Network client and status/error mapping | Existing centralized API client in app. |
+| Library          | Version                       | Purpose                                                        | Why Standard                                                    |
+| ---------------- | ----------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| express          | 5.2.1                         | Support/solar route orchestration                              | Existing backend routing foundation in this repo.               |
+| mongoose         | 9.3.3 (repo currently 9.2.3)  | Ticket persistence + optional solar assumptions snapshot model | Existing datastore and schema/index strategy.                   |
+| zod              | 4.3.6                         | Input validation for support and solar contracts               | Existing deterministic validation envelope pattern.             |
+| uuid             | 13.0.0 (repo currently 9.0.1) | Durable support reference ID generation                        | Already used for request IDs; avoids hand-rolled ID generation. |
+| flutter_riverpod | workspace dependency          | Support/solar async state and retry orchestration              | Existing app state pattern in profile/content flows.            |
+| dio              | 5.9.1                         | Network client and status/error mapping                        | Existing centralized API client in app.                         |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| jest | 30.3.0 (repo currently 30.2.0) | Backend contract tests for support/solar | Endpoint envelope, validation, and retry semantics. |
-| supertest | 7.2.2 | HTTP route behavior tests | Status code/header/error envelope assertions. |
-| flutter_test | SDK | Widget/provider tests for retry + assumptions rendering | Support form and solar result states. |
+| Library      | Version                        | Purpose                                                 | When to Use                                         |
+| ------------ | ------------------------------ | ------------------------------------------------------- | --------------------------------------------------- |
+| jest         | 30.3.0 (repo currently 30.2.0) | Backend contract tests for support/solar                | Endpoint envelope, validation, and retry semantics. |
+| supertest    | 7.2.2                          | HTTP route behavior tests                               | Status code/header/error envelope assertions.       |
+| flutter_test | SDK                            | Widget/provider tests for retry + assumptions rendering | Support form and solar result states.               |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
+| Instead of                                   | Could Use                        | Tradeoff                                                                                                 |
+| -------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Synchronous `201 Created` for support submit | `202 Accepted` async queue model | `202` is better for deferred pipelines, but Phase 10 requires immediate durable reference and simple UX. |
-| Persisting consent snapshot in ticket | Logging-only consent event | Logging-only is insufficient for long-term audit reconstruction if logs rotate or are sampled. |
-| Range-based solar output | Single-point estimate | Single value appears precise and increases user trust risk (violates SOL-04 intent). |
+| Persisting consent snapshot in ticket        | Logging-only consent event       | Logging-only is insufficient for long-term audit reconstruction if logs rotate or are sampled.           |
+| Range-based solar output                     | Single-point estimate            | Single value appears precise and increases user trust risk (violates SOL-04 intent).                     |
 
 **Installation:**
 
@@ -159,12 +159,14 @@ wattwise_app/lib/feature/solar/
 **When to use:** Every support ticket submission that depends on policy acceptance context.
 
 **Persist in SupportTicket document:**
+
 - `consent.policySlug`
 - `consent.consentVersion`
 - `consent.acceptedAt`
 - `consent.snapshotHash` (optional deterministic hash of consent block)
 
 **Emit structured activity/audit event:**
+
 - `eventType: support_ticket_submitted`
 - `ticketRef`
 - `requestId`
@@ -182,6 +184,7 @@ This combines durable domain data with operational observability and aligns with
 **When to use:** `POST /api/v1/solar/estimate` for SOL-01..SOL-04.
 
 **Input model (minimum):**
+
 - `monthlyUnits` (number > 0)
 - `roofAreaSqFt` (number > 0)
 - `state` and `discom` (for tariff baseline selection)
@@ -189,6 +192,7 @@ This combines durable domain data with operational observability and aligns with
 - `shadingLevel` (`low|medium|high`, default `medium`)
 
 **Output model (transparent range):**
+
 - `recommendedSystemSizeKw`
 - `estimatedMonthlyGenerationKwh: { low, base, high }`
 - `estimatedMonthlySavingsInr: { low, base, high }`
@@ -203,12 +207,14 @@ This combines durable domain data with operational observability and aligns with
 **When to use:** Failed support submit or solar compute request in Flutter.
 
 **State categories:**
+
 - `validationError`: inline field fixes, no retry CTA
 - `conflict` (if versioned resources introduced later): reload latest
 - `retryableError` (408/429/5xx): retry CTA + optional wait seconds
 - `unknownError`: generic retry + preserve draft
 
 **UX contract:**
+
 - Always preserve form/input draft on non-success
 - Show `requestId` in expandable details for support scenarios
 - If `Retry-After` present, show countdown hint: “Try again in N seconds”
@@ -223,12 +229,12 @@ This combines durable domain data with operational observability and aligns with
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Durable unique ticket references | Timestamp+random string utility | `uuid` package + stable server format wrapper | Avoid collisions and custom entropy bugs. |
-| Validation and error shape normalization | Ad-hoc field checks per controller | Existing `validate()` + Zod schemas | Reuses deterministic `VALIDATION_ERROR` envelope conventions. |
-| Retry/error UX branching in each widget | Widget-local boolean flags | Riverpod mutation state machine (existing appliance pattern) | Keeps recovery actions explicit and testable. |
-| Solar precision math “by instinct” | Opaque magic constants | Explicit assumptions model with low/base/high bands | Prevents misleading precision claims. |
+| Problem                                  | Don't Build                        | Use Instead                                                  | Why                                                           |
+| ---------------------------------------- | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| Durable unique ticket references         | Timestamp+random string utility    | `uuid` package + stable server format wrapper                | Avoid collisions and custom entropy bugs.                     |
+| Validation and error shape normalization | Ad-hoc field checks per controller | Existing `validate()` + Zod schemas                          | Reuses deterministic `VALIDATION_ERROR` envelope conventions. |
+| Retry/error UX branching in each widget  | Widget-local boolean flags         | Riverpod mutation state machine (existing appliance pattern) | Keeps recovery actions explicit and testable.                 |
+| Solar precision math “by instinct”       | Opaque magic constants             | Explicit assumptions model with low/base/high bands          | Prevents misleading precision claims.                         |
 
 **Key insight:** Support and solar both depend more on transparent contracts and recovery semantics than on complex new infrastructure.
 
@@ -322,13 +328,14 @@ if (statusCode == 400) {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| UUID guidance from RFC 4122 only | RFC 4122 lineage plus modern UUID implementations (`uuid` npm package) | RFC 4122 marked obsoleted by RFC 9562 | Keep using maintained library instead of custom ID logic. |
-| Single-point calculators | Range + assumptions + confidence outputs | Widely adopted in consumer estimate tools | Better trust and lower legal/compliance risk. |
-| Generic “something went wrong” UX | Actionable retry taxonomy with backoff hints | Modern API/client UX baseline | Higher completion and lower support friction. |
+| Old Approach                      | Current Approach                                                       | When Changed                              | Impact                                                    |
+| --------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------- |
+| UUID guidance from RFC 4122 only  | RFC 4122 lineage plus modern UUID implementations (`uuid` npm package) | RFC 4122 marked obsoleted by RFC 9562     | Keep using maintained library instead of custom ID logic. |
+| Single-point calculators          | Range + assumptions + confidence outputs                               | Widely adopted in consumer estimate tools | Better trust and lower legal/compliance risk.             |
+| Generic “something went wrong” UX | Actionable retry taxonomy with backoff hints                           | Modern API/client UX baseline             | Higher completion and lower support friction.             |
 
 **Deprecated/outdated:**
+
 - Hand-rolled unique ID generators for support references.
 - Silent fallback from compute failure to stale solar results without explicit user message.
 
@@ -353,25 +360,25 @@ if (statusCode == 400) {
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | Jest 30.x (`backend`), Flutter `flutter_test` (`wattwise_app`) |
-| Config file | `backend/package.json` scripts, Flutter default test runner |
-| Quick run command | `npm --prefix backend test -- --runInBand --testPathPatterns "(support|solar)" && cd wattwise_app && flutter test test/feature/profile/contact_support_test.dart test/feature/solar/solar_calculator_test.dart` |
+| Property           | Value                                                                         |
+| ------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework          | Jest 30.x (`backend`), Flutter `flutter_test` (`wattwise_app`)                |
+| Config file        | `backend/package.json` scripts, Flutter default test runner                   |
+| Quick run command  | `npm --prefix backend test -- --runInBand --testPathPatterns "(support        | solar)" && cd wattwise_app && flutter test test/feature/profile/contact_support_test.dart test/feature/solar/solar_calculator_test.dart` |
 | Full suite command | `npm --prefix backend test -- --runInBand && cd wattwise_app && flutter test` |
 
 ### Phase Requirements -> Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| SUP-01 | support request validates required fields and submits | backend contract + flutter widget | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_test.dart` | ❌ Wave 0 |
-| SUP-02 | successful submit returns durable reference ID | backend contract + flutter provider | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.reference.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_provider_test.dart` | ❌ Wave 0 |
-| SUP-03 | failure states provide retry guidance | backend error contract + flutter state test | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.retry.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_retry_states_test.dart` | ❌ Wave 0 |
-| SUP-04 | consent and support events are traceable | backend contract/integration | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.consent.audit.test.js` | ❌ Wave 0 |
-| SOL-01 | required fields accepted/rejected correctly | backend validation + flutter form test | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.validation.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_input_validation_test.dart` | ❌ Wave 0 |
-| SOL-02 | output returns estimate range + assumptions | backend contract + flutter render test | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.range.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_output_range_test.dart` | ❌ Wave 0 |
-| SOL-03 | adjusting inputs recalculates deterministically | backend contract + provider state test | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.recalculate.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_recalculate_provider_test.dart` | ❌ Wave 0 |
-| SOL-04 | limitations/disclaimers always visible | backend contract + widget assertion | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.limitations.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_disclaimer_test.dart` | ❌ Wave 0 |
+| Req ID | Behavior                                              | Test Type                                   | Automated Command                                                                                                                                                                               | File Exists? |
+| ------ | ----------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| SUP-01 | support request validates required fields and submits | backend contract + flutter widget           | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_test.dart`                    | ❌ Wave 0    |
+| SUP-02 | successful submit returns durable reference ID        | backend contract + flutter provider         | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.reference.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_provider_test.dart` | ❌ Wave 0    |
+| SUP-03 | failure states provide retry guidance                 | backend error contract + flutter state test | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.retry.contract.test.js && cd wattwise_app && flutter test test/feature/profile/contact_support_retry_states_test.dart` | ❌ Wave 0    |
+| SUP-04 | consent and support events are traceable              | backend contract/integration                | `npm --prefix backend test -- --runInBand --runTestsByPath tests/support.consent.audit.test.js`                                                                                                 | ❌ Wave 0    |
+| SOL-01 | required fields accepted/rejected correctly           | backend validation + flutter form test      | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.validation.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_input_validation_test.dart`      | ❌ Wave 0    |
+| SOL-02 | output returns estimate range + assumptions           | backend contract + flutter render test      | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.range.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_output_range_test.dart`               | ❌ Wave 0    |
+| SOL-03 | adjusting inputs recalculates deterministically       | backend contract + provider state test      | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.recalculate.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_recalculate_provider_test.dart` | ❌ Wave 0    |
+| SOL-04 | limitations/disclaimers always visible                | backend contract + widget assertion         | `npm --prefix backend test -- --runInBand --runTestsByPath tests/solar.limitations.contract.test.js && cd wattwise_app && flutter test test/feature/solar/solar_disclaimer_test.dart`           | ❌ Wave 0    |
 
 ### Sampling Rate
 
@@ -443,6 +450,7 @@ if (statusCode == 400) {
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - directly verified from repository + npm registry.
 - Architecture: HIGH - grounded in existing content/appliance/profile production patterns.
 - Pitfalls: MEDIUM - derived from repo behavior plus general HTTP semantics; real-world support ops still need UAT confirmation.

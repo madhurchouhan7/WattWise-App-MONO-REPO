@@ -11,7 +11,12 @@ provides:
 affects: [09-02-PLAN, 09-03-PLAN]
 tech-stack:
   added: []
-  patterns: [contract-first testing, red-first wave-0 assets, backend-first integration sequencing]
+  patterns:
+    [
+      contract-first testing,
+      red-first wave-0 assets,
+      backend-first integration sequencing,
+    ]
 key-files:
   created:
     - backend/tests/content.contract.test.js
@@ -79,6 +84,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Replaced unavailable `rg` verification command with `grep -nE` fallback**
+
 - **Found during:** Task 3 (Freeze content contract matrix and integration order)
 - **Issue:** `rg` was not available in the terminal environment, blocking the matrix verification command from the plan.
 - **Fix:** Executed equivalent `grep -nE` check against the same required contract terms.
