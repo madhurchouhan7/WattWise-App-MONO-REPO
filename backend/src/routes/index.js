@@ -13,6 +13,8 @@ const aiRoutes = require("./ai.routes");
 const bbpsRoutes = require("./bbps.routes");
 const notificationRoutes = require("./notification.routes");
 const contentRoutes = require("./content.routes");
+const solarRoutes = require("./solar.routes");
+const supportRoutes = require("./support.routes");
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
@@ -23,5 +25,7 @@ router.use("/ai", aiRoutes);
 router.use("/bbps", bbpsRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/content", contentRoutes);
+router.use("/solar", solarRoutes);
+router.use("/support", supportRoutes);
 
 module.exports = router;
