@@ -254,6 +254,83 @@ const schemas = {
         .regex(/^[a-z0-9-]{2,100}$/, "Invalid legal content slug"),
     })
     .strict(),
+
+  createSupportTicket: z
+    .object({
+      category: z.string().trim().min(1, "Category is required"),
+      message: z
+        .string()
+        .trim()
+        .min(10, "Message must be at least 10 characters")
+        .max(5000, "Message too long"),
+      preferredContact: z
+        .object({
+          name: z.string().trim().min(1, "Contact name is required").max(100),
+          method: z.enum(["email", "phone"]),
+          email: z.string().trim().email("Invalid email format").optional(),
+          phone: z
+            .string()
+            .trim()
+            .min(7, "Phone must be at least 7 digits")
+            .max(20, "Phone too long")
+            .optional(),
+        })
+        .strict()
+        .superRefine((value, ctx) => {
+          if (value.method === "email" && !value.email) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["email"],
+              message:
+                "Email is required when preferred contact method is email",
+            });
+          }
+
+          if (value.method === "phone" && !value.phone) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["phone"],
+              message:
+                "Phone is required when preferred contact method is phone",
+            });
+          }
+        }),
+      consent: z
+        .object({
+          policySlug: z
+            .string()
+            .trim()
+            .regex(/^[a-z0-9-]{2,100}$/, "Invalid policy slug"),
+          consentVersion: z
+            .string()
+            .trim()
+            .min(1, "Consent version is required"),
+          acceptedAt: z.string().datetime("acceptedAt must be an ISO datetime"),
+        })
+        .strict(),
+    })
+    .strict(),
+
+  calculateSolarEstimate: z
+    .object({
+      monthlyUnits: z
+        .number()
+        .min(1, "Monthly units must be at least 1")
+        .max(100000, "Monthly units seem too high"),
+      roofArea: z
+        .number()
+        .min(20, "Roof area must be at least 20 sq ft")
+        .max(50000, "Roof area seems too high"),
+      state: z.string().trim().min(1, "State is required").max(100),
+      discom: z.string().trim().min(1, "DISCOM is required").max(120),
+      shadingLevel: z.enum(["low", "medium", "high"]).optional(),
+      sanctionedLoadKw: z
+        .number()
+        .min(0.5, "Sanctioned load must be at least 0.5 kW")
+        .max(100, "Sanctioned load seems too high")
+        .optional(),
+    })
+    .strict(),
 };
 
 /**
