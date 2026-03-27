@@ -29,10 +29,10 @@
 
 ### Support Flow
 
-- [ ] **SUP-01**: User can submit a support request with category, message, and contact details.
-- [ ] **SUP-02**: User receives a durable support reference ID after successful submission.
-- [ ] **SUP-03**: User gets clear retry guidance when support submission fails.
-- [ ] **SUP-04**: Support submissions and legal consent events are logged with traceable metadata.
+- [x] **SUP-01**: User can submit a support request with category, message, and contact details.
+- [x] **SUP-02**: User receives a durable support reference ID after successful submission.
+- [x] **SUP-03**: User gets clear retry guidance when support submission fails.
+- [x] **SUP-04**: Support submissions and legal consent events are logged with traceable metadata.
 
 ### Solar Calculator v1
 
@@ -80,10 +80,10 @@
 | CNT-03      | Phase 9  | Complete |
 | CNT-04      | Phase 9  | Complete |
 | CNT-05      | Phase 9  | Complete |
-| SUP-01      | Phase 10 | Pending |
-| SUP-02      | Phase 10 | Pending |
-| SUP-03      | Phase 10 | Pending |
-| SUP-04      | Phase 10 | Pending |
+| SUP-01      | Phase 10 | Complete |
+| SUP-02      | Phase 10 | Complete |
+| SUP-03      | Phase 10 | Complete |
+| SUP-04      | Phase 10 | Complete |
 | SOL-01      | Phase 10 | Pending |
 | SOL-02      | Phase 10 | Pending |
 | SOL-03      | Phase 10 | Pending |
