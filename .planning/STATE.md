@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-27T05:39:21.022Z"
+last_updated: "2026-03-27T05:44:48.221Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 10 (Support and Solar Workflows) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -57,6 +57,8 @@ Plan: 2 of 3
 - [Phase 10]: Support ticket creation now returns deterministic 201 envelope with immutable ticketRef and OPEN status.
 - [Phase 10]: Temporary support write failures now return TEMPORARY_UNAVAILABLE with optional Retry-After guidance.
 - [Phase 10]: Support consent snapshot and trace.requestId/submittedAt are persisted in SupportTicket for auditability.
+- [Phase 10]: Solar estimate endpoint returns deterministic low/base/high generation and savings ranges.
+- [Phase 10]: Solar contract now always includes assumptions, limitations, confidenceLabel, and disclaimer metadata.
 
 ### To Do List
 
@@ -78,8 +80,9 @@ Plan: 2 of 3
 | Phase 09 P02 | 34 min | 2 tasks  | 8 files  |
 | Phase 09 P03 | 9 min  | 2 tasks  | 8 files  |
 | Phase 10 P01 | 2 min | 2 tasks | 9 files |
+| Phase 10 P02 | 8 min | 2 tasks | 8 files |
 
 ## Session Info
 
-- Last session: 2026-03-27T05:39:21Z
-- Stopped At: Completed 10-01-PLAN.md
+- Last session: 2026-03-27T05:45:02Z
+- Stopped At: Completed 10-02-PLAN.md

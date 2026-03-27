@@ -36,10 +36,10 @@
 
 ### Solar Calculator v1
 
-- [ ] **SOL-01**: User can input required home and consumption fields to calculate a solar estimate.
-- [ ] **SOL-02**: User sees estimate output as a transparent range with stated assumptions.
-- [ ] **SOL-03**: User can adjust key inputs and instantly recalculate updated estimates.
-- [ ] **SOL-04**: Calculator clearly communicates limits and avoids implying financing-grade precision.
+- [x] **SOL-01**: User can input required home and consumption fields to calculate a solar estimate.
+- [x] **SOL-02**: User sees estimate output as a transparent range with stated assumptions.
+- [x] **SOL-03**: User can adjust key inputs and instantly recalculate updated estimates.
+- [x] **SOL-04**: Calculator clearly communicates limits and avoids implying financing-grade precision.
 
 ### Non-Functional
 
@@ -84,10 +84,10 @@
 | SUP-02      | Phase 10 | Complete |
 | SUP-03      | Phase 10 | Complete |
 | SUP-04      | Phase 10 | Complete |
-| SOL-01      | Phase 10 | Pending |
-| SOL-02      | Phase 10 | Pending |
-| SOL-03      | Phase 10 | Pending |
-| SOL-04      | Phase 10 | Pending |
+| SOL-01      | Phase 10 | Complete |
+| SOL-02      | Phase 10 | Complete |
+| SOL-03      | Phase 10 | Complete |
+| SOL-04      | Phase 10 | Complete |
 | NFR-01      | Phase 11 | Pending |
 | NFR-02      | Phase 11 | Pending |
 | NFR-03      | Phase 11 | Pending |
