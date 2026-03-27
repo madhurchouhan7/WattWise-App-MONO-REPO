@@ -4,13 +4,13 @@
 
 Phase numbering continues from prior milestone phases.
 
-| #   | Phase                              | Goal                                                                                                   | Requirements                                                   | Success Criteria |
-| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------- |
-| 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04                                 | 5                |
-| 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                                          | APP-01, APP-02, APP-03, APP-04                                 | 5                |
-| 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh                            | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05                         | 5                |
-| 10  | Support and Solar Workflows        | 3/3 | Complete   | 2026-03-27 |
-| 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                                         | NFR-01, NFR-02, NFR-03                                         | 5                |
+| #   | Phase                              | Goal                                                                                                   | Requirements                           | Success Criteria |
+| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------- | ---------------- |
+| 7   | Contract Freeze and Profile Wiring | Finalize profile and settings contracts, then connect profile screens to real providers and endpoints. | PRO-01, PRO-02, PRO-03, PRO-04         | 5                |
+| 8   | Appliance Domain Hardening         | Make appliance CRUD safe, deterministic, and user-recoverable                                          | APP-01, APP-02, APP-03, APP-04         | 5                |
+| 9   | Utility Content Platform           | Deliver dynamic FAQ, bill-help, and legal content with version-safe refresh                            | CNT-01, CNT-02, CNT-03, CNT-04, CNT-05 | 5                |
+| 10  | Support and Solar Workflows        | 3/3                                                                                                    | Complete                               | 2026-03-27       |
+| 11  | Reliability and Milestone Closure  | Harden cross-feature behavior and close v2.1 verification gaps                                         | NFR-01, NFR-02, NFR-03                 | 5                |
 
 ## Phase Details
 
@@ -100,7 +100,14 @@ Success criteria:
 
 Goal: Validate end-to-end resilience and finalize v2.1 verification evidence.
 Requirements: NFR-01, NFR-02, NFR-03
-Success criteria:
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 11-01-PLAN.md - Build reliability matrix and endpoint envelope conformance baseline.
+- [ ] 11-02-PLAN.md - Execute integrated negative-path backend/flutter reliability runs and capture evidence.
+- [ ] 11-03-PLAN.md - Consolidate UAT and milestone closure artifacts and synchronize planning state.
+      Success criteria:
 
 1. All new utility screens handle loading/empty/error/retry consistently.
 2. New endpoints return normalized success and error envelopes.
